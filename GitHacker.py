@@ -39,11 +39,15 @@ def main():
         exit(1)
     files = dirlist("./", [])
     baseurl = sys.argv[1]
+    temppath = baseurl.split("http://")[1].split("/")[0]
     for i in files:
         if i.startswith("./.git"):
-            path = "../temp/" + i[2:]
+            path = "./%s/%s" % (temppath, i[2:])
             url = baseurl + i[2:]
             downloadFile(url, path)
+    master = open("./%s/.git/log/" % temppath, "r")
+    for line in master:
+        print line
 
 if __name__ == "__main__":
     main()
