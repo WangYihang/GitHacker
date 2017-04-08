@@ -62,6 +62,10 @@ def main():
     if len(sys.argv) != 2:
         print "Usage : "
         print "        python GitHacker.py [Website]"
+        print "Example : "
+        print "        python Githack.py http://127.0.0.1/"
+        print "Author : "
+        print "        wangyihang <wangyihanger@gmail.com>"
         exit(1)
     files = dirlist("./", [])
     baseurl = sys.argv[1]
