@@ -69,6 +69,10 @@ def main():
         exit(1)
     files = dirlist("./", [])
     baseurl = sys.argv[1]
+    if baseurl.endswith("/.git/"):
+        baseurl = baseurl[0:-5]
+    if baseurl.endswith("/.git"):
+        baseurl = baseurl[0:-4]
     print baseurl
     temppath = baseurl.split("http://")[1].split("/")[0]
 
