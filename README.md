@@ -13,6 +13,11 @@ you can be better To grasp the character and psychology of developers,
 so as to lay the foundation for further code audit
 ```
 
+Requirment : 
+```
+git >= 2.10
+```
+
 Usage :
 ```
 Usage :
