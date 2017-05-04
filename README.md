@@ -13,9 +13,10 @@ you can be better To grasp the character and psychology of developers,
 so as to lay the foundation for further code audit
 ```
 
-Requirments : 
+Installation : 
 ```
-git >= 2.10
+git clone https://github.com/wangyihang/GitHacker.git
+(Downlaod zip file directly from github is not validable, you must use 'git clone')
 ```
 
 Usage :
