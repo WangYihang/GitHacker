@@ -44,7 +44,7 @@ def get_sha1(content):
 
 def fixmissing(baseurl, temppath):
     # get missing files
-    os.system("cd ./%s ; git fsck --name-objects > ../cache.dat 2>&1" % temppath)
+    os.system("cd ./%s ; git fsck > ../cache.dat 2>&1" % temppath)
     missing = []
     with open("./cache.dat", "r") as f:
         missing += get_sha1(f.read())
