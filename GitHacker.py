@@ -9,6 +9,8 @@ import re
 
 log = []
 
+threadNumber = 50
+
 def dirlist(path, allfile):
     filelist = os.listdir(path)
     for filename in filelist:
@@ -78,7 +80,6 @@ def fixmissing(baseurl, temppath):
         threads.append(tt)
 
 
-    threadNumber = 50
     for t in threads:
         t.start()
         while True:
@@ -137,6 +138,7 @@ def main():
     baseurl = complete_url(baseurl)
     temppath = repalce_bad_chars(get_prefix(baseurl))
 
+
     # download base files
     for i in files:
         if i.startswith("./.git"):
@@ -171,6 +173,8 @@ def main():
 
     # git reset to the last commit
     os.system("cd ./%s; git reset --hard;" % temppath)
+
+    print "[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!"
 
 if __name__ == "__main__":
     main()
