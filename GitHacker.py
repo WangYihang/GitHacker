@@ -2,10 +2,12 @@
 # encoding:utf-8
 
 import os
+import threading
 import requests
 import sys
 import re
 
+log = []
 
 def dirlist(path, allfile):
     filelist = os.listdir(path)
@@ -19,6 +21,10 @@ def dirlist(path, allfile):
 
 
 def downloadFile(url, path):
+    if url in log:
+        print "[-] Downloaded!"
+    else:
+        log.append(url)
     index = path[::-1].find("/")
     folder = path[0:-index]
     try:
@@ -37,6 +43,16 @@ def downloadFile(url, path):
         print "[-] [%d]" % (response.status_code)
 
 
+class myThread (threading.Thread):
+    def __init__(self, imgSrc, directoryName):
+        threading.Thread.__init__(self)
+        self.imgSrc = imgSrc
+        self.directoryName = directoryName
+
+    def run(self):
+        downloadFile(self.imgSrc, self.directoryName)
+
+
 def get_sha1(content):
     result = re.findall(r"([a-fA-F0-9]{40})", content)
     return result
@@ -52,12 +68,23 @@ def fixmissing(baseurl, temppath):
     length = len(missing)
     # clean cache file
     os.system("rm ./cache.dat")
-
+    threads = []
     # download missing files
     for i in missing:
         path = "./%s/.git/objects/%s/%s" % (temppath, i[0:2], i[2:])
         url = "%sobjects/%s/%s" % (baseurl, i[0:2], i[2:])
-        downloadFile(url, path)
+        # downloadFile(url, path)
+        tt = myThread(url, path)
+        threads.append(tt)
+
+
+    threadNumber = 50
+    for t in threads:
+        t.start()
+        while True:
+            if(len(threading.enumerate()) < threadNumber):
+                break
+
     if length > 1:
         fixmissing(baseurl, temppath)
     else:
