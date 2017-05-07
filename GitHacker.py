@@ -79,7 +79,6 @@ def fixmissing(baseurl, temppath):
         tt = myThread(url, path)
         threads.append(tt)
 
-
     for t in threads:
         t.start()
         while True:
@@ -95,14 +94,10 @@ def fixmissing(baseurl, temppath):
 def complete_url(baseurl):
     if (not baseurl.startswith("http://")) and (not baseurl.startswith("https://")):
         baseurl = "http://" + baseurl
-    if baseurl.endswith("/.git/"):
+    if baseurl.endswith("/"):
         return baseurl
-    elif baseurl.endswith("/.git"):
-        return baseurl + "/"
-    elif baseurl.endswith("/"):
-        return baseurl + ".git/"
     else:
-        return baseurl + "/.git/"
+        return baseurl + "/"
 
 
 def get_prefix(baseurl):
@@ -128,7 +123,7 @@ def main():
         print "Usage : "
         print "        python GitHacker.py [Website]"
         print "Example : "
-        print "        python Githack.py http://127.0.0.1/"
+        print "        python Githack.py http://127.0.0.1/.git/"
         print "Author : "
         print "        wangyihang <wangyihanger@gmail.com>"
         exit(1)
@@ -144,8 +139,8 @@ def main():
         if i.startswith("./.git"):
             if i[len("./.git/"):len("./.git/objects")] == "objects":
                 continue
-            path = "./%s/%s" % (temppath, i[2:])
-            url = baseurl[0:-len(".git/")] + i[2:]
+            path = "./%s/%s" % (temppath, i[len("./"):])
+            url = baseurl + i[len("./.git/"):]
             downloadFile(url, path)
 
     # download baseobject files
@@ -178,3 +173,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
