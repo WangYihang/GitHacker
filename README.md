@@ -13,8 +13,15 @@ you can be better To grasp the character and psychology of developers,
 so as to lay the foundation for further code audit
 ```
 
+Requirments
+```
+git >= 2.11.0 ??? (TODO : test min version)
+python-requests
+```
+
 Installation : 
 ```
+pip install requests
 git clone https://github.com/wangyihang/GitHacker.git
 (Downlaod zip file directly from github is not validable, you must use 'git clone')
 ```
