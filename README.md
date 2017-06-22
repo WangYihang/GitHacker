@@ -17,6 +17,7 @@ Requirments
 ```
 git >= 2.11.0 ??? (TODO : test min version)
 python-requests
+# now only support Linux, :D
 ```
 
 Installation : 
