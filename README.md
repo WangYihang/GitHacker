@@ -32,14 +32,14 @@ Usage :
 Usage :
         python GitHacker.py [Website]
 Example :
-        python Githack.py http://127.0.0.1/
+        python Githack.py http://127.0.0.1/.git/
 Author :
         wangyihang <wangyihanger@gmail.com>
 ```
 
 Example : 
 ```
-python GitHacker.py http://127.0.0.1/
+python GitHacker.py http://127.0.0.1/.git/
 ```
 
 TODO : 
