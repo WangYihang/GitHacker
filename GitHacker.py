@@ -4,12 +4,17 @@
 import os
 import threading
 import requests
+import string
+import random
 import sys
 import re
 
 log = []
 
 threadNumber = 50
+
+def random_string(length):
+    return "".join([random.choice(string.letters for i in range(length))])
 
 def dirlist(path, allfile):
     filelist = os.listdir(path)
@@ -117,6 +122,12 @@ def repalce_bad_chars(path):
     path = path.replace("\"", "_")
     return path
 
+def handle_git_stash():
+    filename = random_string(0x20)
+    os.system("touch %s" % filename)	
+    os.system("git add %s" % filename)
+    os.system("git stash")	
+    os.system("rm -rf %s" % filename)
 
 def main():
     if len(sys.argv) != 2:
@@ -133,6 +144,8 @@ def main():
     baseurl = complete_url(baseurl)
     temppath = repalce_bad_chars(get_prefix(baseurl))
 
+    # Handle git stash
+    handle_git_stash()
 
     # download base files
     for i in files:
