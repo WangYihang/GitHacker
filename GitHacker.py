@@ -14,7 +14,7 @@ log = []
 threadNumber = 50
 
 def random_string(length):
-    return "".join([random.choice(string.letters for i in range(length))])
+    return "".join([random.choice(string.letters) for i in range(length)])
 
 def dirlist(path, allfile):
     filelist = os.listdir(path)
