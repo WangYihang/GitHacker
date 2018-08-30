@@ -139,13 +139,13 @@ def main():
         print "        wangyihang <wangyihanger@gmail.com>"
         exit(1)
 
+    # Handle git stash
+    handle_git_stash()
+
     files = dirlist("./", [])
     baseurl = sys.argv[1]
     baseurl = complete_url(baseurl)
     temppath = repalce_bad_chars(get_prefix(baseurl))
-
-    # Handle git stash
-    handle_git_stash()
 
     # download base files
     for i in files:
