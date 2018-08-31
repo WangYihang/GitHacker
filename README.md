@@ -1,6 +1,6 @@
 # GitHacker
 
-Desciption : 
+#### Desciption: 
 ```
 This is a muti threads tool to detect whether a site has git source leaks,   
 and has the ability to download the site source to the local  
@@ -13,21 +13,21 @@ you can be better To grasp the character and psychology of developers,
 so as to lay the foundation for further code audit
 ```
 
-Requirments
+#### Requirments:
 ```
-git >= 2.11.0 ??? (TODO : test min version)
+git >= 2.11.0
 python-requests
-# now only support Linux, :D
+Linux envrionment
 ```
 
-Installation : 
+#### Installation: 
 ```
 pip install requests
 git clone https://github.com/wangyihang/GitHacker.git
 (Downlaod zip file directly from github is not validable, you must use 'git clone')
 ```
 
-Usage :
+#### Usage :
 ```
 Usage :
         python GitHacker.py [Website]
@@ -37,20 +37,31 @@ Author :
         wangyihang <wangyihanger@gmail.com>
 ```
 
-Example : 
+#### Example: 
 ```
 python GitHacker.py http://127.0.0.1/.git/
 ```
 
-TODO : 
-```
-1. HTTPS
-2. Find a better way than recursion
-```
+#### Video: 
+[![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
-Author : 
+#### Licsence
 ```
-WangYihang <wangyihanger@gmail.com>
-If you have any questsion, please contact me by email
-thank you for using :)
+THE DRINKWARE LICENSE
+
+<wangyihanger@gmail.com> wrote this file. As long as 
+you retain this notice you can do whatever you want 
+with this stuff. If we meet some day, and you think 
+this stuff is worth it, you can buy me the following
+drink(s) in return.
+
+Red Bull
+JDB
+Coffee
+Sprite
+Cola
+Harbin Beer
+etc
+
+Wang Yihang
 ```
