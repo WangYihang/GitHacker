@@ -2,7 +2,7 @@
 
 #### Desciption: 
 ```
-This is a muti threads tool to detect whether a site has git source leaks,   
+This is a multiple threads tool to detect whether a site has git source leaks,   
 and has the ability to download the site source to the local  
 This tool can even be in. Git directory is prohibited when access to the use of loopholes
 It is worth mentioning that this tool will be, 
