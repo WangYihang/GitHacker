@@ -43,7 +43,6 @@ def downloadFile(url, path):
     response = requests.get(url)
     if response.status_code == 200:
         with open(path, "wb") as f:
-            print response.content
             f.write(response.content)
             print "[+] Success!"
     else:
