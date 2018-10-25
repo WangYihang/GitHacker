@@ -15,6 +15,9 @@ so as to lay the foundation for further code audit
 
 ### Comparison of other tools
 ![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+* [【.git/ folder attack】Comparison of attack tools (Part ONE)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
+* [【.git/ folder attack】Comparison of attack tools (Part TWO)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
+
 
 #### Requirments:
 ```
