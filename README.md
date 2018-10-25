@@ -13,6 +13,9 @@ you can be better To grasp the character and psychology of developers,
 so as to lay the foundation for further code audit
 ```
 
+### Comparison of other tools
+![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 #### Requirments:
 ```
 git >= 2.11.0
