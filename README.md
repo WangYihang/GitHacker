@@ -50,6 +50,10 @@ Author :
 python GitHacker.py http://127.0.0.1/.git/
 ```
 
+#### TODO:
+- [ ] Download tags and branches when Index enabled
+- [ ] Try common tags and branches when Index disabled
+
 #### Video: 
 [![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
