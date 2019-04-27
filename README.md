@@ -53,7 +53,7 @@ python GitHacker.py http://127.0.0.1/.git/
 #### TODO:
 - [ ] Download tags and branches when Index enabled
 - [ ] Try common tags and branches when Index disabled
-
+- [ ] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 #### Video: 
 [![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
