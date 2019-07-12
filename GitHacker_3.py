@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding:utf-8
 
 import os
@@ -8,7 +8,7 @@ import string
 import random
 import sys
 import re
-
+# import pysnooper
 log = []
 
 threadNumber = 50
@@ -26,7 +26,7 @@ def dirlist(path, allfile):
             allfile.append(filepath)
     return allfile
 
-
+#@pysnooper.snooper()
 def downloadFile(url, path):
     if url in log:
         print("[-] Downloaded!")
