@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding:utf-8
 
 import os
 import threading
 import requests
-import string
 import random
 import sys
 import re
@@ -14,7 +13,8 @@ log = []
 threadNumber = 50
 
 def random_string(length):
-    return "".join([random.choice(string.letters) for i in range(length)])
+    charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return "".join([random.choice(charset) for i in range(length)])
 
 def dirlist(path, allfile):
     filelist = os.listdir(path)
@@ -26,27 +26,26 @@ def dirlist(path, allfile):
             allfile.append(filepath)
     return allfile
 
-
 def downloadFile(url, path):
     if url in log:
-        print "[-] Downloaded!"
+        print("[-] Downloaded!")
     else:
         log.append(url)
     index = path[::-1].find("/")
     folder = path[0:-index]
     try:
-        print "[+] Make dir : %s" % (folder)
+        print("[+] Make dir : %s" % (folder))
         os.makedirs(folder)
     except:
-        print "[-] Folder already existed!"
-    print "[!] Getting -> %s" % (url)
+        print("[-] Folder already existed!")
+    print("[!] Getting -> %s" % (url))
     response = requests.get(url)
     if response.status_code == 200:
         with open(path, "wb") as f:
             f.write(response.content)
-            print "[+] Success!"
+            print("[+] Success!")
     else:
-        print "[-] [%d]" % (response.status_code)
+        print("[-] [%d]" % (response.status_code))
 
 
 class myThread (threading.Thread):
@@ -130,12 +129,12 @@ def handle_git_stash():
 
 def main():
     if len(sys.argv) != 2:
-        print "Usage : "
-        print "        python GitHacker.py [Website]"
-        print "Example : "
-        print "        python Githack.py http://127.0.0.1/.git/"
-        print "Author : "
-        print "        wangyihang <wangyihanger@gmail.com>"
+        print("Usage : ")
+        print("        python GitHacker.py [Website]")
+        print("Example : ")
+        print("        python Githack.py http://127.0.0.1/.git/")
+        print("Author : ")
+        print("        wangyihang <wangyihanger@gmail.com>")
         exit(1)
 
     # Handle git stash
@@ -157,7 +156,7 @@ def main():
 
     # download baseobject files
     master = open("./%s/.git/logs/refs/heads/master" % temppath, "r")
-    print "[!] Downloading object files"
+    print("[!] Downloading object files")
     for line in master:
         prehash = line.split(" ")[0]
         nexthash = line.split(" ")[1]
@@ -169,19 +168,19 @@ def main():
         try:
             os.makedirs("./%s/%s", (temppath, path))
         except Exception as e:
-            print "[-] %s" % (e)
+            print("[-] %s" % (e))
 
-        print (url, path)
+        print((url, path))
         downloadFile(url, path)
 
-    print "[+] Start fixing missing files..."
+    print("[+] Start fixing missing files...")
     # download missing files
     fixmissing(baseurl, temppath)
 
     # git reset to the last commit
     os.system("cd ./%s; git reset --hard;" % temppath)
 
-    print "[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!"
+    print("[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!")
 
 if __name__ == "__main__":
     main()
