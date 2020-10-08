@@ -40,7 +40,7 @@ git clone https://github.com/wangyihang/GitHacker.git
 Usage :
         python GitHacker.py [Website]
 Example :
-        python Githack.py http://127.0.0.1/.git/
+        python Githacker.py http://127.0.0.1/.git/
 Author :
         wangyihang <wangyihanger@gmail.com>
 ```
