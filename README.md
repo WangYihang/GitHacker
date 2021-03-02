@@ -31,7 +31,6 @@ Linux envrionment
 # Install requests
 pip install requests
 # Download source
-# Notice: NO NOT DOWNLOAD ZIP FROM GITHUB
 git clone https://github.com/wangyihang/GitHacker.git
 ```
 
