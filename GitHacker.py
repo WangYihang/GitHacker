@@ -120,10 +120,12 @@ def repalce_bad_chars(path):
     path = path.replace("\"", "_")
     return path
 
-def handle_git_stash():
+def handle_git():
     filename = random_string(0x20)
+    os.system("git init")
     os.system("touch %s" % filename)	
     os.system("git add %s" % filename)
+    os.system("git commit -m 'commit'")
     os.system("git stash")	
     os.system("rm -rf %s" % filename)
 
@@ -137,8 +139,8 @@ def main():
         print("        wangyihang <wangyihanger@gmail.com>")
         exit(1)
 
-    # Handle git stash
-    handle_git_stash()
+    # Handle git
+    handle_git()
 
     files = dirlist("./", [])
     baseurl = sys.argv[1]
@@ -184,4 +186,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
