@@ -121,13 +121,23 @@ def repalce_bad_chars(path):
     return path
 
 def handle_git():
+    files = dirlist("./", [])
     filename = random_string(0x20)
-    os.system("git init")
-    os.system("touch %s" % filename)	
-    os.system("git add %s" % filename)
-    os.system("git commit -m 'commit'")
-    os.system("git stash")	
-    os.system("rm -rf %s" % filename)
+    if "./.git/config" in files:
+        os.system("touch %s" % filename)	
+        os.system("git stash")	
+        os.system("rm -rf %s" % filename)
+        return False
+    else:
+        os.system("git init")
+        os.system("touch refGit")	
+        os.system("git add refGit")
+        os.system("git commit -m 'refGit'")
+        os.system("touch %s" % filename)	
+        os.system("git stash")	
+        os.system("rm -rf refGit")
+        os.system("rm -rf %s" % filename)
+        return True
 
 def main():
     if len(sys.argv) != 2:
@@ -140,7 +150,7 @@ def main():
         exit(1)
 
     # Handle git
-    handle_git()
+    isRefGitExist = handle_git()
 
     files = dirlist("./", [])
     baseurl = sys.argv[1]
@@ -181,6 +191,10 @@ def main():
 
     # git reset to the last commit
     os.system("cd ./%s; git reset --hard;" % temppath)
+
+    # handle refGit
+    if isRefGitExist:
+        os.system("rm -rf .git")
 
     print("[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!")
 
