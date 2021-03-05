@@ -2,15 +2,16 @@
 
 #### Desciption
 
-This is a multiple threads tool to detect whether a site has git source leaks,   
-and has the ability to download the site source to the local  
-This tool can even be in. Git directory is prohibited when access to the use of loopholes
-It is worth mentioning that this tool will be, 
-git directory completely simulated to the local rather than tools 
-such as [githack] just simply restore to the latest version  
-so that you can view the developer's submission history as well as submit the annotation 
-you can be better To grasp the character and psychology of developers, 
-so as to lay the foundation for further code audit
+This is a multiple threads tool to detect whether a site has the `.git` folder 
+leakage vulnerability. It is able to download the target `.git` folder almost 
+completely. This tool also works when the `DirectoryListings` feature is 
+disabled. It is worth mentioning that this tool will download almost all files 
+of the target git repository and then rebuild them locally, which makes this 
+tool State of the art in this area. For example, tools like [githack] just 
+simply restore the latest version. With GitHacker's help, you can view the 
+developer's commit history, which makes a better understanding of the character 
+and psychology of developers, so as to lay the foundation for further code 
+audition.
 
 #### Comparison of other tools
 
