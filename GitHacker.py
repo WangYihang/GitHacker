@@ -34,18 +34,18 @@ def downloadFile(url, path):
     index = path[::-1].find("/")
     folder = path[0:-index]
     try:
-        print("[+] Make dir : %s" % (folder))
+        print("[+] Make dir : {}".format(folder))
         os.makedirs(folder)
     except:
         print("[-] Folder already existed!")
-    print("[!] Getting -> %s" % (url))
+    print("[!] Getting -> {}".format(url))
     response = requests.get(url)
     if response.status_code == 200:
         with open(path, "wb") as f:
             f.write(response.content)
             print("[+] Success!")
     else:
-        print("[-] [%d]" % (response.status_code))
+        print("[-] [{}]".format(response.status_code))
 
 
 class myThread (threading.Thread):
@@ -65,7 +65,7 @@ def get_sha1(content):
 
 def fixmissing(baseurl, temppath):
     # get missing files
-    os.system("cd ./%s ; git fsck > ../cache.dat 2>&1" % temppath)
+    os.system("cd ./{} ; git fsck > ../cache.dat 2>&1".format(temppath))
     missing = []
     with open("./cache.dat", "r") as f:
         missing += get_sha1(f.read())
@@ -76,8 +76,8 @@ def fixmissing(baseurl, temppath):
     threads = []
     # download missing files
     for i in missing:
-        path = "./%s/.git/objects/%s/%s" % (temppath, i[0:2], i[2:])
-        url = "%sobjects/%s/%s" % (baseurl, i[0:2], i[2:])
+        path = "./{}/.git/objects/{}/{}".format(temppath, i[0:2], i[2:])
+        url = "{}objects/{}/{}".format(baseurl, i[0:2], i[2:])
         # downloadFile(url, path)
         tt = myThread(url, path)
         threads.append(tt)
@@ -121,23 +121,20 @@ def repalce_bad_chars(path):
     return path
 
 def handle_git():
-    files = dirlist("./", [])
     filename = random_string(0x20)
-    if "./.git/config" in files:
-        os.system("touch %s" % filename)	
-        os.system("git stash")	
-        os.system("rm -rf %s" % filename)
-        return False
+    if os.path.exists(".git/config"):
+        os.system("touch {}".format(filename))
+        os.system("git stash")
+        os.system("rm -rf {}".format(filename))
     else:
         os.system("git init")
-        os.system("touch refGit")	
-        os.system("git add refGit")
-        os.system("git commit -m 'refGit'")
-        os.system("touch %s" % filename)	
-        os.system("git stash")	
-        os.system("rm -rf refGit")
-        os.system("rm -rf %s" % filename)
-        return True
+        os.system("touch {}".format(filename))
+        os.system("git add {}".format(filename))
+        os.system("git commit -m 'Init commit'")
+        stash_filename = random_string(0x20)
+        os.system("touch {}".format(stash_filename))
+        os.system("git stash")
+        os.system("rm -rf {} {}".format(filename, stash_filename))
 
 def main():
     if len(sys.argv) != 2:
@@ -192,13 +189,7 @@ def main():
     # git reset to the last commit
     os.system("cd ./%s; git reset --hard;" % temppath)
 
-    # handle refGit
-    if isRefGitExist:
-        os.system("rm -rf .git")
-
     print("[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!")
 
 if __name__ == "__main__":
     main()
-
-

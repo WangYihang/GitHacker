@@ -1,7 +1,7 @@
 # GitHacker
 
-#### Desciption: 
-```
+#### Desciption
+
 This is a multiple threads tool to detect whether a site has git source leaks,   
 and has the ability to download the site source to the local  
 This tool can even be in. Git directory is prohibited when access to the use of loopholes
@@ -11,22 +11,21 @@ such as [githack] just simply restore to the latest version
 so that you can view the developer's submission history as well as submit the annotation 
 you can be better To grasp the character and psychology of developers, 
 so as to lay the foundation for further code audit
-```
 
-#### Why you need this tool not other tools
+#### Comparison of other tools
+
 ![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 * [【.git/ folder attack】Comparison of attack tools (Part ONE)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
 * [【.git/ folder attack】Comparison of attack tools (Part TWO)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
 
+#### Requirments
 
-#### Requirments:
-```
-git >= 2.11.0
-python-requests
-Linux envrionment
-```
+* git >= 2.11.0
+* python-requests
+* Linux envrionment
 
-#### Installation: 
+#### Installation
 ```
 # Install requests
 pip install requests
@@ -44,7 +43,7 @@ Author :
         wangyihang <wangyihanger@gmail.com>
 ```
 
-#### Example: 
+#### Example
 ```
 python GitHacker.py http://127.0.0.1/.git/
 ```
@@ -53,8 +52,13 @@ python GitHacker.py http://127.0.0.1/.git/
 - [ ] Download tags and branches when Index enabled
 - [ ] Try common tags and branches when Index disabled
 - [ ] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
-#### Video: 
+
+#### Video
+
 [![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
+
+#### Acknowledgement
+- [lesion1999](https://github.com/lesion1999)
 
 #### Licsence
 ```
