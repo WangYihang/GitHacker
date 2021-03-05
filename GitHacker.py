@@ -120,12 +120,24 @@ def repalce_bad_chars(path):
     path = path.replace("\"", "_")
     return path
 
-def handle_git_stash():
+def handle_git():
+    files = dirlist("./", [])
     filename = random_string(0x20)
-    os.system("touch %s" % filename)	
-    os.system("git add %s" % filename)
-    os.system("git stash")	
-    os.system("rm -rf %s" % filename)
+    if "./.git/config" in files:
+        os.system("touch %s" % filename)	
+        os.system("git stash")	
+        os.system("rm -rf %s" % filename)
+        return False
+    else:
+        os.system("git init")
+        os.system("touch refGit")	
+        os.system("git add refGit")
+        os.system("git commit -m 'refGit'")
+        os.system("touch %s" % filename)	
+        os.system("git stash")	
+        os.system("rm -rf refGit")
+        os.system("rm -rf %s" % filename)
+        return True
 
 def main():
     if len(sys.argv) != 2:
@@ -137,8 +149,8 @@ def main():
         print("        wangyihang <wangyihanger@gmail.com>")
         exit(1)
 
-    # Handle git stash
-    handle_git_stash()
+    # Handle git
+    isRefGitExist = handle_git()
 
     files = dirlist("./", [])
     baseurl = sys.argv[1]
@@ -180,8 +192,13 @@ def main():
     # git reset to the last commit
     os.system("cd ./%s; git reset --hard;" % temppath)
 
+    # handle refGit
+    if isRefGitExist:
+        os.system("rm -rf .git")
+
     print("[+] All file downloaded! Please enter the dir and type `git reflog` to show all log info!")
 
 if __name__ == "__main__":
     main()
+
 
