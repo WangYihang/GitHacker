@@ -1,6 +1,6 @@
 # GitHacker
 
-#### Desciption
+## Desciption
 
 This is a multiple threads tool to detect whether a site has the `.git` folder 
 leakage vulnerability. It is able to download the target `.git` folder almost 
@@ -13,44 +13,54 @@ developer's commit history, which makes a better understanding of the character
 and psychology of developers, so as to lay the foundation for further code 
 audition.
 
-#### Comparison of other tools
+## Comparison of other tools
 
 ![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-* [【.git/ folder attack】Comparison of attack tools (Part ONE)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
-* [【.git/ folder attack】Comparison of attack tools (Part TWO)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
 
-#### Requirments
+
+## Requirments
 
 * git >= 2.11.0
 * Python 3
 
-#### Installation
+## Installation
 
 ```
 pip3 install -i https://pypi.org/simple/ GitHacker
 ```
 
-#### Usage
+## Usage
 
 ```bash
 githacker --url http://127.0.0.1/.git/ --folder result
 ```
 
-#### TODO
+## Example
+
+![Demo](./figure/demo.gif)
+
+## TODO
 
 - [ ] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 
-#### Video
+
+## Videos
+### asciinema
 
 [![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
-#### Acknowledgement
+### YouTube
+* [【.git/ folder attack】Comparison of attack tools (Part ONE)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
+* [【.git/ folder attack】Comparison of attack tools (Part TWO)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
+
+
+## Acknowledgement
 - [lesion1999](https://github.com/lesion1999)
 
-#### Licsence
+## Licsence
 ```
 THE DRINKWARE LICENSE
 
