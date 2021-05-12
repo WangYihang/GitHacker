@@ -27,13 +27,13 @@ audition.
 #### Installation
 
 ```
-pip install -r requirements.txt
+pip install GitHacker
 ```
 
 #### Usage
 
 ```bash
-python GitHacker.py --url http://127.0.0.1/.git/ --folder result
+githacker --url http://127.0.0.1/.git/ --folder result
 ```
 
 #### TODO
