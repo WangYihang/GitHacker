@@ -23,11 +23,12 @@ audition.
 #### Requirments
 
 * git >= 2.11.0
+* Python 3
 
 #### Installation
 
 ```
-pip install -i https://pypi.org/simple/ GitHacker
+pip3 install -i https://pypi.org/simple/ GitHacker
 ```
 
 #### Usage

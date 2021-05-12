@@ -1,7 +1,9 @@
 test: build
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ dist/*
 release: build
-	twine upload dist/* --skip-existing
+	twine upload --skip-existing dist/*
 build:
 	python setup.py sdist bdist_wheel
 	twine check dist/*
+clean:
+	rm -rf build dist *.egg-info
