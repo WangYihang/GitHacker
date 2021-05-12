@@ -23,36 +23,24 @@ audition.
 #### Requirments
 
 * git >= 2.11.0
-* python-requests
-* Linux envrionment
 
 #### Installation
+
 ```
-# Install requests
-pip install requests
-# Download source
-git clone https://github.com/wangyihang/GitHacker.git
+pip install -r requirements.txt
 ```
 
-#### Usage :
-```
-Usage :
-        python GitHacker.py [Website]
-Example :
-        python Githacker.py http://127.0.0.1/.git/
-Author :
-        wangyihang <wangyihanger@gmail.com>
+#### Usage
+
+```bash
+python GitHacker.py --url http://127.0.0.1/.git/ --folder result
 ```
 
-#### Example
-```
-python GitHacker.py http://127.0.0.1/.git/
-```
+#### TODO
 
-#### TODO:
 - [ ] Download tags and branches when Index enabled
-- [ ] Try common tags and branches when Index disabled
-- [ ] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
+- [x] Try common tags and branches when Index disabled
+- [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 
 #### Video
 
