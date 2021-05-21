@@ -17,16 +17,16 @@ audition.
 
 > 2018-10-25
 
-|    Tools    |   Index  | Source Code | Reflogs | Stashes | Commits |  Branches | Remotes |    Tags   |
-|:-----------:|:--------:|:-----------:|:-------:|:-------:|:-------:|:---------:|:-------:|:---------:|
-|   GitTools  |  Enabled |     <span style="color:orange;">Yes</span>     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
-| dvcs-ripper |  Enabled |     YES     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
-|   GitHack   |  Enabled |     YES     |    No   |    No   |    No   |     No    |    No   |     No    |
-|  GitHacker  |  Enabled |     YES     |   YES   |   YES   |   YES   |    YES    |   YES   |    YES    |
-|   GitTools  | Disabled |     YES     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
-| dvcs-ripper | Disabled |      No     |    No   |    No   |    No   |     No    |    No   |     No    |
-|   GitHack   | Disabled |     YES     |    No   |    No   |    No   |     No    |    No   |     No    |
-|  GitHacker  | Disabled |     YES     |   YES   |   YES   |   YES   | Partially |   YES   | Partially |
+|    Tools    |     Index     |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
+| :---------: | :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+|  GitTools   | :green_heart: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+| dvcs-ripper | :green_heart: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|   GitHack   | :green_heart: | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  GitHacker  | :green_heart: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+|  GitTools   |    :heart:    | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+| dvcs-ripper |    :heart:    |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|   GitHack   |    :heart:    | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  GitHacker  |    :heart:    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
 
 ## Requirments
 
@@ -71,7 +71,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 * [Git Repository Layout](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
 * [Git Documents](https://git-scm.com/docs)
 
-## Acknowledgement
+## Ack:x:wledgement
 - [lesion1999](https://github.com/lesion1999)
 
 ## Licsence
@@ -79,7 +79,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 THE DRINKWARE LICENSE
 
 <wangyihanger@gmail.com> wrote this file. As long as 
-you retain this notice you can do whatever you want 
+you retain this :x:tice you can do whatever you want 
 with this stuff. If we meet some day, and you think 
 this stuff is worth it, you can buy me the following
 drink(s) in return.
