@@ -3,3 +3,4 @@ coloredlogs
 GitPython
 semver
 twine
+beautifulsoup4

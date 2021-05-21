@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="GitHacker",
-    version="1.0.2",
+    version="1.0.4",
     author="Wang Yihang",
     author_email="wangyihanger@gmail.com",
     description="This is a multiple threads tool to download the `.git` folder and rebuild git repository locally.",
@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     keywords='ctf, git, web, security',
-    install_requires=["requests", "coloredlogs", "GitPython"],
+    install_requires=["requests", "coloredlogs", "GitPython", "beautifulsoup4", "semver"],
     entry_points={
         'console_scripts': [
             'githacker=GitHacker:main',
