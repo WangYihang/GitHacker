@@ -165,13 +165,18 @@ class GitHacker():
             [".git", "refs", "remotes", "origin", "HEAD", ],
             # git stash
             [".git", "refs", "stash", ],
-            # git tags
-            [".git", "refs", "tags", "v0.0.1", ],
-            [".git", "refs", "tags", "v1.0.0", ],
             # pack
             [".git", "objects", "info", "alternates", ],
             [".git", "objects", "info", "packs", ],
         ]
+
+        # git tags
+        for major in range(10):
+            for minor in range(10):
+                for patch in range(10):
+                    files.append([".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
+                    files.append([".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
+
         branch_names = ["master", "main", "dev", "release", "test",
                         "testing", "feature", "ng", "fix", "hotfix", "quickfix", ]
         # git remote branches
@@ -203,21 +208,25 @@ class GitHacker():
     def worker(self):
         while True:
             path = self.q.get()
-            fs_path = os.path.join(self.dst, os.path.sep.join(path))
-            url_path = "/".join(path)
-            url = "{}{}".format(self.url, url_path)
-            if not os.path.exists(fs_path):
-                status_code, length, result = self.wget(url, fs_path)
-                if result:
-                    logging.info('[{:d} bytes] {} {}'.format(
-                        length, status_code, url_path))
-                else:
-                    logging.error('[{:d} bytes] {} {}'.format(
-                        length, status_code, url_path))
-            self.q.task_done()
+            if "00000000000000000000000000000000000000" in path:
+                self.q.task_done()
+                continue
+            else:
+                fs_path = os.path.join(self.dst, os.path.sep.join(path))
+                url_path = "/".join(path)
+                url = "{}{}".format(self.url, url_path)
+                if not os.path.exists(fs_path):
+                    status_code, length, result = self.wget(url, fs_path)
+                    if result:
+                        logging.info('[{:d} bytes] {} {}'.format(
+                            length, status_code, url_path))
+                    else:
+                        logging.error('[{:d} bytes] {} {}'.format(
+                            length, status_code, url_path))
+                self.q.task_done()
 
     def check_file_content(self, content):
-        if content.startswith(b"<"):
+        if content.startswith(b"<") or len(content) == 0:
             return False
         return True
 
