@@ -25,6 +25,7 @@ class GitHacker():
         self.dst = dst
         self.repo = None
         self.thread_number = threads
+        self.max_semanic_version = 10
 
     def start(self):
         for _ in range(self.thread_number):
@@ -126,54 +127,55 @@ class GitHacker():
 
     def add_basic_file_tasks(self):
         files = [
-            [".git", "COMMIT_EDITMSG", ],
-            [".git", "config", ],
-            [".git", "description", ],
-            [".git", "FETCH_HEAD", ],
-            [".git", "HEAD", ],
-            [".git", "hooks", "applypatch-msg.sample", ],
-            [".git", "hooks", "commit-msg.sample", ],
-            [".git", "hooks", "fsmonitor-watchman.sample", ],
-            [".git", "hooks", "post-update.sample", ],
-            [".git", "hooks", "pre-applypatch.sample", ],
-            [".git", "hooks", "pre-commit.sample", ],
-            [".git", "hooks", "pre-merge-commit.sample", ],
-            [".git", "hooks", "pre-push.sample", ],
-            [".git", "hooks", "pre-rebase.sample", ],
-            [".git", "hooks", "pre-receive.sample", ],
-            [".git", "hooks", "prepare-commit-msg.sample", ],
-            [".git", "hooks", "update.sample", ],
-            [".git", "hooks", "applypatch-msg", ],
-            [".git", "hooks", "commit-msg", ],
-            [".git", "hooks", "fsmonitor-watchman", ],
-            [".git", "hooks", "post-update", ],
-            [".git", "hooks", "pre-applypatch", ],
-            [".git", "hooks", "pre-commit", ],
-            [".git", "hooks", "pre-merge-commit", ],
-            [".git", "hooks", "pre-push", ],
-            [".git", "hooks", "pre-rebase", ],
-            [".git", "hooks", "pre-receive", ],
-            [".git", "hooks", "prepare-commit-msg", ],
-            [".git", "hooks", "update", ],
-            [".git", "index", ],
-            [".git", "info", "exclude", ],
-            [".git", "logs", "HEAD", ],
-            [".git", "logs", "refs", "remotes", "origin", "HEAD", ],
-            [".git", "logs", "refs", "stash", ],
-            [".git", "ORIG_HEAD", ],
-            [".git", "packed-refs", ],
-            [".git", "refs", "remotes", "origin", "HEAD", ],
+            [".git", "COMMIT_EDITMSG"],
+            [".git", "config"],
+            [".git", "description"],
+            [".git", "FETCH_HEAD"],
+            [".git", "HEAD"],
+            [".git", "hooks", "applypatch-msg.sample"],
+            [".git", "hooks", "commit-msg.sample"],
+            [".git", "hooks", "fsmonitor-watchman.sample"],
+            [".git", "hooks", "post-update.sample"],
+            [".git", "hooks", "pre-applypatch.sample"],
+            [".git", "hooks", "pre-commit.sample"],
+            [".git", "hooks", "pre-merge-commit.sample"],
+            [".git", "hooks", "pre-push.sample"],
+            [".git", "hooks", "pre-rebase.sample"],
+            [".git", "hooks", "pre-receive.sample"],
+            [".git", "hooks", "prepare-commit-msg.sample"],
+            [".git", "hooks", "update.sample"],
+            [".git", "hooks", "applypatch-msg"],
+            [".git", "hooks", "commit-msg"],
+            [".git", "hooks", "fsmonitor-watchman"],
+            [".git", "hooks", "post-update"],
+            [".git", "hooks", "pre-applypatch"],
+            [".git", "hooks", "pre-commit"],
+            [".git", "hooks", "pre-merge-commit"],
+            [".git", "hooks", "pre-push"],
+            [".git", "hooks", "pre-rebase"],
+            [".git", "hooks", "pre-receive"],
+            [".git", "hooks", "prepare-commit-msg"],
+            [".git", "hooks", "update"],
+            [".git", "index"],
+            [".git", "info", "exclude"],
+            [".git", "logs", "HEAD"],
+            [".git", "logs", "refs", "remotes", "origin", "HEAD"],
+            [".git", "logs", "refs", "stash"],
+            [".git", "ORIG_HEAD"],
+            [".git", "packed-refs"],
+            [".git", "refs", "remotes", "origin", "HEAD"],
             # git stash
-            [".git", "refs", "stash", ],
+            [".git", "refs", "stash"],
             # pack
-            [".git", "objects", "info", "alternates", ],
-            [".git", "objects", "info", "packs", ],
+            [".git", "objects", "info", "alternates"],
+            [".git", "objects", "info", "http-alternates"],
+            [".git", "objects", "info", "packs"],
         ]
 
         # git tags
-        for major in range(10):
-            for minor in range(10):
-                for patch in range(10):
+        for major in range(self.max_semanic_version):
+            for minor in range(self.max_semanic_version):
+                for patch in range(self.max_semanic_version):
                     files.append([".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
                     files.append([".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
 
