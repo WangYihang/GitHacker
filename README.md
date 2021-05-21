@@ -15,8 +15,16 @@ audition.
 
 ## Comparison of other tools
 
-![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
+|    Tools    |   Index  | Source Code | Reflogs | Stashes | Commits |  Branches | Remotes |    Tags   |
+|:-----------:|:--------:|:-----------:|:-------:|:-------:|:-------:|:---------:|:-------:|:---------:|
+|   GitTools  |  Enabled |     <span style="color:orange;">Yes</span>     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
+| dvcs-ripper |  Enabled |     YES     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
+|   GitHack   |  Enabled |     YES     |    No   |    No   |    No   |     No    |    No   |     No    |
+|  GitHacker  |  Enabled |     YES     |   YES   |   YES   |   YES   |    YES    |   YES   |    YES    |
+|   GitTools  | Disabled |     YES     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
+| dvcs-ripper | Disabled |      No     |    No   |    No   |    No   |     No    |    No   |     No    |
+|   GitHack   | Disabled |     YES     |    No   |    No   |    No   |     No    |    No   |     No    |
+|  GitHacker  | Disabled |     YES     |   YES   |   YES   |   YES   | Partially |   YES   | Partially |
 
 ## Requirments
 
@@ -41,8 +49,8 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 ## TODO
 
-- [ ] Download tags and branches when Index enabled
 - [ ] Download packed files firstly
+- [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 
