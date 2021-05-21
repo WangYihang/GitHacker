@@ -62,7 +62,7 @@ class GitHacker():
         links = soup.find_all("a")
         for link in links:
             href = link['href']
-            if href == "../":
+            if href == "../" or href == "/":
                 continue
             if href.endswith("/"):
                 self.add_folder(url, href)
