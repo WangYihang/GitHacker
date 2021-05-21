@@ -8,7 +8,7 @@ import re
 import git
 import subprocess
 import argparse
-
+import bs4
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
@@ -31,6 +31,48 @@ class GitHacker():
         for _ in range(self.thread_number):
             threading.Thread(target=self.worker, daemon=True).start()
 
+        if self.directory_listing_enabled():
+            self.sighted()
+        else:
+            self.blind()
+
+    def directory_listing_enabled(self):
+        response = requests.get("{}{}".format(self.url, ".git/"))
+        keywords = {
+            "apache": "<title>Index of",
+            "nginx": "<title>Index of",
+        }
+        if response.status_code == 200:
+            for server, keyword in keywords.items():
+                if keyword in response.text:
+                    logging.info(
+                        "Directory listing enable under: {}".format(server))
+                    return True
+        return False
+
+    def sighted(self):
+        self.add_folder(self.url, ".git/")
+        self.q.join()
+        self.checkout()
+
+    def add_folder(self, base_url, folder):
+        url = "{}{}".format(base_url, folder)
+        soup = bs4.BeautifulSoup(requests.get(
+            url).text, features="html.parser")
+        links = soup.find_all("a")
+        for link in links:
+            href = link['href']
+            if href == "../":
+                continue
+            if href.endswith("/"):
+                self.add_folder(url, href)
+            else:
+                file_url = "{}{}".format(url, href)
+                print("file:", file_url)
+                path = file_url.replace(self.url, "").split("/")
+                self.q.put(path)
+
+    def blind(self):
         logging.info('Downloading basic files...')
         tn = self.add_basic_file_tasks()
         if tn > 0:
@@ -66,6 +108,9 @@ class GitHacker():
         if tn > 0:
             self.q.join()
 
+        self.checkout()
+
+    def checkout(self):
         logging.info("Checkout files...")
         subprocess.run(
             ["git", "checkout", "."],
@@ -176,8 +221,10 @@ class GitHacker():
         for major in range(self.max_semanic_version):
             for minor in range(self.max_semanic_version):
                 for patch in range(self.max_semanic_version):
-                    files.append([".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
-                    files.append([".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
+                    files.append(
+                        [".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
+                    files.append(
+                        [".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
 
         branch_names = ["master", "main", "dev", "release", "test",
                         "testing", "feature", "ng", "fix", "hotfix", "quickfix", ]
