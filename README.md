@@ -15,6 +15,8 @@ audition.
 
 ## Comparison of other tools
 
+> 2018-10-25
+
 |    Tools    |   Index  | Source Code | Reflogs | Stashes | Commits |  Branches | Remotes |    Tags   |
 |:-----------:|:--------:|:-----------:|:-------:|:-------:|:-------:|:---------:|:-------:|:---------:|
 |   GitTools  |  Enabled |     <span style="color:orange;">Yes</span>     |   YES   |    No   |   YES   |     No    |   YES   |     No    |
