@@ -27,7 +27,7 @@ audition.
 ## Installation
 
 ```
-pip3 install GitHacker # -i pypi mirror repo url
+pip3 install GitHacker
 ```
 
 ## Usage
