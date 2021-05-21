@@ -27,7 +27,7 @@ audition.
 ## Installation
 
 ```
-pip3 install -i GitHacker
+pip3 install GitHacker
 ```
 
 ## Usage
