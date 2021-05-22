@@ -19,13 +19,14 @@ def md5(data):
 
 
 class GitHacker():
-    def __init__(self, url, dst, threads=0x08) -> None:
+    def __init__(self, url, dst, threads=0x08, brute=True) -> None:
         self.q = queue.Queue()
         self.url = url
         self.dst = dst
         self.repo = None
         self.thread_number = threads
         self.max_semanic_version = 10
+        self.brute = brute
 
     def start(self):
         for _ in range(self.thread_number):
@@ -218,16 +219,23 @@ class GitHacker():
         ]
 
         # git tags
-        for major in range(self.max_semanic_version):
-            for minor in range(self.max_semanic_version):
-                for patch in range(self.max_semanic_version):
-                    files.append(
-                        [".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
-                    files.append(
-                        [".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
+        if self.brute:
+            for major in range(self.max_semanic_version):
+                for minor in range(self.max_semanic_version):
+                    for patch in range(self.max_semanic_version):
+                        files.append(
+                            [".git", "refs", "tags", "v{}.{}.{}".format(major, minor, patch)])
+                        files.append(
+                            [".git", "refs", "tags", "{}.{}.{}".format(major, minor, patch)])
+        else:
+            files.append([".git", "refs", "tags", "v0.0.1"])
+            files.append([".git", "refs", "tags", "0.0.1"])
+            files.append([".git", "refs", "tags", "v1.0.0"])
+            files.append([".git", "refs", "tags", "1.0.0"])
 
         branch_names = ["master", "main", "dev", "release", "test",
-                        "testing", "feature", "ng", "fix", "hotfix", "quickfix", ]
+                        "testing", "feature", "ng", "fix", "hotfix", "quickfix"]
+
         # git remote branches
         expand_branch_name_folder = [
             [".git", "logs", "refs", "heads", None],
@@ -235,6 +243,7 @@ class GitHacker():
             [".git", "refs", "remotes", "origin", None],
             [".git", "refs", "heads", None],
         ]
+
         for folder in expand_branch_name_folder:
             for branch_name in branch_names:
                 folder_copy = folder.copy()
@@ -317,14 +326,17 @@ def main():
                         help='url of the target website which expose `.git` folder')
     parser.add_argument('--folder', required=True,
                         help='the local folder to store the git repository')
+    parser.add_argument('--nobrute', required=False, 
+                        help='disable brute forcing branch/tag names')
     parser.add_argument('--threads', required=False, default=0x04,
                         type=int, help='threads number to download from internet')
     args = parser.parse_args()
     GitHacker(
-        append_if_not_exists(remove_suffixes(
+        url=append_if_not_exists(remove_suffixes(
             args.url, ['.git', '.git/']), '/'),
-        args.folder,
+        dst=args.folder,
         threads=args.threads,
+        brute=not args.nobrute,
     ).start()
 
 
