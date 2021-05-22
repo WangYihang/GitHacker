@@ -51,7 +51,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 ## TODO
 
-- [ ] Download packed files firstly
+- [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
 - [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
@@ -70,6 +70,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 * [Git Repository Layout](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
 * [Git Documents](https://git-scm.com/docs)
+* [Git Pack filename](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files)
 
 ## Ack:x:wledgement
 - [lesion1999](https://github.com/lesion1999)

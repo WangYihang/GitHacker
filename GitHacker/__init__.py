@@ -69,7 +69,6 @@ class GitHacker():
                 self.add_folder(url, href)
             else:
                 file_url = "{}{}".format(url, href)
-                print("file:", file_url)
                 path = file_url.replace(self.url, "").split("/")
                 self.q.put(path)
 
@@ -104,11 +103,6 @@ class GitHacker():
             else:
                 break
 
-        logging.info("Running packed files...\r")
-        tn = self.add_packed_file_tasks()
-        if tn > 0:
-            self.q.join()
-
         self.checkout()
 
     def checkout(self):
@@ -121,33 +115,6 @@ class GitHacker():
         )
 
         logging.info("Check it out in folder: {}".format(self.dst))
-
-    def add_packed_file_tasks(self):
-        # Download .git/objects/info/pack
-        info_pack = [".git", "objects", "info", "pack"]
-        fs_path = os.path.join(self.dst, os.path.sep.join(info_pack))
-        url_path = "/".join(info_pack)
-        url = "{}{}".format(self.url, url_path)
-        status_code, length, result = self.wget(url, fs_path)
-
-        n = 0
-        if result:
-            logging.info("Pack info [{}]: {} bytes\r".format(
-                status_code, length))
-            with open(fs_path, "rb") as f:
-                content = f.read()
-            hashes = re.findall(r"([a-f\d]{40})", content)
-            for hash in hashes:
-                n += 2
-                # Download .git/objects/pack/pack-{hash}.idx
-                self.q.put([".git", "objects", "pack",
-                            "pack-{}.idx".format(hash)])
-                # Download .git/objects/pack/pack-{hash}.pack
-                self.q.put([".git", "objects", "pack",
-                            "pack-{}.pack".format(hash)])
-        else:
-            logging.error("No packed files")
-        return n
 
     def add_hashes_parsed(self, content):
         hashes = re.findall(r"([a-f\d]{40})", content)
