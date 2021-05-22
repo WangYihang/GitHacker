@@ -21,6 +21,9 @@ def cleanup():
     for folder in glob.glob("./test/*/www"):
         shutil.rmtree(os.path.join(folder, ".git"), ignore_errors=True)
 
+    shutil.rmtree("playground", ignore_errors=True)
+
+
 def generate():
     for folder in glob.glob("./test/*/www"):
         # Create new repo
@@ -106,8 +109,8 @@ def diff(left, right):
 def diffall():
     for folder in glob.glob("./test/*"):
         basename = os.path.basename(folder)
-        origin_path = 'test/{}/www'.format(basename)
-        current_path = 'playground/{}'.format(basename)
+        origin_path = os.path.join('test', basename, "www")
+        current_path = os.path.join('playground', basename)
         print("Diffing {}, {}".format(origin_path, current_path))
         same, total, difference, right_absence = diff(origin_path, current_path)
         print("[{} / {}] similarity = {:02f}%".format(same, total, same / total))
@@ -130,6 +133,11 @@ def main():
         except: pass
 
         if "php-lfi" in folder:
+            html_folder = os.path.join(folder, "www", "html")
+            try: os.makedirs(html_folder)
+            except: pass
+            with open(os.path.join(html_folder, "index.php"), "w") as f:
+                f.write("<?php @readfile($_GET['file']);?>")
             os.system("python3 GitHacker/__init__.py --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
         else:
             os.system("python3 GitHacker/__init__.py --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
