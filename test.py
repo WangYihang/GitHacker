@@ -7,25 +7,32 @@ import termcolor
 
 from git import Repo
 
+
 def print_info(data):
     print(termcolor.colored(data, "cyan"))
+
 
 def print_success(data):
     print(termcolor.colored(data, "green"))
 
+
 def print_warning(data):
     print(termcolor.colored(data, "yellow"))
+
 
 def print_absent(data):
     print(termcolor.colored(data, "red"))
 
+
 def random_string(length=0x10, charset=__import__('string').ascii_letters+__import__('string').digits):
     return ''.join([random.choice(charset) for i in range(length)])
+
 
 def md5(data):
     if type(data) is str:
         data = bytes(data, encoding='utf-8')
     return __import__('hashlib').md5(data).hexdigest()
+
 
 def cleanup():
     for filename in glob.glob("./test/*/www/*.php"):
@@ -55,19 +62,22 @@ def generate():
         version = semver.VersionInfo(0, 0, 1)
 
         # Create branches
-        branch_names = ["dev", "master", "main", "hotfix", "release", "fix", "wip", "issue", "daily"]
+        branch_names = ["dev", "master", "main", "hotfix",
+                        "release", "fix", "wip", "issue", "daily"]
         for branch_name in branch_names:
-            try: 
+            try:
                 branch = repo.create_head(branch_name)
                 # Create tags
                 if random.choice([True, False]):
-                    version = random.choice([version.bump_patch, version.bump_minor, version.bump_major])()
+                    version = random.choice(
+                        [version.bump_patch, version.bump_minor, version.bump_major])()
                     repo.create_tag(
                         version,
                         ref=branch,
                         message="v{}".format(version)
                     )
-            except: pass
+            except:
+                pass
 
         # Generate some random files
         unstashed = []
@@ -125,23 +135,30 @@ def diff(left, right):
 
     return (same, total, difference, right_absence)
 
+
 def diffall():
     for folder in glob.glob("./test/*"):
         basename = os.path.basename(folder)
         origin_path = os.path.join('test', basename, "www")
         current_path = os.path.join('playground', basename)
-        same, total, difference, right_absence = diff(origin_path, current_path)
+        same, total, difference, right_absence = diff(
+            origin_path, current_path)
         ratio = (same / total) * 100
         if ratio == 100.0:
-            print_success("[{} / {}] = {:.2f}%, {}, {}".format(same, total, ratio, origin_path, current_path))
+            print_success("[{} / {}] = {:.2f}%, {}, {}".format(same,
+                          total, ratio, origin_path, current_path))
         else:
-            print_warning("[{} / {}] = {:.2f}%, {}, {}".format(same, total, ratio, origin_path, current_path))
+            print_warning("[{} / {}] = {:.2f}%, {}, {}".format(same,
+                          total, ratio, origin_path, current_path))
         if len(difference) > 0:
             print_info("  Different files:")
-            for filename in difference: print_absent("    {}".format(filename))
+            for filename in difference:
+                print_absent("    {}".format(filename))
         if len(right_absence) > 0:
             print_info("  Files absent:")
-            for filename in right_absence: print_absent("    {}".format(filename))
+            for filename in right_absence:
+                print_absent("    {}".format(filename))
+
 
 def main():
     cleanup()
@@ -151,20 +168,26 @@ def main():
         # Start docker
         os.chdir(os.path.join(cwd, folder))
         os.system("docker-compose up -d")
-        
+
         os.chdir(cwd)
-        try: os.makedirs("playground")
-        except: pass
+        try:
+            os.makedirs("playground")
+        except:
+            pass
 
         if "php-lfi" in folder:
             html_folder = os.path.join(folder, "www", "html")
-            try: os.makedirs(html_folder)
-            except: pass
+            try:
+                os.makedirs(html_folder)
+            except:
+                pass
             with open(os.path.join(html_folder, "index.php"), "w") as f:
                 f.write("<?php @readfile($_GET['file']);?>")
-            os.system("python3 GitHacker/__init__.py --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
+            os.system(
+                "python3 GitHacker/__init__.py --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
         else:
-            os.system("python3 GitHacker/__init__.py --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
+            os.system(
+                "python3 GitHacker/__init__.py --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
 
         # Stop docker
         os.chdir(os.path.join(cwd, folder))
@@ -173,6 +196,7 @@ def main():
     # Diff origin git folder and the downloaded git folder
     os.chdir(cwd)
     diffall()
+
 
 if __name__ == "__main__":
     main()
