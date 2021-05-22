@@ -3,8 +3,21 @@ import os
 import random
 import semver
 import shutil
+import termcolor
 
 from git import Repo
+
+def print_info(data):
+    print(termcolor.colored(data, "cyan"))
+
+def print_success(data):
+    print(termcolor.colored(data, "green"))
+
+def print_warning(data):
+    print(termcolor.colored(data, "yellow"))
+
+def print_absent(data):
+    print(termcolor.colored(data, "red"))
 
 def random_string(length=0x10, charset=__import__('string').ascii_letters+__import__('string').digits):
     return ''.join([random.choice(charset) for i in range(length)])
@@ -97,6 +110,12 @@ def diff(left, right):
             if not os.path.exists(current_filename):
                 right_absence.append(current_filename)
                 continue
+
+            # There is no need to compare the `.git/index` file, leave it as same
+            if os.path.join(".git", "index") in filename:
+                same += 1
+                continue
+
             origin_md5 = md5(open(filename, "rb").read())
             current_md5 = md5(open(current_filename, "rb").read())
             if origin_md5 == current_md5:
@@ -111,13 +130,18 @@ def diffall():
         basename = os.path.basename(folder)
         origin_path = os.path.join('test', basename, "www")
         current_path = os.path.join('playground', basename)
-        print("Diffing {}, {}".format(origin_path, current_path))
         same, total, difference, right_absence = diff(origin_path, current_path)
-        print("[{} / {}] similarity = {:02f}%".format(same, total, same / total))
-        print("Different files:")
-        for filename in difference: print("\t{}".format(filename))
-        print("Files absent:")
-        for filename in right_absence: print("\t{}".format(filename))
+        ratio = (same / total) * 100
+        if ratio == 100.0:
+            print_success("[{} / {}] = {:.2f}%, {}, {}".format(same, total, ratio, origin_path, current_path))
+        else:
+            print_warning("[{} / {}] = {:.2f}%, {}, {}".format(same, total, ratio, origin_path, current_path))
+        if len(difference) > 0:
+            print_info("  Different files:")
+            for filename in difference: print_absent("    {}".format(filename))
+        if len(right_absence) > 0:
+            print_info("  Files absent:")
+            for filename in right_absence: print_absent("    {}".format(filename))
 
 def main():
     cleanup()
