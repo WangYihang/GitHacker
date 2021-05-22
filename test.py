@@ -15,14 +15,14 @@ def md5(data):
     return __import__('hashlib').md5(data).hexdigest()
 
 def cleanup():
-    for filename in glob.glob("./*/www/*.php"):
+    for filename in glob.glob("./test/*/www/*.php"):
         os.unlink(filename)
 
-    for folder in glob.glob("./*/www"):
+    for folder in glob.glob("./test/*/www"):
         shutil.rmtree(os.path.join(folder, ".git"), ignore_errors=True)
 
 def generate():
-    for folder in glob.glob("./*/www"):
+    for folder in glob.glob("./test/*/www"):
         # Create new repo
         root = folder
         repo = Repo.init(root)
