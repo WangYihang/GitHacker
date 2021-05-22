@@ -4,3 +4,4 @@ GitPython
 semver
 twine
 beautifulsoup4
+termcolor

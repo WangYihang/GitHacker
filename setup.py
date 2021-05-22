@@ -21,12 +21,12 @@ setuptools.setup(
         "Topic :: Software Development :: Version Control",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],
-    python_requires='>=3.6',
-    keywords='ctf, git, web, security',
-    install_requires=["requests", "coloredlogs", "GitPython", "beautifulsoup4", "semver"],
+    python_requires=">=3.6",
+    keywords="ctf, git, web, security",
+    install_requires=["requests", "coloredlogs", "GitPython", "beautifulsoup4", "semver", "termcolor"],
     entry_points={
-        'console_scripts': [
-            'githacker=GitHacker:main',
+        "console_scripts": [
+            "githacker=GitHacker:main",
         ],
     },
 )
