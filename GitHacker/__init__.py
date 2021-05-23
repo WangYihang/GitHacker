@@ -29,6 +29,11 @@ class GitHacker():
         self.brute = brute
 
     def start(self):
+        # Ensure the target is a git folder via `.git/HEAD`
+        if requests.head(self.url).status_code != 200:
+            logging.error("The target url is not a valid git repository, `.git/HEAD` not exists")
+            return
+
         for _ in range(self.thread_number):
             threading.Thread(target=self.worker, daemon=True).start()
 
