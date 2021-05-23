@@ -1,11 +1,12 @@
 import setuptools
+import GitHacker
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="GitHacker",
-    version="1.0.5",
+    version=GitHacker.__version__,
     author="Wang Yihang",
     author_email="wangyihanger@gmail.com",
     description="This is a multiple threads tool to download the `.git` folder and rebuild git repository locally.",

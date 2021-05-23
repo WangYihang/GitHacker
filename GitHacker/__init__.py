@@ -10,6 +10,8 @@ import subprocess
 import argparse
 import bs4
 
+__version__ = "1.0.6"
+
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
 
@@ -31,7 +33,8 @@ class GitHacker():
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
         if requests.head(self.url).status_code != 200:
-            logging.error("The target url is not a valid git repository, `.git/HEAD` not exists")
+            logging.error(
+                "The target url is not a valid git repository, `.git/HEAD` not exists")
             return
 
         for _ in range(self.thread_number):
@@ -302,6 +305,7 @@ def main():
                         help='enable brute forcing branch/tag names')
     parser.add_argument('--threads', required=False, default=0x04,
                         type=int, help='threads number to download from internet')
+    parser.add_argument('--version', action='version', version=__version__)
     args = parser.parse_args()
     GitHacker(
         url=append_if_not_exists(remove_suffixes(
