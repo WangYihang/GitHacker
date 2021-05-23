@@ -10,7 +10,7 @@ import subprocess
 import argparse
 import bs4
 
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
