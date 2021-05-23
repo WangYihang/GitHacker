@@ -298,8 +298,8 @@ def main():
                         help='url of the target website which expose `.git` folder')
     parser.add_argument('--folder', required=True,
                         help='the local folder to store the git repository')
-    parser.add_argument('--nobrute', required=False,
-                        help='disable brute forcing branch/tag names')
+    parser.add_argument('--brute', required=False, action="store_true",
+                        help='enable brute forcing branch/tag names')
     parser.add_argument('--threads', required=False, default=0x04,
                         type=int, help='threads number to download from internet')
     args = parser.parse_args()
@@ -308,7 +308,7 @@ def main():
             args.url, ['.git', '.git/']), '/'),
         dst=args.folder,
         threads=args.threads,
-        brute=not args.nobrute,
+        brute=args.brute,
     ).start()
 
 
