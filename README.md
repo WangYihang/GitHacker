@@ -72,7 +72,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 * [Git Documents](https://git-scm.com/docs)
 * [Git Pack filename](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files)
 
-## Ack:x:wledgement
+## Acknowledgement
 - [lesion1999](https://github.com/lesion1999)
 
 ## Licsence
