@@ -32,7 +32,7 @@ class GitHacker():
 
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
-        if requests.head("{}{}".format(self.url, ".git/")).status_code != 200:
+        if requests.head("{}{}".format(self.url, ".git/HEAD")).status_code != 200:
             logging.error(
                 "The target url is not a valid git repository, `.git/HEAD` not exists")
             return
