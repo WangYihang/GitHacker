@@ -184,10 +184,10 @@ def main():
             with open(os.path.join(html_folder, "index.php"), "w") as f:
                 f.write("<?php @readfile($_GET['file']);?>")
             os.system(
-                "python3 GitHacker/__init__.py --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
+                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
         else:
             os.system(
-                "python3 GitHacker/__init__.py --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
+                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
 
         # Stop docker
         os.chdir(os.path.join(cwd, folder))
