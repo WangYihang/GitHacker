@@ -10,7 +10,7 @@ import subprocess
 import argparse
 import bs4
 
-__version__ = "1.0.9"
+__version__ = "1.0.10"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
@@ -29,6 +29,7 @@ class GitHacker():
         self.thread_number = threads
         self.max_semanic_version = 10
         self.brute = brute
+        self.verify = False
 
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
