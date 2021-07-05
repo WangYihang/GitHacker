@@ -1,11 +1,12 @@
 import setuptools
+import GitHacker
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="GitHacker",
-    version="1.0.2",
+    version=GitHacker.__version__,
     author="Wang Yihang",
     author_email="wangyihanger@gmail.com",
     description="This is a multiple threads tool to download the `.git` folder and rebuild git repository locally.",
@@ -21,12 +22,13 @@ setuptools.setup(
         "Topic :: Software Development :: Version Control",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],
-    python_requires='>=3.6',
-    keywords='ctf, git, web, security',
-    install_requires=["requests", "coloredlogs", "GitPython"],
+    python_requires=">=3.6",
+    keywords="ctf, git, web, security",
+    install_requires=["requests", "coloredlogs", "GitPython",
+                      "beautifulsoup4", "semver", "termcolor"],
     entry_points={
-        'console_scripts': [
-            'githacker=GitHacker:main',
+        "console_scripts": [
+            "githacker=GitHacker:main",
         ],
     },
 )

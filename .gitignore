@@ -139,3 +139,7 @@ cython_debug/
 
 # Visual Studio Code
 .vscode/
+
+# Testing playground
+playground/
+www

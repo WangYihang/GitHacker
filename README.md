@@ -15,9 +15,20 @@ audition.
 
 ## Comparison of other tools
 
-![image.png](https://upload-images.jianshu.io/upload_images/2355077-64bde1bcf617e0cf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+> 2021-05-25
 
-
+|     Tools     |       Index        |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
+| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+|   GitTools    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|    GitHack    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+|   GitTools    |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|    GitHack    |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+| **GitHacker** |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
 
 ## Requirments
 
@@ -27,7 +38,7 @@ audition.
 ## Installation
 
 ```
-pip3 install -i GitHacker
+pip3 install GitHacker
 ```
 
 ## Usage
@@ -42,7 +53,8 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 ## TODO
 
-- [ ] Download tags and branches when Index enabled
+- [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 
@@ -53,9 +65,14 @@ githacker --url http://127.0.0.1/.git/ --folder result
 [![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
 ### YouTube
-* [【.git/ folder attack】Comparison of attack tools (Part ONE)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
-* [【.git/ folder attack】Comparison of attack tools (Part TWO)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
+* [【.git/ folder attack】Comparison of attack tools (Part I)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
+* [【.git/ folder attack】Comparison of attack tools (Part II)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
 
+## References
+
+* [Git Repository Layout](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
+* [Git Documents](https://git-scm.com/docs)
+* [Git Pack filename](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files)
 
 ## Acknowledgement
 - [lesion1999](https://github.com/lesion1999)
@@ -65,7 +82,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 THE DRINKWARE LICENSE
 
 <wangyihanger@gmail.com> wrote this file. As long as 
-you retain this notice you can do whatever you want 
+you retain this :x:tice you can do whatever you want 
 with this stuff. If we meet some day, and you think 
 this stuff is worth it, you can buy me the following
 drink(s) in return.

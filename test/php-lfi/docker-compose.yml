@@ -1,0 +1,10 @@
+version: '2.0'
+
+services:
+  app:
+    restart: always
+    image: php:7.2-apache
+    ports:
+      - 80:80
+    volumes:
+      - ./www:/var/www

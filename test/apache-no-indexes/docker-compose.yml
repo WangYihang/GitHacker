@@ -1,0 +1,11 @@
+version: '2.0'
+
+services:
+  app:
+    restart: always
+    image: httpd
+    ports:
+      - 80:80
+    volumes:
+      - ./www:/usr/local/apache2/htdocs
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
