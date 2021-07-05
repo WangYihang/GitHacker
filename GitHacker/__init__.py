@@ -222,7 +222,7 @@ class GitHacker():
         return True
 
     def wget(self, url, path):
-        response = requests.get(url)
+        response = requests.get(url, verify=False)
         folder = os.path.dirname(path)
         try:
             os.makedirs(folder)
