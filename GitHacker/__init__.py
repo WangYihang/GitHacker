@@ -32,7 +32,7 @@ class GitHacker():
 
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
-        if requests.head("{}{}".format(self.url, ".git/HEAD")).status_code != 200:
+        if requests.head("{}{}".format(self.url, ".git/HEAD"), verify=self.verify).status_code != 200:
             logging.error(
                 "The target url is not a valid git repository, `.git/HEAD` not exists")
             return
@@ -46,7 +46,7 @@ class GitHacker():
             self.blind()
 
     def directory_listing_enabled(self):
-        response = requests.get("{}{}".format(self.url, ".git/"))
+        response = requests.get("{}{}".format(self.url, ".git/"), verify=self.verify)
         keywords = {
             "apache": "<title>Index of",
             "nginx": "<title>Index of",
@@ -67,7 +67,7 @@ class GitHacker():
     def add_folder(self, base_url, folder):
         url = "{}{}".format(base_url, folder)
         soup = bs4.BeautifulSoup(requests.get(
-            url).text, features="html.parser")
+            url, verify=self.verify).text, features="html.parser")
         links = soup.find_all("a")
         for link in links:
             href = link['href']
@@ -264,7 +264,7 @@ class GitHacker():
         return True
 
     def wget(self, url, path):
-        response = requests.get(url, verify=False)
+        response = requests.get(url, verify=self.verify)
         folder = os.path.dirname(path)
         try:
             os.makedirs(folder)
