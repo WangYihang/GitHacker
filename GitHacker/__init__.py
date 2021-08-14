@@ -9,6 +9,9 @@ import git
 import subprocess
 import argparse
 import bs4
+import tempfile
+import shutil
+
 
 __version__ = "1.0.10"
 
@@ -24,7 +27,8 @@ class GitHacker():
     def __init__(self, url, dst, threads=0x08, brute=True) -> None:
         self.q = queue.Queue()
         self.url = url
-        self.dst = dst
+        self.dst = tempfile.mkdtemp()
+        self.real_dst = dst
         self.repo = None
         self.thread_number = threads
         self.max_semanic_version = 10
@@ -63,7 +67,7 @@ class GitHacker():
     def sighted(self):
         self.add_folder(self.url, ".git/")
         self.q.join()
-        self.checkout()
+        self.git_clone()
 
     def add_folder(self, base_url, folder):
         url = "{}{}".format(base_url, folder)
@@ -103,7 +107,6 @@ class GitHacker():
             content = "{}".format(subprocess.run(
                 ['git', "fsck"],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
                 cwd=self.dst,
             ))
             tn = self.add_hashes_parsed(content)
@@ -112,18 +115,23 @@ class GitHacker():
             else:
                 break
 
-        self.checkout()
+        self.git_clone()
 
-    def checkout(self):
-        logging.info("Checkout files...")
-        subprocess.run(
-            ["git", "checkout", "."],
+    def git_clone(self):
+        logging.info("Cloning downloaded repo from {} to {}".format(self.dst, self.real_dst))
+        result = subprocess.run(
+            ["git", "clone", self.dst, self.real_dst],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=self.dst
         )
+        if b"invalid path" in result.stderr:
+            logging.info("Remote repo is downloaded into {}".format(self.real_dst))
+            logging.error("Be careful to checkout the source code, cause the target repo may be a honey pot.")
+            logging.error("FYI: https://drivertom.blogspot.com/2021/08/git.html")
+        else:
+            logging.info("Check it out: {}".format(self.real_dst))
+            shutil.rmtree(self.dst)
 
-        logging.info("Check it out in folder: {}".format(self.dst))
 
     def add_hashes_parsed(self, content):
         hashes = re.findall(r"([a-f\d]{40})", content)
