@@ -13,6 +13,14 @@ developer's commit history, which makes a better understanding of the character
 and psychology of developers, so as to lay the foundation for further code 
 audition.
 
+## Security Issues
+
+#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool
+
+* [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
+
+
+
 ## Comparison of other tools
 
 > 2021-05-25
@@ -75,6 +83,8 @@ githacker --url http://127.0.0.1/.git/ --folder result
 * [Git Pack filename](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files)
 
 ## Acknowledgement
+
+- [Driver Tom](https://drivertom.blogspot.com)
 - [lesion1999](https://github.com/lesion1999)
 
 ## Licsence
