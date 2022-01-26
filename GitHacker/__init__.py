@@ -13,7 +13,7 @@ import tempfile
 import shutil
 
 
-__version__ = "1.0.11"
+__version__ = "1.1.0"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
