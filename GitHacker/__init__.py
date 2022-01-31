@@ -46,11 +46,9 @@ class GitHacker():
             threading.Thread(target=self.worker, daemon=True).start()
 
         if self.directory_listing_enabled():
-            self.sighted()
+            return self.sighted()
         else:
-            self.blind()
-
-        return True
+            return self.blind()
 
     def directory_listing_enabled(self):
         response = requests.get("{}{}".format(self.url, ".git/"), verify=self.verify)
@@ -69,7 +67,7 @@ class GitHacker():
     def sighted(self):
         self.add_folder(self.url, ".git/")
         self.q.join()
-        self.git_clone()
+        return self.git_clone()
 
     def add_folder(self, base_url, folder):
         url = "{}{}".format(base_url, folder)
@@ -117,7 +115,7 @@ class GitHacker():
             else:
                 break
 
-        self.git_clone()
+        return self.git_clone()
 
     def git_clone(self):
         logging.info("Cloning downloaded repo from {} to {}".format(self.dst, self.real_dst))
@@ -126,13 +124,18 @@ class GitHacker():
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+        if result.stdout != b'': logging.info(result.stdout.decode("utf-8").strip())
+        if result.stderr != b'': logging.error(result.stderr.decode("utf-8").strip())
         if b"invalid path" in result.stderr:
             logging.info("Remote repo is downloaded into {}".format(self.real_dst))
             logging.error("Be careful to checkout the source code, cause the target repo may be a honey pot.")
             logging.error("FYI: https://drivertom.blogspot.com/2021/08/git.html")
-        else:
+        if result.returncode == 0:
+            # return True only when `git clone` successfully executed
             logging.info("Check it out: {}".format(self.real_dst))
             shutil.rmtree(self.dst)
+            return True
+        return False
 
 
     def add_hashes_parsed(self, content):
@@ -276,11 +279,14 @@ class GitHacker():
 
     def wget(self, url, path):
         response = requests.get(url, verify=self.verify)
+        if ".." in path:
+            logging.error(f"Malicious repo detected: {url}")
+            sanitized_path = path.replace("..", "")
+            logging.warning(f"Replacing {path} with {sanitized_path}")
+            path = sanitized_path
         folder = os.path.dirname(path)
-        try:
-            os.makedirs(folder)
-        except:
-            pass
+        try: os.makedirs(folder)
+        except: pass
         status_code = response.status_code
         content = response.content
         result = False
