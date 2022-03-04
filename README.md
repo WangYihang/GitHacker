@@ -15,6 +15,9 @@ audition.
 
 ## PROCLAMATION (IMPORTANT)
 
+> Several VULNERABILITIES have been reported recently, if you are using 
+> GitHacker <= 1.1.0, please update your tool as soon as possible.
+
 The remote `.git` folder maybe malicious, so to prevent you from being attacked.
 I highly recommend you run this tool under a disposable jailed environment 
 (eg: docker container).
@@ -27,11 +30,11 @@ I highly recommend you run this tool under a disposable jailed environment
 
 #### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/806095e807d20e06d5f192928f1f525510a34688): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
 
-* The analysis is to be released.
+* To be released
 
 #### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/f97710c2cf0351308fc81666448e00004b7d14f9): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
 
-* The analysis is to be released.
+* To be released
 
 ## Comparison of other tools
 

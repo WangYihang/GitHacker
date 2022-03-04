@@ -13,7 +13,7 @@ import tempfile
 import threading
 
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
