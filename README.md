@@ -52,7 +52,7 @@ pip3 install GitHacker
 ## Usage
 
 ```bash
-githacker --url http://127.0.0.1/.git/ --folder result
+githacker --url http://127.0.0.1/.git/ --output-folder result
 ```
 
 ## Example
