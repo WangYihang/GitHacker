@@ -64,7 +64,10 @@ pip3 install GitHacker
 ## Usage
 
 ```bash
+# quick start
 githacker --url http://127.0.0.1/.git/ --output-folder result
+# brute for the name of branchs / tags
+githacker --brute --url http://127.0.0.1/.git/ --output-folder result
 ```
 
 ## Example
