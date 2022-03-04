@@ -16,7 +16,7 @@ audition.
 ## PROCLAMATION (IMPORTANT)
 
 The remote `.git` folder maybe malicious, so to prevent you from being attacked.
-I highly recommend you run this tool under an disposable jailed environment 
+I highly recommend you run this tool under a disposable jailed environment 
 (eg: docker container).
 
 ## Security Issues
@@ -25,11 +25,11 @@ I highly recommend you run this tool under an disposable jailed environment
 
 * [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
 
-#### 2022-03-01 [Fixed](): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
+#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/806095e807d20e06d5f192928f1f525510a34688): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
 
 * The analysis is to be released.
 
-#### 2022-03-01 [Fixed](): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
+#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/f97710c2cf0351308fc81666448e00004b7d14f9): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
 
 * The analysis is to be released.
 
