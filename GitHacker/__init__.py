@@ -1,16 +1,16 @@
-import requests
-import os
-import threading
-import queue
-import coloredlogs
-import logging
-import re
-import git
-import subprocess
 import argparse
 import bs4
-import tempfile
+import coloredlogs
+import git
+import logging
+import os
+import queue
+import re
+import requests
 import shutil
+import subprocess
+import tempfile
+import threading
 
 
 __version__ = "1.1.0"
@@ -24,7 +24,7 @@ def md5(data):
 
 
 class GitHacker():
-    def __init__(self, url, dst, threads=0x08, brute=True) -> None:
+    def __init__(self, url, dst, threads=0x08, brute=True, disable_manually_check=True) -> None:
         self.q = queue.Queue()
         self.url = url
         self.dst = tempfile.mkdtemp()
@@ -34,6 +34,57 @@ class GitHacker():
         self.max_semanic_version = 10
         self.brute = brute
         self.verify = False
+        self.disable_manually_check = disable_manually_check
+        self.default_git_files_maybe_dangerous = [
+            [".git", "config"],
+            [".git", "hooks", "applypatch-msg.sample"],
+            [".git", "hooks", "applypatch-msg"],
+            [".git", "hooks", "commit-msg.sample"],
+            [".git", "hooks", "commit-msg"],
+            [".git", "hooks", "fsmonitor-watchman.sample"],
+            [".git", "hooks", "fsmonitor-watchman"],
+            [".git", "hooks", "post-update.sample"],
+            [".git", "hooks", "post-update"],
+            [".git", "hooks", "pre-applypatch.sample"],
+            [".git", "hooks", "pre-applypatch"],
+            [".git", "hooks", "pre-commit.sample"],
+            [".git", "hooks", "pre-commit"],
+            [".git", "hooks", "pre-merge-commit.sample"],
+            [".git", "hooks", "pre-merge-commit"],
+            [".git", "hooks", "pre-push.sample"],
+            [".git", "hooks", "pre-push"],
+            [".git", "hooks", "pre-rebase.sample"],
+            [".git", "hooks", "pre-rebase"],
+            [".git", "hooks", "pre-receive.sample"],
+            [".git", "hooks", "pre-receive"],
+            [".git", "hooks", "prepare-commit-msg.sample"],
+            [".git", "hooks", "prepare-commit-msg"],
+            [".git", "hooks", "update.sample"],
+            [".git", "hooks", "update"],
+        ]
+
+        self.default_git_files = [
+            [".git", "COMMIT_EDITMSG"],
+            [".git", "description"],
+            [".git", "FETCH_HEAD"],
+            [".git", "HEAD"],
+            [".git", "index"],
+            [".git", "info", "exclude"],
+            [".git", "logs", "HEAD"],
+            [".git", "logs", "refs", "remotes", "origin", "HEAD"],
+            [".git", "logs", "refs", "stash"],
+            [".git", "ORIG_HEAD"],
+            [".git", "packed-refs"],
+            [".git", "refs", "remotes", "origin", "HEAD"],
+            # git stash
+            [".git", "refs", "stash"],
+            # pack
+            [".git", "objects", "info", "alternates"],
+            [".git", "objects", "info", "http-alternates"],
+            [".git", "objects", "info", "packs"],
+        ]
+
+        self.complete_basic_files_list()
 
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
@@ -66,6 +117,28 @@ class GitHacker():
         self.add_folder(self.url, ".git/")
         self.q.join()
         return self.git_clone()
+    
+    def is_dangerous_git_file(self, filepath):
+        normalized_path = os.path.normpath(filepath)
+        # We consider all files not in self.default_git_files_maybe_dangerous 
+        # are safe.But that could be dangerous when git add another config file 
+        # someday which may lead to another RCE, so this function should be more 
+        # conservative to return False. Maybe a white list is safer. (TODO)
+        for dangerous_git_file in self.default_git_files_maybe_dangerous:
+            dangerous_git_filepath = os.path.sep.join(dangerous_git_file)
+            if normalized_path.endswith(dangerous_git_filepath):
+                return True
+        
+        # The following operation will mark any files under `.git/hooks` to be 
+        # dangerous. Consider all git hooks could be dangerous, this operation 
+        # is not redundant with the previous for loop, because the git may add 
+        # more default hook files someday. I don't want to continuously maintain
+        # the self.default_git_files_maybe_dangerous blacklist.
+        normalized_folder = os.path.split(normalized_path)[0]
+        if normalized_folder.endswith(os.path.sep.join([".git", "hooks"])):
+            return True
+
+        return False
 
     def add_folder(self, base_url, folder):
         url = f"{base_url}{folder}"
@@ -80,8 +153,10 @@ class GitHacker():
                 self.add_folder(url, href)
             else:
                 file_url = f"{url}{href}"
-                path = file_url.replace(self.url, "").split("/")
-                self.q.put(path)
+                # The following if statment prevent from access other domain which may lead to CSRF attack.
+                if file_url.startswith(self.url):
+                    filepath = file_url[len(self.url):].strip().replace("..", "").split("/")
+                    self.q.put(filepath)
 
     def blind(self):
         logging.info('Downloading basic files...')
@@ -158,70 +233,27 @@ class GitHacker():
                             n += self.add_hashes_parsed(data)
         return n
 
-    def add_basic_file_tasks(self):
-        files = [
-            [".git", "COMMIT_EDITMSG"],
-            [".git", "config"],
-            [".git", "description"],
-            [".git", "FETCH_HEAD"],
-            [".git", "HEAD"],
-            [".git", "hooks", "applypatch-msg.sample"],
-            [".git", "hooks", "commit-msg.sample"],
-            [".git", "hooks", "fsmonitor-watchman.sample"],
-            [".git", "hooks", "post-update.sample"],
-            [".git", "hooks", "pre-applypatch.sample"],
-            [".git", "hooks", "pre-commit.sample"],
-            [".git", "hooks", "pre-merge-commit.sample"],
-            [".git", "hooks", "pre-push.sample"],
-            [".git", "hooks", "pre-rebase.sample"],
-            [".git", "hooks", "pre-receive.sample"],
-            [".git", "hooks", "prepare-commit-msg.sample"],
-            [".git", "hooks", "update.sample"],
-            [".git", "hooks", "applypatch-msg"],
-            [".git", "hooks", "commit-msg"],
-            [".git", "hooks", "fsmonitor-watchman"],
-            [".git", "hooks", "post-update"],
-            [".git", "hooks", "pre-applypatch"],
-            [".git", "hooks", "pre-commit"],
-            [".git", "hooks", "pre-merge-commit"],
-            [".git", "hooks", "pre-push"],
-            [".git", "hooks", "pre-rebase"],
-            [".git", "hooks", "pre-receive"],
-            [".git", "hooks", "prepare-commit-msg"],
-            [".git", "hooks", "update"],
-            [".git", "index"],
-            [".git", "info", "exclude"],
-            [".git", "logs", "HEAD"],
-            [".git", "logs", "refs", "remotes", "origin", "HEAD"],
-            [".git", "logs", "refs", "stash"],
-            [".git", "ORIG_HEAD"],
-            [".git", "packed-refs"],
-            [".git", "refs", "remotes", "origin", "HEAD"],
-            # git stash
-            [".git", "refs", "stash"],
-            # pack
-            [".git", "objects", "info", "alternates"],
-            [".git", "objects", "info", "http-alternates"],
-            [".git", "objects", "info", "packs"],
-        ]
-
+    def complete_basic_files_list(self):
         # git tags
         if self.brute:
             for major in range(self.max_semanic_version):
                 for minor in range(self.max_semanic_version):
                     for patch in range(self.max_semanic_version):
-                        files.append(
+                        self.default_git_files.append(
                             [".git", "refs", "tags", f"v{major}.{minor}.{patch}"])
-                        files.append(
+                        self.default_git_files.append(
                             [".git", "refs", "tags", f"{major}.{minor}.{patch}"])
         else:
-            files.append([".git", "refs", "tags", "v0.0.1"])
-            files.append([".git", "refs", "tags", "0.0.1"])
-            files.append([".git", "refs", "tags", "v1.0.0"])
-            files.append([".git", "refs", "tags", "1.0.0"])
+            self.default_git_files.append([".git", "refs", "tags", "v0.0.1"])
+            self.default_git_files.append([".git", "refs", "tags", "0.0.1"])
+            self.default_git_files.append([".git", "refs", "tags", "v1.0.0"])
+            self.default_git_files.append([".git", "refs", "tags", "1.0.0"])
 
-        branch_names = ["master", "main", "dev", "release", "test",
-                        "testing", "feature", "ng", "fix", "hotfix", "quickfix"]
+        branch_names = [
+            "master", "main", "dev", "release", 
+            "test", "testing", "feature", "ng", 
+            "fix", "hotfix", "quickfix",
+        ]
 
         # git remote branches
         expand_branch_name_folder = [
@@ -235,9 +267,14 @@ class GitHacker():
             for branch_name in branch_names:
                 folder_copy = folder.copy()
                 folder_copy[-1] = branch_name
-                files.append(folder_copy)
+                self.default_git_files.append(folder_copy)
+
+    def add_basic_file_tasks(self):
         n = 0
-        for item in files:
+        for item in self.default_git_files:
+            self.q.put(item)
+            n += 1
+        for item in self.default_git_files_maybe_dangerous:
             self.q.put(item)
             n += 1
         return n
@@ -275,11 +312,18 @@ class GitHacker():
 
     def wget(self, url, path):
         response = requests.get(url, verify=self.verify)
+        # path from Apache/Nginx could be dangerous
         if ".." in path:
             logging.error(f"Malicious repo detected: {url}")
             sanitized_path = path.replace("..", "")
             logging.warning(f"Replacing {path} with {sanitized_path}")
             path = sanitized_path
+
+        # if manually check is disabled, we will definitely not downloading any dangerous git files
+        if self.disable_manually_check and self.is_dangerous_git_file(path):
+                logging.error(f"{path} is potential dangerous, skip downloading this file")
+                return (-1, -1, False)
+
         folder = os.path.dirname(path)
         try: os.makedirs(folder)
         except: pass
@@ -287,10 +331,27 @@ class GitHacker():
         content = response.content
         result = False
         if status_code == 200 and self.check_file_content(content):
-            with open(path, "wb") as f:
-                n = f.write(content)
-                if n == len(content):
-                    result = True
+            # if manually check is enabled, we will ask user to confirm the security of the potentially dangerous file
+            if not self.disable_manually_check and self.is_dangerous_git_file(path):
+                logging.error(f"{path} is potential dangerous, you need to confirm the content is safe.")
+                seperator = f"{'-' * 0x10} {path} {'-' * 0x10}"
+                logging.warning(seperator)
+                print(content.decode("utf-8"))
+                safe = input(f"Are you sure that the content of {path} is safe? (y/N)").strip().lower() == 'y'
+                if safe:
+                    with open(path, "wb") as f:
+                        n = f.write(content)
+                        if n == len(content):
+                            result = True
+                else:
+                    logging.warning(f"{path} is marked as dangerous, it will not be downloaded.")
+                    result = False
+            else:
+                # the file is not dangerous, just save it
+                with open(path, "wb") as f:
+                    n = f.write(content)
+                    if n == len(content):
+                        result = True
         return (status_code, len(content), result)
 
 
@@ -314,7 +375,8 @@ def main():
     group.add_argument('--url', help='url of the target website which expose `.git` folder')
     group.add_argument('--url-file', help='url file that contains a list of urls of the target website which expose `.git` folder')
     parser.add_argument('--output-folder', required=True, help='the local folder which will be the parent folder of all exploited repositories, every repo will be stored in folder named md5(url).')
-    parser.add_argument('--brute', required=False, help='enable brute forcing branch/tag names')
+    parser.add_argument('--brute', required=False, default=False, help='enable brute forcing branch/tag names', action='store_true')
+    parser.add_argument('--enable-manually-check-dangerous-git-files', required=False, default=False, help='disable manually check dangerous git files which may lead to *RCE* (eg: .git/config, .git/hook/pre-commit) when downloading malicious .git folders. If this argument is given, GitHacker will not download the files which may be dangerous at all.', action='store_true')
     parser.add_argument('--threads', required=False, default=0x04, type=int, help='threads number to download from internet')
     parser.add_argument('--version', action='version', version=__version__)
     args = parser.parse_args()
@@ -338,6 +400,7 @@ def main():
                 dst=folder,
                 threads=args.threads,
                 brute=args.brute,
+                disable_manually_check=not args.enable_manually_check_dangerous_git_files,
             ).start()
             if result:
                 succeed_urls.append(url)

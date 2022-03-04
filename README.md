@@ -13,13 +13,25 @@ developer's commit history, which makes a better understanding of the character
 and psychology of developers, so as to lay the foundation for further code 
 audition.
 
+## PROCLAMATION (IMPORTANT)
+
+The remote `.git` folder maybe malicious, so to prevent you from being attacked.
+I highly recommend you run this tool under an disposable jailed environment 
+(eg: docker container).
+
 ## Security Issues
 
-#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool
+#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool (Reported by [Driver Tom](https://drivertom.blogspot.com))
 
 * [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
 
+#### 2022-03-01 [Fixed](): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
 
+* The analysis is to be released.
+
+#### 2022-03-01 [Fixed](): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
+
+* The analysis is to be released.
 
 ## Comparison of other tools
 
@@ -61,6 +73,11 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 ## TODO
 
+- [ ] Publish Docker image to hub.docker.com
+- [ ] Add Dockerfile
+- [ ] Fix stash files missing due to the fix of #21 (`git clone` can't download stash files)
+- [ ] Fix infinit downloading 404 files
+- [ ] Use python f'string in `test.py`
 - [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
 - [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
@@ -84,6 +101,7 @@ githacker --url http://127.0.0.1/.git/ --folder result
 
 ## Acknowledgement
 
+- [Justin Steven](https://twitter.com/justinsteven)
 - [Driver Tom](https://drivertom.blogspot.com)
 - [lesion1999](https://github.com/lesion1999)
 

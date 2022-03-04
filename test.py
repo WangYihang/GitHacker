@@ -140,7 +140,7 @@ def diffall():
     for folder in glob.glob("./test/*"):
         basename = os.path.basename(folder)
         origin_path = os.path.join('test', basename, "www")
-        current_path = os.path.join('playground', basename)
+        current_path = glob.glob(f"{os.path.join('playground', basename)}/*")[0]
         same, total, difference, right_absence = diff(
             origin_path, current_path)
         ratio = (same / total) * 100
@@ -184,10 +184,10 @@ def main():
             with open(os.path.join(html_folder, "index.php"), "w") as f:
                 f.write("<?php @readfile($_GET['file']);?>")
             os.system(
-                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/?file=../.git/' --folder playground/{}".format(os.path.basename(folder)))
+                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/?file=../.git/' --output-folder playground/{}".format(os.path.basename(folder)))
         else:
             os.system(
-                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/' --folder playground/{}".format(os.path.basename(folder)))
+                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/' --output-folder playground/{}".format(os.path.basename(folder)))
 
         # Stop docker
         os.chdir(os.path.join(cwd, folder))
