@@ -52,12 +52,12 @@ def generate():
 
         # Generate some random commit
         for i in range(0x10):
-            filename = "index-{:02d}.php".format(i)
+            filename = f"index-{i:02d}.php"
             filepath = os.path.join(root, filename)
             with open(filepath, 'w') as f:
                 f.write(random_string())
             repo.index.add([filename])
-            repo.index.commit("create {}".format(filename))
+            repo.index.commit(f"create {filename}")
 
         version = semver.VersionInfo(0, 0, 1)
 
@@ -74,7 +74,7 @@ def generate():
                     repo.create_tag(
                         version,
                         ref=branch,
-                        message="v{}".format(version)
+                        message=f"v{version}",
                     )
             except:
                 pass
@@ -82,7 +82,7 @@ def generate():
         # Generate some random files
         unstashed = []
         for i in range(0x10):
-            filename = "{}.php".format(random_string())
+            filename = f"{random_string()}.php"
             filepath = os.path.join(root, filename)
             with open(filepath, 'w') as f:
                 f.write(random_string())
@@ -105,9 +105,9 @@ def generate():
 
 
 def diff(left, right):
-    visible_files = glob.glob("{}/**/*".format(left), recursive=True)
-    invisiable_files = glob.glob("{}/**/.*".format(left), recursive=True)
-    git_files = glob.glob("{}/.git/**/*".format(left), recursive=True)
+    visible_files = glob.glob(f"{left}/**/*", recursive=True)
+    invisiable_files = glob.glob(f"{left}/**/.*", recursive=True)
+    git_files = glob.glob(f"{left}/.git/**/*", recursive=True)
     files = visible_files + invisiable_files + git_files
     total = 0
     same = 0
@@ -145,19 +145,17 @@ def diffall():
             origin_path, current_path)
         ratio = (same / total) * 100
         if ratio == 100.0:
-            print_success("[{} / {}] = {:.2f}%, {}, {}".format(same,
-                          total, ratio, origin_path, current_path))
+            print_success(f"[{same} / {total}] = {ratio:.2f}%, {origin_path}, {current_path}")
         else:
-            print_warning("[{} / {}] = {:.2f}%, {}, {}".format(same,
-                          total, ratio, origin_path, current_path))
+            print_warning(f"[{same} / {total}] = {ratio:.2f}%, {origin_path}, {current_path}")
         if len(difference) > 0:
             print_info("  Different files:")
             for filename in difference:
-                print_absent("    {}".format(filename))
+                print_absent(f"    {filename}")
         if len(right_absence) > 0:
             print_info("  Files absent:")
             for filename in right_absence:
-                print_absent("    {}".format(filename))
+                print_absent(f"    {filename}")
 
 
 def main():
@@ -183,11 +181,9 @@ def main():
                 pass
             with open(os.path.join(html_folder, "index.php"), "w") as f:
                 f.write("<?php @readfile($_GET['file']);?>")
-            os.system(
-                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/?file=../.git/' --output-folder playground/{}".format(os.path.basename(folder)))
+            os.system(f"python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/?file=../.git/' --output-folder playground/{os.path.basename(folder)}")
         else:
-            os.system(
-                "python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/' --output-folder playground/{}".format(os.path.basename(folder)))
+            os.system(f"python3 GitHacker/__init__.py --brute --url 'http://127.0.0.1/' --output-folder playground/{os.path.basename(folder)}")
 
         # Stop docker
         os.chdir(os.path.join(cwd, folder))

@@ -83,8 +83,8 @@ githacker --brute --url http://127.0.0.1/.git/ --output-folder result
 - [ ] Add Dockerfile
 - [ ] Fix stash files missing due to the fix of #21 (`git clone` can't download stash files)
 - [ ] Fix infinit downloading 404 files
-- [ ] Use python f'string in `test.py`
 - [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] Use python f'string in `test.py`
 - [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
