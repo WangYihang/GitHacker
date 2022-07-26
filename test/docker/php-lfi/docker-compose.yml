@@ -7,4 +7,4 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./www:/var/www
+      - ./www:/var/www/html
