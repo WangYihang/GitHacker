@@ -1,4 +1,5 @@
 import argparse
+from codecs import ignore_errors
 import bs4
 import coloredlogs
 import git
@@ -14,7 +15,7 @@ import tempfile
 import threading
 
 
-__version__ = "1.1.1"
+__version__ = "1.1.3"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
@@ -204,6 +205,7 @@ class GitHacker():
         for folder in folders:
             src = os.path.join(self.temp_dst, folder)
             dst = os.path.join(self.final_dst, folder)
+            shutil.rmtree(dst, ignore_errors=True)
             if os.path.exists(src):
                 shutil.copytree(src, dst)
 
@@ -421,19 +423,17 @@ def main():
     for url in urls:
         folder = os.path.sep.join([args.output_folder, md5(url)])
         logging.info(f"Exploiting {url} into {folder}")
-        try:
-            result = GitHacker(
-                url=append_if_not_exists(remove_suffixes(url, ['.git', '.git/']), '/'),
-                dst=folder,
-                threads=args.threads,
-                brute=args.brute,
-                disable_manually_check=not args.enable_manually_check_dangerous_git_files,
-                delay=args.delay,
-            ).start()
-            if result:
-                succeed_urls.append(url)
-        except Exception as e:
-            logging.error(repr(e))
+        result = GitHacker(
+            url=append_if_not_exists(remove_suffixes(url, ['.git', '.git/']), '/'),
+            dst=folder,
+            threads=args.threads,
+            brute=args.brute,
+            disable_manually_check=not args.enable_manually_check_dangerous_git_files,
+            delay=args.delay,
+        ).start()
+        if result:
+            succeed_urls.append(url)
+
 
     logging.info(f"{len(succeed_urls)} / {len(urls)} were exploited successfully")
     for url in succeed_urls:
