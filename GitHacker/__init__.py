@@ -8,6 +8,7 @@ import queue
 import re
 import requests
 import shutil
+import time
 import subprocess
 import tempfile
 import threading
@@ -24,42 +25,31 @@ def md5(data):
 
 
 class GitHacker():
-    def __init__(self, url, dst, threads=0x08, brute=True, disable_manually_check=True) -> None:
+    def __init__(self, url, dst, threads=0x08, brute=True, disable_manually_check=True, delay=0) -> None:
         self.q = queue.Queue()
         self.url = url
-        self.dst = tempfile.mkdtemp()
-        self.real_dst = dst
+        self.temp_dst = tempfile.mkdtemp()
+        self.final_dst = dst
         self.repo = None
         self.thread_number = threads
         self.max_semanic_version = 10
+        self.delay = delay
         self.brute = brute
         self.verify = False
         self.disable_manually_check = disable_manually_check
         self.default_git_files_maybe_dangerous = [
             [".git", "config"],
-            [".git", "hooks", "applypatch-msg.sample"],
             [".git", "hooks", "applypatch-msg"],
-            [".git", "hooks", "commit-msg.sample"],
             [".git", "hooks", "commit-msg"],
-            [".git", "hooks", "fsmonitor-watchman.sample"],
             [".git", "hooks", "fsmonitor-watchman"],
-            [".git", "hooks", "post-update.sample"],
             [".git", "hooks", "post-update"],
-            [".git", "hooks", "pre-applypatch.sample"],
             [".git", "hooks", "pre-applypatch"],
-            [".git", "hooks", "pre-commit.sample"],
             [".git", "hooks", "pre-commit"],
-            [".git", "hooks", "pre-merge-commit.sample"],
             [".git", "hooks", "pre-merge-commit"],
-            [".git", "hooks", "pre-push.sample"],
             [".git", "hooks", "pre-push"],
-            [".git", "hooks", "pre-rebase.sample"],
             [".git", "hooks", "pre-rebase"],
-            [".git", "hooks", "pre-receive.sample"],
             [".git", "hooks", "pre-receive"],
-            [".git", "hooks", "prepare-commit-msg.sample"],
             [".git", "hooks", "prepare-commit-msg"],
-            [".git", "hooks", "update.sample"],
             [".git", "hooks", "update"],
         ]
 
@@ -170,43 +160,75 @@ class GitHacker():
             self.q.join()
 
         logging.info('Downloading blob files...')
-        self.repo = git.Repo(self.dst)
+        self.repo = git.Repo(self.temp_dst)
         tn = self.add_blob_file_tasks()
         if tn > 0:
             self.q.join()
 
         logging.info('Running git fsck files...')
         while True:
-            content = subprocess.run(
+            process = subprocess.run(
                 ['git', "fsck"],
                 stdout=subprocess.PIPE,
-                cwd=self.dst,
-            ).stdout
-            tn = self.add_hashes_parsed(content)
-            if tn > 0:
+                stderr=subprocess.PIPE,
+                cwd=self.temp_dst,
+            )
+            tn_stdout = self.add_hashes_parsed(process.stdout)
+            tn_stderr = self.add_hashes_parsed(process.stderr)
+            if tn_stdout + tn_stderr > 0:
                 self.q.join()
             else:
                 break
 
         return self.git_clone()
 
+    def copy_useful_files(self):
+        '''
+        copy useful files like `.git/ref/stash` which will not be downloaded via git clone
+        '''
+        files = [
+            ".git/COMMIT_EDITMSG",
+            ".git/ORIG_HEAD",
+            ".git/objects/pack",
+            ".git/refs/stash",
+        ]
+        for file in files:
+            src = os.path.join(self.temp_dst, file)
+            dst = os.path.join(self.final_dst, file)
+            if os.path.exists(src):
+                shutil.copy(src, dst)
+
+        folders = [
+            ".git/logs",
+        ]
+        for folder in folders:
+            src = os.path.join(self.temp_dst, folder)
+            dst = os.path.join(self.final_dst, folder)
+            if os.path.exists(src):
+                shutil.copytree(src, dst)
+
     def git_clone(self):
-        logging.info(f"Cloning downloaded repo from {self.dst} to {self.real_dst}")
+        logging.info(f"Cloning downloaded repo from {self.temp_dst} to {self.final_dst}")
         result = subprocess.run(
-            ["git", "clone", self.dst, self.real_dst],
+            ["git", "clone", self.temp_dst, self.final_dst],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         if result.stdout != b'': logging.info(result.stdout.decode("utf-8").strip())
         if result.stderr != b'': logging.error(result.stderr.decode("utf-8").strip())
         if b"invalid path" in result.stderr:
-            logging.info(f"Remote repo is downloaded into {self.real_dst}")
+            logging.info(f"Remote repo is downloaded into {self.final_dst}")
             logging.error("Be careful to checkout the source code, cause the target repo may be a honey pot.")
             logging.error("FYI: https://drivertom.blogspot.com/2021/08/git.html")
+
+        # TODO: check whether this operation would introduct new vulnerabilities 
+        self.copy_useful_files()
+
         if result.returncode == 0:
             # return True only when `git clone` successfully executed
-            logging.info(f"Check it out: {self.real_dst}")
-            shutil.rmtree(self.dst)
+            logging.info(f"Check it out: {self.final_dst}")
+            # remove temp repo folder
+            shutil.rmtree(self.temp_dst)
             return True
         return False
 
@@ -221,12 +243,12 @@ class GitHacker():
 
     def add_head_file_tasks(self):
         n = 0
-        with open(os.path.join(self.dst, os.path.sep.join([".git", "HEAD"])), "r") as f:
+        with open(os.path.join(self.temp_dst, os.path.sep.join([".git", "HEAD"])), "r") as f:
             for line in f:
                 if line.startswith("ref: "):
                     ref_path = line.split("ref: ")[1].strip()
                     file_path = os.path.join(
-                        self.dst, os.path.sep.join([".git", "logs", ref_path]))
+                        self.temp_dst, os.path.sep.join([".git", "logs", ref_path]))
                     if os.path.exists(file_path):
                         with open(file_path, "rb") as ff:
                             data = ff.read()
@@ -250,9 +272,9 @@ class GitHacker():
             self.default_git_files.append([".git", "refs", "tags", "1.0.0"])
 
         branch_names = [
-            "master", "main", "dev", "release", 
-            "test", "testing", "feature", "ng", 
-            "fix", "hotfix", "quickfix",
+            'daily', 'dev', 'feature', 'feat', 'fix', 'hotfix', 
+            'issue', 'main', 'master', 'ng', 'quickfix', 'release',
+            'test', 'testing', 'wip',
         ]
 
         # git remote branches
@@ -294,7 +316,7 @@ class GitHacker():
                 self.q.task_done()
                 continue
             else:
-                fs_path = os.path.join(self.dst, os.path.sep.join(path))
+                fs_path = os.path.join(self.temp_dst, os.path.sep.join(path))
                 url_path = "/".join(path)
                 url = f"{self.url}{url_path}"
                 if not os.path.exists(fs_path):
@@ -311,6 +333,7 @@ class GitHacker():
         return True
 
     def wget(self, url, path):
+        time.sleep(self.delay)
         response = requests.get(url, verify=self.verify)
         # path from Apache/Nginx could be dangerous
         if ".." in path:
@@ -378,8 +401,12 @@ def main():
     parser.add_argument('--brute', required=False, default=False, help='enable brute forcing branch/tag names', action='store_true')
     parser.add_argument('--enable-manually-check-dangerous-git-files', required=False, default=False, help='disable manually check dangerous git files which may lead to *RCE* (eg: .git/config, .git/hook/pre-commit) when downloading malicious .git folders. If this argument is given, GitHacker will not download the files which may be dangerous at all.', action='store_true')
     parser.add_argument('--threads', required=False, default=0x04, type=int, help='threads number to download from internet')
+    parser.add_argument('--delay', required=False, default=0, type=float, help='delay seconds between HTTP requests')
     parser.add_argument('--version', action='version', version=__version__)
     args = parser.parse_args()
+
+    if args.delay != 0: args.threads = 1
+
     urls = []
     if args.url:
         urls.append(args.url)
@@ -401,6 +428,7 @@ def main():
                 threads=args.threads,
                 brute=args.brute,
                 disable_manually_check=not args.enable_manually_check_dangerous_git_files,
+                delay=args.delay,
             ).start()
             if result:
                 succeed_urls.append(url)
