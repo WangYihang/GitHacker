@@ -1,6 +1,6 @@
-test: build
+publish_test: build
 	twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ dist/*
-release: build
+publish_release: build
 	twine upload --skip-existing dist/*
 build:
 	python3 setup.py sdist bdist_wheel

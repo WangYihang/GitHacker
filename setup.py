@@ -24,8 +24,7 @@ setuptools.setup(
     ],
     python_requires=">=3.6",
     keywords="ctf, git, web, security",
-    install_requires=["requests", "coloredlogs", "GitPython",
-                      "beautifulsoup4", "semver", "termcolor"],
+    install_requires=["requests", "coloredlogs", "GitPython", "beautifulsoup4", "semver"],
     entry_points={
         "console_scripts": [
             "githacker=GitHacker:main",
