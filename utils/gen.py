@@ -41,7 +41,6 @@ def generate_random_commits(repo, root, n, prefix):
     for i in range(n):
         logging.debug(f"Creating the {i+1} th of {n} random commits")
         files = generate_random_files(repo, root, random.randint(2, 16), prefix=f"{prefix}_commit")
-        print(files)
         repo.index.add(files)
         repo.index.commit(f"create {files}")
 
