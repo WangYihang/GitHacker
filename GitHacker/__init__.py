@@ -1,5 +1,4 @@
 import argparse
-from codecs import ignore_errors
 import bs4
 import coloredlogs
 import git

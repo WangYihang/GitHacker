@@ -58,19 +58,32 @@ I highly recommend you run this tool under a disposable jailed environment
 * git >= 2.11.0
 * Python 3
 
-## Installation
+## Usage in Docker (Recommended)
 
-```
-pip3 install GitHacker
+```bash
+# print help info
+docker run wangyihang/githacker --help
+# quick start
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --url http://127.0.0.1/.git/ --output-folder /tmp/githacker/results
+# brute for the name of branchs / tags
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --url http://127.0.0.1/.git/ --output-folder /tmp/githacker/results
+# exploit multiple websites, one site per line
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --url-file websites.txt --output-folder /tmp/githacker/results
 ```
 
 ## Usage
 
 ```bash
+# install
+python3 -m pip install -i https://pypi.org/simple/ GitHacker
+# print help info
+githacker --help
 # quick start
 githacker --url http://127.0.0.1/.git/ --output-folder result
 # brute for the name of branchs / tags
 githacker --brute --url http://127.0.0.1/.git/ --output-folder result
+# exploit multiple websites, one site per line
+githacker --brute --url-file websites.txt --output-folder result
 ```
 
 ## Example
@@ -79,10 +92,13 @@ githacker --brute --url http://127.0.0.1/.git/ --output-folder result
 
 ## TODO
 
-- [ ] Publish Docker image to hub.docker.com
-- [ ] Add Dockerfile
-- [ ] Fix infinit downloading 404 files
+- [ ] Fix infinit downloading 404 files, #25
+- [ ] Fix error when `master` branch not exists, #18
+- [ ] Extract branch names from `.git/logs/HEAD`, #18
+- [ ] Parse `packed-refs` file, see [doc](https://git-scm.com/docs/git-pack-refs).
 - [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] Publish Docker image to hub.docker.com
+- [x] Add Dockerfile
 - [x] Fix stash files missing due to the fix of #21, #23, #24 (`git clone` can't download stash files)
 - [x] Use python f'string in `test.py`
 - [x] Download tags and branches when Index enabled
