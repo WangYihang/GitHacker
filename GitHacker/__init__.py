@@ -256,6 +256,32 @@ class GitHacker():
                             n += self.add_hashes_parsed(data)
         return n
 
+    def parse_current_branch_name(self):
+        url = f"{self.url}.git/HEAD"
+        response = requests.get(url, verify=self.verify)
+        # TODO: [a-zA-Z\d]+ is not sufficient for matching a branch name [1,2].
+        # For example, a branch which named as `issue-10` cannot be matched.
+        # References
+        # [1] https://stackoverflow.com/a/67151923
+        # [2] https://github.com/git/git/blob/v2.37.1/refs.c#L38-L57
+        branch_names = re.findall(r'ref: refs/heads/([a-zA-Z\d]+)', response.text)
+        assert len(branch_names) == 1
+        return branch_names
+
+    def parse_logged_branch_names(self):
+        url = f"{self.url}.git/logs/HEAD"
+        response = requests.get(url, verify=self.verify)
+        # TODO: [a-zA-Z\d]+ is not sufficient for matching a branch name [1,2].
+        # For example, a branch which named as `issue-10` cannot be matched.
+        # References
+        # [1] https://stackoverflow.com/a/67151923
+        # [2] https://github.com/git/git/blob/v2.37.1/refs.c#L38-L57
+        print(response.text)
+        
+        branch_names = re.findall(r'checkout: moving from ([a-zA-Z\d]+) to ([a-zA-Z\d]+)', response.text)
+        branch_names_uniq = list(set([i[0] for i in branch_names] + [i[1] for i in branch_names]))
+        return branch_names_uniq
+
     def complete_basic_files_list(self):
         # git tags
         if self.brute:
@@ -277,6 +303,12 @@ class GitHacker():
             'issue', 'main', 'master', 'ng', 'quickfix', 'release',
             'test', 'testing', 'wip',
         ]
+
+        # parse current branch name in `.git/HEAD`
+        branch_names += self.parse_current_branch_name()
+
+        # extract branch names from branch changing logs in `.git/logs/HEAD`
+        branch_names += self.parse_logged_branch_names()
 
         # git remote branches
         expand_branch_name_folder = [

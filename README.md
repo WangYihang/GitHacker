@@ -2,16 +2,9 @@
 
 ## Desciption
 
-This is a multiple threads tool to detect whether a site has the `.git` folder 
-leakage vulnerability. It is able to download the target `.git` folder almost 
-completely. This tool also works when the `DirectoryListings` feature is 
-disabled. It is worth mentioning that this tool will download almost all files 
-of the target git repository and then rebuild them locally, which makes this 
-tool State of the art in this area. For example, tools like [githack] just 
-simply restore the latest version. With GitHacker's help, you can view the 
-developer's commit history, which makes a better understanding of the character 
-and psychology of developers, so as to lay the foundation for further code 
-audition.
+This is a multiple threads tool to exploit the `.git` folder leakage vulnerability. It is able to download the target `.git` folder almost completely. This tool also works when the `DirectoryListings` feature is disabled by brute forcing common `.git` folder files.
+
+With GitHacker's help, you can view the developer's commit history, branches, ..., stashes, which makes a better understanding of the target repo, even to find security vulnerabilities.
 
 ## PROCLAMATION (IMPORTANT)
 
@@ -19,39 +12,8 @@ audition.
 > GitHacker <= 1.1.0, please update your tool as soon as possible.
 
 The remote `.git` folder maybe malicious, so to prevent you from being attacked.
-I highly recommend you run this tool under a disposable jailed environment 
-(eg: docker container).
-
-## Security Issues
-
-#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool (Reported by [Driver Tom](https://drivertom.blogspot.com))
-
-* [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
-
-#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/806095e807d20e06d5f192928f1f525510a34688): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
-
-* To be released
-
-#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/f97710c2cf0351308fc81666448e00004b7d14f9): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
-
-* To be released
-
-## Comparison of other tools
-
-> 2021-05-25
-
-|     Tools     |       Index        |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
-| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-|   GitTools    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|    GitHack    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-|   GitTools    |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|    GitHack    |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-| **GitHacker** |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
+It's highly recommended that you SHOULD run this tool under a disposable jailed environment 
+(eg: Docker container).
 
 ## Requirments
 
@@ -86,6 +48,25 @@ githacker --brute --url http://127.0.0.1/.git/ --output-folder result
 githacker --brute --url-file websites.txt --output-folder result
 ```
 
+
+
+## Comparison of other tools
+
+> 2021-05-25
+
+|     Tools     |       Index        |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
+| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+|   GitTools    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|    GitHack    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+|   GitTools    |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|    GitHack    |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+| **GitHacker** |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
+
 ## Example
 
 ![Demo](./figure/demo.gif)
@@ -93,10 +74,9 @@ githacker --brute --url-file websites.txt --output-folder result
 ## TODO
 
 - [ ] Fix infinit downloading 404 files, #25
-- [ ] Fix error when `master` branch not exists, #18
-- [ ] Extract branch names from `.git/logs/HEAD`, #18
-- [ ] Parse `packed-refs` file, see [doc](https://git-scm.com/docs/git-pack-refs).
 - [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] Fix error when `master` branch not exists, #18
+- [x] Extract branch names from `.git/logs/HEAD`, #18
 - [x] Publish Docker image to hub.docker.com
 - [x] Add Dockerfile
 - [x] Fix stash files missing due to the fix of #21, #23, #24 (`git clone` can't download stash files)
@@ -104,7 +84,6 @@ githacker --brute --url-file websites.txt --output-folder result
 - [x] Download tags and branches when Index enabled
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
-
 
 ## Videos
 ### asciinema
@@ -115,6 +94,21 @@ githacker --brute --url-file websites.txt --output-folder result
 * [【.git/ folder attack】Comparison of attack tools (Part I)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
 * [【.git/ folder attack】Comparison of attack tools (Part II)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
 
+
+## Security Issues
+
+#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool (Reported by [Driver Tom](https://drivertom.blogspot.com))
+
+* [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
+
+#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/806095e807d20e06d5f192928f1f525510a34688): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
+
+* To be released
+
+#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/f97710c2cf0351308fc81666448e00004b7d14f9): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
+
+* To be released
+
 ## References
 
 * [Git Repository Layout](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
@@ -123,9 +117,10 @@ githacker --brute --url-file websites.txt --output-folder result
 
 ## Acknowledgement
 
-- [Justin Steven](https://twitter.com/justinsteven)
-- [Driver Tom](https://drivertom.blogspot.com)
-- [lesion1999](https://github.com/lesion1999)
+- [@Justin Steven](https://twitter.com/justinsteven)
+- [@Driver Tom](https://drivertom.blogspot.com)
+- [@lesion1999](https://github.com/lesion1999)
+- [@shashade250](https://github.com/shashade250)
 
 ## Licsence
 ```
