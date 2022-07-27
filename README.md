@@ -26,11 +26,11 @@ It's highly recommended that you SHOULD run this tool under a disposable jailed 
 # print help info
 docker run wangyihang/githacker --help
 # quick start
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --url http://127.0.0.1/.git/ --output-folder /tmp/githacker/results
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --output-folder /tmp/githacker/results --url http://127.0.0.1/.git/
 # brute for the name of branchs / tags
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --url http://127.0.0.1/.git/ --output-folder /tmp/githacker/results
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url http://127.0.0.1/.git/
 # exploit multiple websites, one site per line
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --url-file websites.txt --output-folder /tmp/githacker/results
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url-file websites.txt 
 ```
 
 ## Usage
@@ -47,8 +47,6 @@ githacker --brute --url http://127.0.0.1/.git/ --output-folder result
 # exploit multiple websites, one site per line
 githacker --brute --url-file websites.txt --output-folder result
 ```
-
-
 
 ## Comparison of other tools
 
@@ -93,7 +91,6 @@ githacker --brute --url-file websites.txt --output-folder result
 ### YouTube
 * [【.git/ folder attack】Comparison of attack tools (Part I)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
 * [【.git/ folder attack】Comparison of attack tools (Part II)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
-
 
 ## Security Issues
 
