@@ -71,8 +71,8 @@ githacker --brute --url-file websites.txt --output-folder result
 
 ## TODO
 
-- [ ] Fix infinit downloading 404 files, #25
-- [ ] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
+- [x] Fix infinit downloading 404 files, #25
 - [x] Fix error when `master` branch not exists, #18
 - [x] Extract branch names from `.git/logs/HEAD`, #18
 - [x] Publish Docker image to hub.docker.com

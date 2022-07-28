@@ -14,7 +14,7 @@ import tempfile
 import threading
 
 
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
@@ -75,6 +75,7 @@ class GitHacker():
         ]
 
         self.complete_basic_files_list()
+        self.cached_404_url = set()
 
     def start(self):
         # Ensure the target is a git folder via `.git/HEAD`
@@ -146,7 +147,7 @@ class GitHacker():
                 # The following if statment prevent from access other domain which may lead to CSRF attack.
                 if file_url.startswith(self.url):
                     filepath = file_url[len(self.url):].strip().replace("..", "").split("/")
-                    self.q.put(filepath)
+                    self.add_task(filepath)
 
     def blind(self):
         logging.info('Downloading basic files...')
@@ -173,9 +174,8 @@ class GitHacker():
                 stderr=subprocess.PIPE,
                 cwd=self.temp_dst,
             )
-            tn_stdout = self.add_hashes_parsed(process.stdout)
-            tn_stderr = self.add_hashes_parsed(process.stderr)
-            if tn_stdout + tn_stderr > 0:
+            tn = self.add_hashes_parsed(process.stdout + b'\n' + process.stderr)
+            if tn > 0:
                 self.q.join()
             else:
                 break
@@ -234,13 +234,29 @@ class GitHacker():
         return False
 
 
+    def add_task(self, task):
+        path_components = task
+        url = self.construct_url_from_path_components(path_components)
+        relative_path = "/".join(path_components)
+        if url in self.cached_404_url:
+            logging.warning(f"{relative_path} does not exist")
+            return False
+        elif os.path.exists(os.path.join(self.temp_dst, relative_path)):
+            logging.debug(f"{relative_path} alread existed")
+            return False
+        else:
+            self.q.put(path_components)
+            return True
+
+
     def add_hashes_parsed(self, content):
-        hashes = re.findall(r"([a-f\d]{40})", content.decode("utf-8"))
+        hashes = set(re.findall(r"([a-f\d]{40})", content.decode("utf-8")))
         n = 0
         for hash in hashes:
-            n += 1
-            self.q.put([".git", "objects", hash[0:2], hash[2:]])
+            path_components = [".git", "objects", hash[0:2], hash[2:]]
+            if self.add_task(path_components): n += 1
         return n
+
 
     def add_head_file_tasks(self):
         n = 0
@@ -325,37 +341,39 @@ class GitHacker():
     def add_basic_file_tasks(self):
         n = 0
         for item in self.default_git_files:
-            self.q.put(item)
-            n += 1
+            if self.add_task(item): n += 1
         for item in self.default_git_files_maybe_dangerous:
-            self.q.put(item)
-            n += 1
+            if self.add_task(item): n += 1
         return n
 
     def add_blob_file_tasks(self):
         n = 0
         for _, blob in self.repo.index.iter_blobs():
             hash = blob.hexsha
-            self.q.put([".git", "objects", hash[0:2], hash[2:]])
-            n += 1
+            path_components = [".git", "objects", hash[0:2], hash[2:]]
+            if self.add_task(path_components): n += 1
         return n
+
+    def construct_url_from_path_components(self, path_components):
+        url_path = "/".join(path_components)
+        url = f"{self.url}{url_path}"
+        return url
 
     def worker(self):
         while True:
-            path = self.q.get()
-            if "00000000000000000000000000000000000000" in path:
+            path_components = self.q.get()
+            if "00000000000000000000000000000000000000" in path_components:
                 self.q.task_done()
                 continue
             else:
-                fs_path = os.path.join(self.temp_dst, os.path.sep.join(path))
-                url_path = "/".join(path)
-                url = f"{self.url}{url_path}"
+                fs_path = os.path.join(self.temp_dst, os.path.sep.join(path_components))
+                url = self.construct_url_from_path_components(path_components)
                 if not os.path.exists(fs_path):
                     status_code, length, result = self.wget(url, fs_path)
                     if result:
-                        logging.info(f'[{length} bytes] {status_code} {url_path}')
+                        logging.info(f'[{length} bytes] {status_code} {url[len(self.url):]}')
                     else:
-                        logging.error(f'[{length} bytes] {status_code} {url_path}')
+                        logging.error(f'[{length} bytes] {status_code} {url[len(self.url):]}')
                 self.q.task_done()
 
     def check_file_content(self, content):
@@ -366,6 +384,8 @@ class GitHacker():
     def wget(self, url, path):
         time.sleep(self.delay)
         response = requests.get(url, verify=self.verify)
+        # record 404 files to prevent infinite downloading loop (#25)
+        if response.status_code == 404: self.cached_404_url.add(url)
         # path from Apache/Nginx could be dangerous
         if ".." in path:
             logging.error(f"Malicious repo detected: {url}")
