@@ -72,7 +72,10 @@ def diffall(display_difference=False, display_abscences=False):
 
 
 def main():
-    diffall()
+    diffall(
+        display_difference=True,
+        display_abscences=True,
+    )
 
 
 if __name__ == "__main__":

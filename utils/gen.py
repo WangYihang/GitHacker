@@ -81,16 +81,20 @@ def generate_random_branches(repo, root, n):
 
 def generate_repo(folder):
     # 1. Create a new repo
+    logging.info(f"Creating repo: {folder}")
     root = folder
     repo = Repo.init(root)
 
     # 2. Generate [2, 16] some random commits
+    logging.info(f"Generating random commits...")
     generate_random_commits(repo, root, random.randint(2, 16), prefix="normal")
 
     # 3. Create Branches
+    logging.info(f"Generating random branches...")
     generate_random_branches(repo, root, random.randint(2, 8))
 
     # 4. Create well-known branches
+    logging.info(f"Generating well-known branches...")
     branch_names = [
         'daily', 'dev', 'feature', 'feat', 'fix', 'hotfix', 'issue', 
         'main', 'master', 'ng', 'quickfix', 'release',
@@ -101,21 +105,27 @@ def generate_repo(folder):
         generate_random_commits(repo, root, random.randint(2, 4), prefix="branch_commits")
 
     # 5. Create 0x10 Tags
+    logging.info(f"Generating random tags...")
     generate_random_tags(repo, root, random.randint(2, 16))
 
     # 6. Create [2, 4] Stashes
+    logging.info(f"Generating random stashes...")
     generate_random_stashes(repo, root, random.randint(2, 16))
 
     # 7. Generate [2, 16] random files in the staging area
+    logging.info(f"Generating random files in staging area...")
     repo.index.add(generate_random_files(repo, root, random.randint(2, 16), prefix="staging"))
 
     # 8. Generate [2, 16] random files in the working directory
+    logging.info(f"Generating random files in working directory...")
     generate_random_files(repo, root, random.randint(2, 16), prefix="unstaged")
 
     # 9. Generate PHP Local File Inclusion Script
+    logging.info(f"Generating php local file inclusion script...")
     with open(os.path.join(root, "lfi.php"), "w") as f:
         f.write("<?php @readfile($_GET['file']);?>")
 
+    logging.info(f"Test repo generation finished")
 
 def main():
     sample_repo_path = "./test/repo"
