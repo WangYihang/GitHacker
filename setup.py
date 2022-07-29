@@ -12,7 +12,7 @@ setuptools.setup(
     description="This is a multiple threads tool to download the `.git` folder and rebuild git repository locally.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/WangYihang/Platypus-Python",
+    url="https://github.com/WangYihang/GitHacker",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",

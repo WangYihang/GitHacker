@@ -1,6 +1,6 @@
 requests
 coloredlogs
 GitPython
+beautifulsoup4
 semver
 twine
-beautifulsoup4
