@@ -281,7 +281,7 @@ class GitHacker():
         # [1] https://stackoverflow.com/a/67151923
         # [2] https://github.com/git/git/blob/v2.37.1/refs.c#L38-L57
         branch_names = re.findall(r'ref: refs/heads/([a-zA-Z\d_-]+)', response.text)
-        assert len(branch_names) == 1
+        assert len(branch_names) <= 1
         return branch_names
 
     def parse_logged_branch_names(self):
