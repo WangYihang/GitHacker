@@ -8,6 +8,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 RUN apk update
 RUN apk add git
 
-RUN python3 -m pip install -i https://pypi.org/simple/ GitHacker
+RUN git clone https://github.com/WangYihang/GitHacker.git
+RUN cd GitHacker && pip install -r requirements.txt && python setup.py install
 
 ENTRYPOINT ["githacker"]
