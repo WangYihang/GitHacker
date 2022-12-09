@@ -1,5 +1,8 @@
 # GitHacker
 
+[![PyPI version](https://badge.fury.io/py/GitHacker.svg)](https://badge.fury.io/py/GitHacker)
+[![PyPI download](https://img.shields.io/pypi/dm/githacker.svg)](https://pypistats.org/packages/githacker)
+
 ## Desciption
 
 This is a multiple threads tool to exploit the `.git` folder leakage vulnerability. It is able to download the target `.git` folder almost completely. This tool also works when the `DirectoryListings` feature is disabled by brute forcing common `.git` folder files.
