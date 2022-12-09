@@ -83,6 +83,44 @@ githacker --brute --url-file websites.txt --output-folder result
 - [x] Try common tags and branches when Index disabled
 - [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
 
+## Test
+
+### Setup Development Environment
+
+```
+# Install docker and docker-compose
+apt install docker-desktop
+apt install docker-compose
+
+# Download GitHacker
+git clone https://github.com/WangYihang/GitHacker
+cd GitHacker
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Run tests
+
+```
+# Generate testing repo
+python utils/gen.py
+
+# Run testcases
+sudo su
+source venv/bin/activate
+pip install -r requirements.txt
+python utils/test.py
+exit
+
+# Diff results
+python utils/diff.py
+```
+
+## Check report
+
+See `test/report/YYYY-MM-DD/index.html`
+
 ## Videos
 ### asciinema
 

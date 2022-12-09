@@ -1,0 +1,29 @@
+<h2>Reports</h2>
+<style>
+table, th, td {
+  text-align: center;
+  border: 1px solid black;
+}
+</style>
+<table>
+  <thead>
+    <th>testcase</th>
+    <th>correct files</th>
+    <th>total files</th>
+    <th>correct ratio</th>
+    <th>different files</th>
+    <th>abscent files</th>
+  </thead>
+  <tbody>
+    {% for name, result in results.items() %}
+    <tr>
+      <td><a href="{{ name }}.html">{{ name }}</a></td>
+      <td>{{ result["correct"] }}</td>
+      <td>{{ result["total"] }}</td>
+      <td>{{ "%.4f"|format(result["ratio"]) }}%</td>
+      <td>{{ result["difference"]|length }}</td>
+      <td>{{ result["abscence"]|length }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,23 @@
+<title>{{ tool }}-v{{ version }}</title>
+<h2>Summary</h2>
+<div>
+  Date: {{ time }}<br>
+  Total files: {{ total }}, Correct files: {{ correct }}, Correct Ratio: {{ "%.4f"|format(ratio) }}%<br>
+  Different files: {{ difference|length }}, Absent files: {{ abscence|length }}<br>
+</div>
+
+<h2>Different file</h2>
+
+<table>
+  {% for filename in difference %}
+  <TR><TD>{{ filename }}</TD></TR>
+  {% endfor %}
+</table>
+  
+<h2>Absent file</h2>
+
+<table>
+  {% for filename in abscence %}
+  <TR><TD>{{ filename }}</TD></TR>
+  {% endfor %}
+</table>

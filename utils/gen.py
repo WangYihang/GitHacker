@@ -1,4 +1,3 @@
-import glob
 import os
 import random
 import semver
@@ -8,30 +7,22 @@ import coloredlogs
 
 from git import Repo
 
-coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
+coloredlogs.install(fmt="%(asctime)s %(levelname)s %(message)s")
+
+random.seed(0)
 
 
-def random_string(length=0x10, charset=__import__('string').ascii_letters+__import__('string').digits):
-    return ''.join([random.choice(charset) for i in range(length)])
+def random_string(length=0x10, charset=__import__("string").ascii_letters + __import__("string").digits):
+    return "".join([random.choice(charset) for i in range(length)])
 
 
-def cleanup():
-    for filename in glob.glob("./test/*/www/*.php"):
-        os.unlink(filename)
-
-    for folder in glob.glob("./test/*/www"):
-        shutil.rmtree(os.path.join(folder, ".git"), ignore_errors=True)
-
-    shutil.rmtree("playground", ignore_errors=True)
-
-
-def generate_random_files(repo, root, n, prefix='normal'):
+def generate_random_files(repo, root, n, prefix="normal"):
     files = []
     for i in range(n):
         logging.debug(f"Creating the {i+1} th of {n} random files")
         filename = f"{prefix}_{random_string()}.php"
         filepath = os.path.join(os.path.abspath(root), filename)
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             f.write(random_string())
         files.append(filepath)
     return files
@@ -58,11 +49,7 @@ def generate_random_tags(repo, root, n):
     repo.git.checkout("release")
     for i in range(0x10):
         if random.choice([True, False]):
-            version = random.choice([
-                version.bump_patch,
-                version.bump_minor,
-                version.bump_major
-            ])()
+            version = random.choice([version.bump_patch, version.bump_minor, version.bump_major])()
             repo.create_tag(
                 version,
                 message=f"v{version}",
@@ -85,47 +72,68 @@ def generate_repo(folder):
     root = folder
     repo = Repo.init(root)
 
+    repo.config_writer().set_value("user", "name", "test").release()
+    repo.config_writer().set_value("user", "email", "test@githacker.com").release()
+
     # 2. Generate [2, 16] some random commits
-    logging.info(f"Generating random commits...")
+    logging.info("Generating random commits...")
     generate_random_commits(repo, root, random.randint(2, 16), prefix="normal")
 
     # 3. Create Branches
-    logging.info(f"Generating random branches...")
+    logging.info("Generating random branches...")
     generate_random_branches(repo, root, random.randint(2, 8))
 
     # 4. Create well-known branches
-    logging.info(f"Generating well-known branches...")
+    logging.info("Generating well-known branches...")
     branch_names = [
-        'daily', 'dev', 'feature', 'feat', 'fix', 'hotfix', 'issue', 
-        'main', 'master', 'ng', 'quickfix', 'release',
-        'test', 'testing', 'wip',
+        "daily",
+        "dev",
+        "feature",
+        "feat",
+        "fix",
+        "hotfix",
+        "issue",
+        "main",
+        "master",
+        "ng",
+        "quickfix",
+        "release",
+        "test",
+        "testing",
+        "wip",
     ]
     for branch_name in branch_names:
         repo.create_head(branch_name)
         generate_random_commits(repo, root, random.randint(2, 4), prefix="branch_commits")
 
     # 5. Create 0x10 Tags
-    logging.info(f"Generating random tags...")
+    logging.info("Generating random tags...")
     generate_random_tags(repo, root, random.randint(2, 16))
 
     # 6. Create [2, 4] Stashes
-    logging.info(f"Generating random stashes...")
+    logging.info("Generating random stashes...")
     generate_random_stashes(repo, root, random.randint(2, 16))
 
     # 7. Generate [2, 16] random files in the staging area
-    logging.info(f"Generating random files in staging area...")
+    logging.info("Generating random files in staging area...")
     repo.index.add(generate_random_files(repo, root, random.randint(2, 16), prefix="staging"))
 
     # 8. Generate [2, 16] random files in the working directory
-    logging.info(f"Generating random files in working directory...")
+    logging.info("Generating random files in working directory...")
     generate_random_files(repo, root, random.randint(2, 16), prefix="unstaged")
 
     # 9. Generate PHP Local File Inclusion Script
-    logging.info(f"Generating php local file inclusion script...")
+    logging.info("Generating php local file inclusion script...")
     with open(os.path.join(root, "lfi.php"), "w") as f:
         f.write("<?php @readfile($_GET['file']);?>")
 
-    logging.info(f"Test repo generation finished")
+    # 10. Generate custom file in .git folder
+    logging.info("Generate custom file in .git folderd ..")
+    with open(os.path.join(root, ".git", "whoami"), "w") as f:
+        f.write("root")
+
+    logging.info("Test repo generation finished")
+
 
 def main():
     sample_repo_path = "./test/repo"

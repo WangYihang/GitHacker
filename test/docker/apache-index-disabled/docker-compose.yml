@@ -7,5 +7,5 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./www:/usr/local/apache2/htdocs
+      - ../../repo:/usr/local/apache2/htdocs
       - ./httpd.conf:/usr/local/apache2/conf/httpd.conf

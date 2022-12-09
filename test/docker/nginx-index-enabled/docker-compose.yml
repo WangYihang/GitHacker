@@ -7,5 +7,5 @@ services:
     ports:
       - 80:80
     volumes:
-      - ./www:/usr/share/nginx/html
+      - ../../repo:/usr/share/nginx/html
       - ./nginx.conf:/etc/nginx/nginx.conf:ro

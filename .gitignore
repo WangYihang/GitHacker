@@ -143,3 +143,4 @@ cython_debug/
 # Testing playground
 playground/
 test/repo/
+test/report/
