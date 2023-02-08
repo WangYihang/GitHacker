@@ -6,7 +6,7 @@ cfgv==3.3.1
 charset-normalizer==2.1.1
 coloredlogs==15.0.1
 commonmark==0.9.1
-cryptography==38.0.4
+cryptography==39.0.1
 distlib==0.3.6
 docutils==0.19
 filelock==3.8.2
@@ -56,7 +56,7 @@ cfgv==3.3.1
 charset-normalizer==2.1.1
 coloredlogs==15.0.1
 commonmark==0.9.1
-cryptography==38.0.4
+cryptography==39.0.1
 distlib==0.3.6
 docutils==0.19
 filelock==3.8.2
