@@ -55,18 +55,27 @@ githacker --brute --url-file websites.txt --output-folder result
 
 > 2021-05-25
 
-|     Tools     |       Index        |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
-| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-|   GitTools    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|    GitHack    | :heavy_check_mark: | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-|   GitTools    |        :x:         | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|    GitHack    |        :x:         | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-| **GitHacker** |        :x:         | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
+### [`DirectoryIndex`](https://httpd.apache.org/docs/2.4/mod/mod_dir.html#directoryindex) enabled in Web Server
+
+|     Tools     |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
+| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+|   GitTools    | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|    GitHack    | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+
+### [`DirectoryIndex`](https://httpd.apache.org/docs/2.4/mod/mod_dir.html#directoryindex) disabled in Web Server
+
+> :muscle: means brute-forcing.
+
+|     Tools     |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
+| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+|   GitTools    | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|    GitHack    | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
+|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
+| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
 
 ## Example
 
