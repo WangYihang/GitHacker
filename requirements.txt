@@ -46,7 +46,7 @@ urllib3==1.26.19
 verboselogs==1.7
 virtualenv==20.17.1
 webencodings==0.5.1
-zipp==3.11.0
+zipp==3.19.1
 zope.interface==5.5.2
 beautifulsoup4==4.11.1
 bleach==5.0.1
@@ -96,5 +96,5 @@ urllib3==1.26.19
 verboselogs==1.7
 virtualenv==20.17.1
 webencodings==0.5.1
-zipp==3.11.0
+zipp==3.19.1
 zope.interface==5.5.2
