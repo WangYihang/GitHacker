@@ -14,7 +14,7 @@ gitdb==4.0.10
 GitPython==3.1.32
 humanfriendly==10.0
 identify==2.5.9
-idna==3.4
+idna==3.7
 importlib-metadata==5.1.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
@@ -64,7 +64,7 @@ gitdb==4.0.10
 GitPython==3.1.32
 humanfriendly==10.0
 identify==2.5.9
-idna==3.4
+idna==3.7
 importlib-metadata==5.1.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
