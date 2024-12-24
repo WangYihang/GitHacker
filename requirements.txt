@@ -18,7 +18,7 @@ idna==3.7
 importlib-metadata==5.1.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
-Jinja2==3.1.4
+Jinja2==3.1.5
 keyring==23.11.0
 MarkupSafe==2.1.1
 more-itertools==9.0.0
@@ -68,7 +68,7 @@ idna==3.7
 importlib-metadata==5.1.0
 jaraco.classes==3.2.3
 jeepney==0.8.0
-Jinja2==3.1.4
+Jinja2==3.1.5
 keyring==23.11.0
 MarkupSafe==2.1.1
 more-itertools==9.0.0
