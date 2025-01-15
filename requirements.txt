@@ -44,7 +44,7 @@ toml==0.10.2
 twine==4.0.2
 urllib3==1.26.19
 verboselogs==1.7
-virtualenv==20.17.1
+virtualenv==20.26.6
 webencodings==0.5.1
 zipp==3.19.1
 zope.interface==5.5.2
@@ -94,7 +94,7 @@ toml==0.10.2
 twine==4.0.2
 urllib3==1.26.19
 verboselogs==1.7
-virtualenv==20.17.1
+virtualenv==20.26.6
 webencodings==0.5.1
 zipp==3.19.1
 zope.interface==5.5.2
