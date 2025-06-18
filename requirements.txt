@@ -42,7 +42,7 @@ smmap==5.0.0
 soupsieve==2.3.2.post1
 toml==0.10.2
 twine==4.0.2
-urllib3==1.26.19
+urllib3==2.5.0
 verboselogs==1.7
 virtualenv==20.26.6
 webencodings==0.5.1
@@ -92,7 +92,7 @@ smmap==5.0.0
 soupsieve==2.3.2.post1
 toml==0.10.2
 twine==4.0.2
-urllib3==1.26.19
+urllib3==2.5.0
 verboselogs==1.7
 virtualenv==20.26.6
 webencodings==0.5.1
