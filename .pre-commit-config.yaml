@@ -1,21 +1,60 @@
-
 repos:
-  - repo: https://github.com/psf/black
-    rev: 22.10.0
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
     hooks:
-    - id: black
-      args: [
-        --line-length=121,
-      ]
-      exclude: ^(venv/|docs/)
-      types: ['python']
-  - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: double-quote-string-fixer
+    -   id: name-tests-test
+    -   id: requirements-txt-fixer
+    -   id: check-json
+    -   id: pretty-format-json
+        args: [--autofix, --indent=4]
+-   repo: https://github.com/asottile/setup-cfg-fmt
+    rev: v2.8.0
     hooks:
-    - id: flake8
-      args: [
-        --max-line-length=121,
-        --ignore=E402
-      ]
-      exclude: ^(venv/|docs/)
-      types: ['python']
+    -   id: setup-cfg-fmt
+-   repo: https://github.com/asottile/reorder-python-imports
+    rev: v3.15.0
+    hooks:
+    -   id: reorder-python-imports
+        exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
+        args: [--py312-plus]
+-   repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.2.0
+    hooks:
+    -   id: add-trailing-comma
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py312-plus]
+-   repo: https://github.com/hhatto/autopep8
+    rev: v2.3.2
+    hooks:
+    -   id: autopep8
+-   repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+    -   id: flake8
+        args: ['--ignore=E501,W504']
+-   repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+    -   id: autoflake
+        args: [--remove-all-unused-imports, --in-place]
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.17.1
+    hooks:
+    -   id: mypy
+        additional_dependencies:
+            - types-pyyaml
+            - types-requests
+            - pandas-stubs
+        exclude: ^testing/resources/
+-   repo: https://github.com/citation-file-format/cffconvert
+    rev: 054bda51dbe278b3e86f27c890e3f3ac877d616c
+    hooks:
+      - id: validate-cff

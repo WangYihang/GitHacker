@@ -1,22 +1,24 @@
+import datetime
 import glob
-import os
 import logging
+import os
+
 import coloredlogs
 import verboselogs
-import datetime
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
 verboselogs.install()
 logger = logging.getLogger(__name__)
 coloredlogs.install(logger=logger)
 
-env = Environment(loader=FileSystemLoader("templates/"))
+env = Environment(loader=FileSystemLoader('templates/'))
 
 
 def md5(data):
     if type(data) is str:
-        data = bytes(data, encoding="utf-8")
-    return __import__("hashlib").md5(data).hexdigest()
+        data = bytes(data, encoding='utf-8')
+    return __import__('hashlib').md5(data).hexdigest()
 
 
 def diff(left, right):
@@ -37,12 +39,12 @@ def diff(left, right):
                 continue
 
             # There is no need to compare the `.git/index` file, leave it as correct
-            if os.path.join(".git", "index") in filename:
+            if os.path.join('.git', 'index') in filename:
                 correct += 1
                 continue
 
-            origin_md5 = md5(open(filename, "rb").read())
-            current_md5 = md5(open(current_filename, "rb").read())
+            origin_md5 = md5(open(filename, 'rb').read())
+            current_md5 = md5(open(current_filename, 'rb').read())
             if origin_md5 == current_md5:
                 correct += 1
             else:
@@ -53,9 +55,9 @@ def diff(left, right):
 
 def diffall(display_difference=False, display_abscences=False):
     results = {}
-    for folder in glob.glob("./test/docker/*"):
+    for folder in glob.glob('./test/docker/*'):
         basename = os.path.basename(folder)
-        origin_path = os.path.join("test", "repo")
+        origin_path = os.path.join('test', 'repo')
         current_paths = glob.glob(f"{os.path.join('playground', basename)}/*")
         if len(current_paths) == 0:
             continue
@@ -67,14 +69,15 @@ def diffall(display_difference=False, display_abscences=False):
         ratio = (correct / total) * 100
 
         results[basename] = {
-            "correct": correct,
-            "total": total,
-            "difference": difference,
-            "abscence": abscence,
-            "ratio": ratio,
+            'correct': correct,
+            'total': total,
+            'difference': difference,
+            'abscence': abscence,
+            'ratio': ratio,
         }
 
-        ratio_log = f"[{correct} / {total}] = {ratio:.2f}%, {origin_path}, {current_path}"
+        ratio_str = format(ratio, '.2f')
+        ratio_log = f"[{correct} / {total}] = {ratio_str}%, {origin_path}, {current_path}"
         if ratio == 100.0:
             logger.info(ratio_log)
         else:
@@ -82,46 +85,46 @@ def diffall(display_difference=False, display_abscences=False):
 
         # Display different files
         if len(difference) > 0 and display_difference:
-            logger.info("  Different files:")
+            logger.info('  Different files:')
             for filename in difference:
                 logger.error(f"    {filename}")
 
         # Display absent files
         if len(abscence) > 0 and display_abscences:
-            logger.info("  Files absent:")
+            logger.info('  Files absent:')
             for filename in abscence:
                 logger.error(f"    {filename}")
 
         # Render report
-        template = env.get_template("result.html")
+        template = env.get_template('result.html')
         html = template.render(
             {
-                "tool": "GitHacker",
-                "time": datetime.datetime.now(),
-                "correct": correct,
-                "total": total,
-                "ratio": ratio,
-                "difference": difference,
-                "abscence": abscence,
-            }
+                'tool': 'GitHacker',
+                'time': datetime.datetime.now(),
+                'correct': correct,
+                'total': total,
+                'ratio': ratio,
+                'difference': difference,
+                'abscence': abscence,
+            },
         )
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
         report_filepath = f"test/report/{today}/{basename}.html"
         try:
             os.makedirs(os.path.dirname(report_filepath))
         except Exception as e:
             logger.error(repr(e))
-        with open(report_filepath, "w") as f:
+        with open(report_filepath, 'w') as f:
             f.write(html)
 
-    template = env.get_template("index.html")
-    html = template.render({"results": results})
+    template = env.get_template('index.html')
+    html = template.render({'results': results})
     report_filepath = f"test/report/{today}/index.html"
     try:
         os.makedirs(os.path.dirname(report_filepath))
     except Exception as e:
         logger.error(repr(e))
-    with open(report_filepath, "w") as f:
+    with open(report_filepath, 'w') as f:
         f.write(html)
 
 
@@ -132,5 +135,5 @@ def main():
     )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

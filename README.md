@@ -11,11 +11,11 @@ With GitHacker's help, you can view the developer's commit history, branches, ..
 
 ## PROCLAMATION (IMPORTANT)
 
-> Several VULNERABILITIES have been reported recently, if you are using 
+> Several VULNERABILITIES have been reported recently, if you are using
 > GitHacker <= 1.1.0, please update your tool as soon as possible.
 
 The remote `.git` folder maybe malicious, so to prevent you from being attacked.
-It's highly recommended that you SHOULD run this tool under a disposable jailed environment 
+It's highly recommended that you SHOULD run this tool under a disposable jailed environment
 (eg: Docker container).
 
 ## Requirments
@@ -33,7 +33,7 @@ docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --outpu
 # brute for the name of branchs / tags
 docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url http://127.0.0.1/.git/
 # exploit multiple websites, one site per line
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url-file websites.txt 
+docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url-file websites.txt
 ```
 
 ## Usage
@@ -173,9 +173,9 @@ See `test/report/YYYY-MM-DD/index.html`
 ```
 THE DRINKWARE LICENSE
 
-<wangyihanger@gmail.com> wrote this file. As long as 
-you retain this :x:tice you can do whatever you want 
-with this stuff. If we meet some day, and you think 
+<wangyihanger@gmail.com> wrote this file. As long as
+you retain this :x:tice you can do whatever you want
+with this stuff. If we meet some day, and you think
 this stuff is worth it, you can buy me the following
 drink(s) in return.
 
