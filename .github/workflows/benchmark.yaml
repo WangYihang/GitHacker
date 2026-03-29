@@ -58,17 +58,9 @@ jobs:
         working-directory: docs
         run: npm run build
 
-      - name: Create Cloudflare Pages project (if not exists)
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          command: pages project create githacker --production-branch main
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
-          command: pages deploy docs/dist --project-name=githacker --commit-dirty=true
+          command: pages deploy docs/dist --project-name=githacker --branch=main --commit-dirty=true
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
