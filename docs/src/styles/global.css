@@ -24,37 +24,6 @@
 }
 
 @layer components {
-  /* Tables */
-  .data-table {
-    @apply w-full text-sm border-collapse;
-  }
-
-  .data-table th {
-    @apply text-left text-xs font-semibold uppercase tracking-wider text-gray-500
-           border-b-2 border-gray-900 pb-2 px-3;
-  }
-
-  .data-table td {
-    @apply px-3 py-2 border-b border-gray-200;
-  }
-
-  .data-table th:not(:first-child),
-  .data-table td:not(:first-child) {
-    @apply text-center;
-  }
-
-  .data-table tbody tr:hover {
-    @apply bg-gray-50;
-  }
-
-  .data-table tbody tr.row-highlight {
-    @apply bg-blue-50/50;
-  }
-
-  .data-table tbody tr.row-highlight td:first-child {
-    @apply font-semibold;
-  }
-
   /* Code blocks */
   .code-block {
     @apply bg-gray-900 text-gray-100 rounded-md p-4 text-sm font-mono overflow-x-auto leading-relaxed;
@@ -65,38 +34,39 @@
     @apply py-10 border-b border-gray-200 last:border-b-0;
   }
 
-  /* Ratio bar */
-  .ratio-bar {
-    @apply h-1.5 rounded-full bg-gray-200 overflow-hidden;
+  /*
+   * Academic three-line table (三线表)
+   * - Top rule (2px)
+   * - Below header (1px)
+   * - Bottom rule (2px)
+   * - No vertical lines, no internal row borders
+   */
+  .three-line-table {
+    @apply w-full text-sm border-collapse;
+    border-top: 2px solid #111827;
+    border-bottom: 2px solid #111827;
   }
 
-  .ratio-fill {
-    @apply h-full rounded-full transition-all duration-500;
+  .three-line-table thead th {
+    @apply text-left text-xs font-semibold py-2 px-3 text-gray-900;
+    border-bottom: 1px solid #111827;
   }
 
-  .ratio-fill.high { @apply bg-gray-900; }
-  .ratio-fill.mid  { @apply bg-gray-500; }
-  .ratio-fill.low  { @apply bg-gray-300; }
-
-  /* Detail toggle */
-  .detail-row {
-    @apply hidden;
+  .three-line-table thead th:not(:first-child) {
+    @apply text-center;
   }
 
-  .detail-row.open {
-    display: table-row;
+  .three-line-table tbody td {
+    @apply px-3 py-1.5;
+    border: none;
   }
 
-  .detail-row td {
-    @apply bg-gray-50 p-4;
+  .three-line-table tbody td:not(:first-child) {
+    @apply text-center;
   }
 
-  .toggle-btn {
-    @apply text-xs text-gray-500 cursor-pointer hover:text-gray-900 select-none;
-  }
-
-  /* File list */
-  .file-list {
-    @apply max-h-48 overflow-y-auto font-mono text-xs leading-relaxed text-gray-500;
+  /* Best tool row */
+  .three-line-table tbody tr.best td {
+    @apply font-semibold;
   }
 }
