@@ -1,0 +1,56 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight
+  push:
+    paths:
+      - 'benchmark/**'
+      - 'test/docker/**'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install gitpython semver coloredlogs
+
+      - name: Build tool Docker images
+        run: |
+          for tool_dir in benchmark/tools/*/; do
+            tool_name=$(basename "$tool_dir")
+            echo "Building benchmark-${tool_name}..."
+            docker build -t "benchmark-${tool_name}" "$tool_dir"
+          done
+
+      - name: Run benchmark
+        working-directory: benchmark
+        run: python run.py
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark/results/benchmark.json
+
+      - name: Copy results to docs
+        run: cp benchmark/results/benchmark.json docs/data/benchmark.json
+
+      - name: Deploy to Cloudflare Pages
+        if: github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          command: pages deploy docs --project-name=githacker-benchmark
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

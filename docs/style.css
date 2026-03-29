@@ -1,0 +1,157 @@
+/* Custom styles for GitHacker Benchmark */
+
+/* Feature matrix icons */
+.icon-supported {
+  color: #16a34a;
+  font-weight: bold;
+}
+
+.icon-unsupported {
+  color: #dc2626;
+}
+
+.icon-brute {
+  color: #d97706;
+  font-weight: bold;
+}
+
+/* Table styles */
+.benchmark-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.benchmark-table th,
+.benchmark-table td {
+  padding: 0.625rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.benchmark-table th {
+  background-color: #f9fafb;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: #6b7280;
+  position: sticky;
+  top: 0;
+}
+
+.benchmark-table td:first-child,
+.benchmark-table th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.benchmark-table tbody tr:hover {
+  background-color: #f3f4f6;
+}
+
+.benchmark-table tbody tr.highlight {
+  background-color: #eff6ff;
+}
+
+/* Ratio bar */
+.ratio-bar {
+  height: 6px;
+  border-radius: 3px;
+  background-color: #e5e7eb;
+  overflow: hidden;
+}
+
+.ratio-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.ratio-bar-fill.high {
+  background-color: #16a34a;
+}
+
+.ratio-bar-fill.medium {
+  background-color: #d97706;
+}
+
+.ratio-bar-fill.low {
+  background-color: #dc2626;
+}
+
+/* Score card */
+.score-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  background: white;
+  transition: box-shadow 0.2s;
+}
+
+.score-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.score-card.best {
+  border-color: #16a34a;
+  background: linear-gradient(135deg, #f0fdf4, white);
+}
+
+/* Expandable detail rows */
+.detail-row {
+  display: none;
+}
+
+.detail-row.open {
+  display: table-row;
+}
+
+.detail-row td {
+  background-color: #fafafa;
+  padding: 1rem;
+}
+
+.detail-toggle {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.detail-toggle:hover {
+  color: #2563eb;
+}
+
+/* Tool name with link */
+.tool-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed #9ca3af;
+}
+
+.tool-link:hover {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .benchmark-table th,
+  .benchmark-table td {
+    padding: 0.5rem 0.375rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* File list in detail view */
+.file-list {
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.file-list li {
+  padding: 0.125rem 0;
+  color: #6b7280;
+}

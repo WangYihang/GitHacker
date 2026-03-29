@@ -1,0 +1,457 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-29T00:00:00+00:00",
+    "git_commit": "sample",
+    "test_repo_seed": 0
+  },
+  "tools": {
+    "githacker": {
+      "name": "GitHacker",
+      "url": "https://github.com/WangYihang/GitHacker"
+    },
+    "gittools": {
+      "name": "GitTools",
+      "url": "https://github.com/internetwache/GitTools"
+    },
+    "dvcs-ripper": {
+      "name": "dvcs-ripper",
+      "url": "https://github.com/kost/dvcs-ripper"
+    },
+    "githack": {
+      "name": "GitHack",
+      "url": "https://github.com/lijiejie/GitHack"
+    },
+    "git-dumper": {
+      "name": "git-dumper",
+      "url": "https://github.com/arthaud/git-dumper"
+    }
+  },
+  "scenarios": [
+    "apache-index-enabled",
+    "apache-index-disabled",
+    "nginx-index-enabled",
+    "nginx-index-disabled",
+    "php-lfi"
+  ],
+  "features": [
+    "source_code",
+    "reflogs",
+    "stashes",
+    "commits",
+    "branches",
+    "remotes",
+    "tags"
+  ],
+  "results": {
+    "githacker": {
+      "apache-index-enabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "apache-index-disabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "nginx-index-enabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "nginx-index-disabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "php-lfi": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      }
+    },
+    "gittools": {
+      "apache-index-enabled": {
+        "correct": 361,
+        "total": 487,
+        "ratio": 74.13,
+        "different_files": [],
+        "absent_files": ["refs/heads/dev", "refs/heads/feature", "refs/tags/0.1.0"],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "apache-index-disabled": {
+        "correct": 361,
+        "total": 487,
+        "ratio": 74.13,
+        "different_files": [],
+        "absent_files": ["refs/heads/dev", "refs/tags/0.1.0"],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-enabled": {
+        "correct": 361,
+        "total": 487,
+        "ratio": 74.13,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-disabled": {
+        "correct": 361,
+        "total": 487,
+        "ratio": 74.13,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "php-lfi": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      }
+    },
+    "dvcs-ripper": {
+      "apache-index-enabled": {
+        "correct": 442,
+        "total": 487,
+        "ratio": 90.76,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "apache-index-disabled": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-enabled": {
+        "correct": 442,
+        "total": 487,
+        "ratio": 90.76,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-disabled": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "php-lfi": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      }
+    },
+    "githack": {
+      "apache-index-enabled": {
+        "correct": 82,
+        "total": 487,
+        "ratio": 16.84,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "apache-index-disabled": {
+        "correct": 82,
+        "total": 487,
+        "ratio": 16.84,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-enabled": {
+        "correct": 82,
+        "total": 487,
+        "ratio": 16.84,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-disabled": {
+        "correct": 82,
+        "total": 487,
+        "ratio": 16.84,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "php-lfi": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      }
+    },
+    "git-dumper": {
+      "apache-index-enabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "apache-index-disabled": {
+        "correct": 444,
+        "total": 487,
+        "ratio": 91.17,
+        "different_files": [],
+        "absent_files": ["refs/heads/dev", "refs/tags/0.1.0"],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "nginx-index-enabled": {
+        "correct": 487,
+        "total": 487,
+        "ratio": 100.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": true, "correct": 21, "total": 21, "ratio": 100.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": true, "correct": 22, "total": 22, "ratio": 100.0}
+        }
+      },
+      "nginx-index-disabled": {
+        "correct": 444,
+        "total": 487,
+        "ratio": 91.17,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": true, "correct": 82, "total": 82, "ratio": 100.0},
+          "reflogs": {"supported": true, "correct": 18, "total": 18, "ratio": 100.0},
+          "stashes": {"supported": true, "correct": 2, "total": 2, "ratio": 100.0},
+          "commits": {"supported": true, "correct": 342, "total": 342, "ratio": 100.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": true, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      },
+      "php-lfi": {
+        "correct": 0,
+        "total": 487,
+        "ratio": 0.0,
+        "different_files": [],
+        "absent_files": [],
+        "features": {
+          "source_code": {"supported": false, "correct": 0, "total": 82, "ratio": 0.0},
+          "reflogs": {"supported": false, "correct": 0, "total": 18, "ratio": 0.0},
+          "stashes": {"supported": false, "correct": 0, "total": 2, "ratio": 0.0},
+          "commits": {"supported": false, "correct": 0, "total": 342, "ratio": 0.0},
+          "branches": {"supported": false, "correct": 0, "total": 21, "ratio": 0.0},
+          "remotes": {"supported": false, "correct": 0, "total": 0, "ratio": 0.0},
+          "tags": {"supported": false, "correct": 0, "total": 22, "ratio": 0.0}
+        }
+      }
+    }
+  }
+}
