@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import logging
+import socket
 import subprocess
 import time
 from contextlib import contextmanager
@@ -14,6 +15,42 @@ from benchmark.config import DOCKER_DIR, TOOL_TIMEOUT, TOOLS_DIR
 
 logger = logging.getLogger(__name__)
 
+SERVER_PORT = 80
+
+
+# ---------------------------------------------------------------------------
+# Port readiness helpers
+# ---------------------------------------------------------------------------
+
+def _wait_for_port(port: int = SERVER_PORT, host: str = "127.0.0.1", timeout: float = 30) -> bool:
+    """Block until *port* is accepting connections, or *timeout* expires."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except OSError:
+            time.sleep(0.5)
+    logger.warning("Port %d did not become ready within %.0fs", port, timeout)
+    return False
+
+
+def _wait_for_port_release(port: int = SERVER_PORT, host: str = "127.0.0.1", timeout: float = 15) -> bool:
+    """Block until *port* is no longer accepting connections."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                time.sleep(0.5)  # still open, wait
+        except OSError:
+            return True
+    logger.warning("Port %d was not released within %.0fs", port, timeout)
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Compose command detection
+# ---------------------------------------------------------------------------
 
 @functools.cache
 def compose_cmd() -> list[str]:
@@ -68,23 +105,31 @@ def get_tool_version(tool_id: str) -> str:
 
 @contextmanager
 def compose_service(scenario: str) -> Iterator[None]:
-    """Start a compose service for *scenario*, yield, then tear it down."""
+    """Start a compose service for *scenario*, yield, then tear it down.
+
+    Uses port polling instead of fixed sleep to ensure the server is
+    actually ready before yielding, and fully stopped before returning.
+    """
     cwd = DOCKER_DIR / scenario
     logger.info("Starting server: %s", scenario)
     subprocess.run([*compose_cmd(), "up", "-d"], cwd=cwd, check=True)
-    time.sleep(3)
+
+    if not _wait_for_port():
+        logger.error("Server for %s failed to start", scenario)
+
     try:
         yield
     finally:
         logger.info("Stopping server: %s", scenario)
         subprocess.run([*compose_cmd(), "down"], cwd=cwd, check=True)
+        _wait_for_port_release()
 
 
 def restart_service(scenario: str) -> None:
     """Restart the compose service (resets logs)."""
     cwd = DOCKER_DIR / scenario
     subprocess.run([*compose_cmd(), "restart"], cwd=cwd, capture_output=True)
-    time.sleep(2)
+    _wait_for_port()
 
 
 def get_container_id(scenario: str) -> str | None:

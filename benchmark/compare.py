@@ -78,8 +78,11 @@ def compare_repos(
             origin, recovered, file_list,
         )
         ratio = round(correct / total * 100, 2) if total > 0 else 0.0
+        # A feature is "supported" if any files were recovered, OR if there
+        # are no files to recover (vacuously true — e.g. remotes in a local repo)
+        supported = (ratio > 0) if total > 0 else True
         features[feature] = FeatureResult(
-            supported=ratio > 0,
+            supported=supported,
             correct=correct,
             total=total,
             ratio=ratio,

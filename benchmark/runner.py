@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -26,13 +27,28 @@ def _scenario_url(scenario: str) -> str:
 
 
 def _find_recovered_repo(output_dir: Path) -> Path:
-    """Locate the actual .git root in the output directory."""
+    """Locate the actual .git root in the output directory (up to 2 levels)."""
     if (output_dir / ".git").exists():
         return output_dir
-    for child in output_dir.iterdir():
+    # Level 1: direct children
+    for child in _safe_iterdir(output_dir):
         if child.is_dir() and (child / ".git").exists():
             return child
+    # Level 2: grandchildren
+    for child in _safe_iterdir(output_dir):
+        if child.is_dir():
+            for grandchild in _safe_iterdir(child):
+                if grandchild.is_dir() and (grandchild / ".git").exists():
+                    return grandchild
     return output_dir
+
+
+def _safe_iterdir(path: Path):
+    """Iterate a directory, returning empty on error."""
+    try:
+        return list(path.iterdir())
+    except OSError:
+        return []
 
 
 def _empty_result(error: str) -> ScenarioResult:
@@ -62,6 +78,11 @@ def run_tool_scenario(
     """
     url = _scenario_url(scenario)
     logger.info("Running %s against %s ...", tool.id, scenario)
+
+    # Clean output directory to prevent stale results from previous scenarios
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Restart server to reset access logs for accurate request counting
     restart_service(scenario)
