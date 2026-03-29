@@ -3,11 +3,11 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Benchmark — GitHacker" description="Automated comparison of .git folder exploitation tools.">
-  <div class="max-w-4xl mx-auto px-6">
+  <div class="max-w-5xl mx-auto px-6">
 
     <div class="section">
       <h1 class="text-3xl font-bold mb-2">Benchmark</h1>
-      <p class="text-gray-600">
+      <p class="text-gray-600 text-sm leading-relaxed max-w-3xl">
         Automated evaluation of <code>.git</code> folder exploitation tools.
         Each tool is tested against a generated repository served under five
         web server configurations (Apache and Nginx with DirectoryIndex on/off,
@@ -17,36 +17,55 @@ import Layout from '../layouts/Layout.astro';
       <p id="metadata" class="mt-3 text-xs text-gray-400"></p>
     </div>
 
-    <!-- Loading / Error -->
     <div id="loading" class="py-16 text-center text-sm text-gray-400">Loading...</div>
-    <div id="error" class="hidden py-16 text-center text-sm text-red-600">
-      Failed to load data.
-    </div>
+    <div id="error" class="hidden py-16 text-center text-sm text-red-600">Failed to load data.</div>
 
     <div id="content" class="hidden">
 
-      <!-- Table 1: Feature Support -->
+      <!-- Table 1: Tools Under Test -->
       <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 1. Feature Support</h2>
+        <h2 class="text-lg font-semibold mb-1">Table 1. Tools Under Test</h2>
+        <p class="text-xs text-gray-500 mb-4">Version or commit hash at the time of evaluation.</p>
+        <div id="table-tools" class="overflow-x-auto"></div>
+      </div>
+
+      <!-- Table 2: Feature Support -->
+      <div class="section">
+        <h2 class="text-lg font-semibold mb-1">Table 2. Feature Support</h2>
         <p class="text-xs text-gray-500 mb-4">
           Evaluated with DirectoryIndex
-          <select id="mode-select" class="text-xs border border-gray-300 rounded px-1.5 py-0.5 bg-white">
+          <select id="mode-select" class="text-xs border border-gray-300 rounded px-1.5 py-0.5 bg-white align-baseline">
             <option value="enabled">enabled</option>
             <option value="disabled">disabled</option>
           </select>.
-          <span class="ml-1">&#10003; = supported, &#10007; = not supported. Best tool highlighted in bold.</span>
+          &#10003; = supported, &#10007; = not supported. Best highlighted in <strong>bold</strong>.
         </p>
         <div id="table-features" class="overflow-x-auto"></div>
       </div>
 
-      <!-- Table 2: Quantitative Results -->
+      <!-- Table 3: Quantitative Results -->
       <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 2. Quantitative Results</h2>
+        <h2 class="text-lg font-semibold mb-1">Table 3. Quantitative Results</h2>
         <p class="text-xs text-gray-500 mb-4">
-          Average across all five scenarios. Recovery rate = correctly recovered files / total files.
-          Best value in each column is bold.
+          Average across all five scenarios. Best value in each column is <strong>bold</strong>.
         </p>
         <div id="table-quant" class="overflow-x-auto"></div>
+      </div>
+
+      <!-- Table 4: Per-Scenario Breakdown -->
+      <div class="section">
+        <h2 class="text-lg font-semibold mb-1">Table 4. Per-Scenario Breakdown</h2>
+        <p class="text-xs text-gray-500 mb-4">
+          Recovery rate (%) for each tool under each scenario.
+          Click a cell to view absent and differing files below.
+        </p>
+        <div id="table-scenario" class="overflow-x-auto"></div>
+        <div id="detail-panel" class="mt-4 hidden">
+          <div class="border-t-2 border-gray-900 pt-3">
+            <p id="detail-title" class="text-sm font-semibold mb-2"></p>
+            <div id="detail-body" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -59,6 +78,13 @@ import Layout from '../layouts/Layout.astro';
     const FEAT: Record<string, string> = {
       source_code: 'Source Code', reflogs: 'Reflogs', stashes: 'Stashes',
       commits: 'Commits', branches: 'Branches', remotes: 'Remotes', tags: 'Tags',
+    };
+    const SCEN: Record<string, string> = {
+      'apache-index-enabled': 'Apache (Index On)',
+      'apache-index-disabled': 'Apache (Index Off)',
+      'nginx-index-enabled': 'Nginx (Index On)',
+      'nginx-index-disabled': 'Nginx (Index Off)',
+      'php-lfi': 'PHP LFI',
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -89,8 +115,10 @@ import Layout from '../layouts/Layout.astro';
         renderFeatures();
       });
 
+      renderTools();
       renderFeatures();
       renderQuant();
+      renderScenario();
     }
 
     function toolOrder(): string[] {
@@ -104,7 +132,44 @@ import Layout from '../layouts/Layout.astro';
       return d.innerHTML;
     }
 
-    // ── Table 1: Feature Support ──────────────────────────────────
+    function toolLink(t: any): string {
+      return `<a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900">${esc(t.name)}</a>`;
+    }
+
+    function versionLink(t: any): string {
+      const ver = t.version || '\u2014';
+      // If version looks like a commit hash (short hex), link to the commit
+      const isHash = /^[0-9a-f]{7,}$/i.test(ver);
+      if (isHash) {
+        const commitUrl = `${t.url}/commit/${ver}`;
+        return `<a href="${esc(commitUrl)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(ver)}</a>`;
+      }
+      // If version looks like semver, link to release tag
+      if (/^\d+\.\d+/.test(ver)) {
+        const tagUrl = `${t.url}/releases/tag/v${ver}`;
+        return `<a href="${esc(tagUrl)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(ver)}</a>`;
+      }
+      return `<span class="font-mono text-xs text-gray-500">${esc(ver)}</span>`;
+    }
+
+    // ── Table 1: Tools Under Test ─────────────────────────────────
+
+    function renderTools() {
+      const tools = toolOrder();
+      let h = '<table class="three-line-table">';
+      h += '<thead><tr><th>Tool</th><th>Version</th><th>Repository</th></tr></thead><tbody>';
+      for (const tid of tools) {
+        const t = data.tools[tid];
+        h += `<tr><td>${esc(t.name)}</td>`;
+        h += `<td>${versionLink(t)}</td>`;
+        h += `<td class="!text-left"><a href="${esc(t.url)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(t.url.replace('https://github.com/', ''))}</a></td>`;
+        h += '</tr>';
+      }
+      h += '</tbody></table>';
+      document.getElementById('table-tools')!.innerHTML = h;
+    }
+
+    // ── Table 2: Feature Support ──────────────────────────────────
 
     function renderFeatures() {
       const scenarios = mode === 'enabled'
@@ -113,7 +178,6 @@ import Layout from '../layouts/Layout.astro';
       const tools = toolOrder();
       const features = data.features as string[];
 
-      // Count supported features per tool to find the best
       const supportCounts: Record<string, number> = {};
       for (const tid of tools) {
         let count = 0;
@@ -129,7 +193,7 @@ import Layout from '../layouts/Layout.astro';
       const maxSupport = Math.max(...Object.values(supportCounts));
 
       let h = '<table class="three-line-table">';
-      h += '<thead><tr><th>Tool</th><th>Version</th>';
+      h += '<thead><tr><th>Tool</th>';
       for (const f of features) h += `<th>${FEAT[f]}</th>`;
       h += '<th>Total</th></tr></thead><tbody>';
 
@@ -137,9 +201,7 @@ import Layout from '../layouts/Layout.astro';
         const t = data.tools[tid];
         const isBest = supportCounts[tid] === maxSupport;
         h += `<tr class="${isBest ? 'best' : ''}">`;
-        h += `<td>${esc(t.name)}</td>`;
-        h += `<td class="text-xs text-gray-500 font-mono">${esc(t.version || '\u2014')}</td>`;
-
+        h += `<td>${toolLink(t)}</td>`;
         let count = 0;
         for (const f of features) {
           let sup = false;
@@ -149,32 +211,24 @@ import Layout from '../layouts/Layout.astro';
           if (sup) count++;
           h += `<td>${sup ? '&#10003;' : '<span class="text-gray-300">&#10007;</span>'}</td>`;
         }
-        h += `<td>${count}/${features.length}</td>`;
-        h += '</tr>';
+        h += `<td>${count}/${features.length}</td></tr>`;
       }
-
       h += '</tbody></table>';
       document.getElementById('table-features')!.innerHTML = h;
     }
 
-    // ── Table 2: Quantitative Results ─────────────────────────────
+    // ── Table 3: Quantitative Results ─────────────────────────────
 
     function renderQuant() {
       const tools = toolOrder();
-      const scenarios = data.scenarios as string[];
-
-      // Compute per-tool averages
       type Stats = { ratio: number; duration: number; requests: number };
       const stats: Record<string, Stats> = {};
       for (const tid of tools) {
         let sr = 0, sd = 0, sq = 0, n = 0;
-        for (const sc of scenarios) {
+        for (const sc of data.scenarios) {
           const r = data.results[tid]?.[sc];
           if (!r) continue;
-          sr += r.ratio;
-          sd += (r.duration ?? 0);
-          sq += (r.http_requests ?? 0);
-          n++;
+          sr += r.ratio; sd += (r.duration ?? 0); sq += (r.http_requests ?? 0); n++;
         }
         stats[tid] = {
           ratio: n > 0 ? sr / n : 0,
@@ -183,35 +237,114 @@ import Layout from '../layouts/Layout.astro';
         };
       }
 
-      // Find best per column (highest ratio, lowest duration/requests among tools with >0 ratio)
       const vals = Object.values(stats);
       const active = vals.filter(s => s.ratio > 0);
-      const bestRatio = Math.max(...vals.map(s => s.ratio));
-      const bestDuration = active.length > 0 ? Math.min(...active.map(s => s.duration)) : 0;
-      const bestRequests = active.length > 0 ? Math.min(...active.map(s => s.requests)) : 0;
+      const bestR = Math.max(...vals.map(s => s.ratio));
+      const bestD = active.length ? Math.min(...active.map(s => s.duration)) : 0;
+      const bestQ = active.length ? Math.min(...active.map(s => s.requests)) : 0;
 
       let h = '<table class="three-line-table">';
-      h += '<thead><tr>';
-      h += '<th>Tool</th><th>Recovery Rate (%)</th><th>Duration (s)</th><th>HTTP Requests</th>';
-      h += '</tr></thead><tbody>';
-
+      h += '<thead><tr><th>Tool</th><th>Avg. Recovery (%)</th><th>Avg. Duration (s)</th><th>Avg. HTTP Requests</th></tr></thead><tbody>';
       for (const tid of tools) {
         const t = data.tools[tid];
         const s = stats[tid];
-        const bR = s.ratio === bestRatio;
-        const bD = s.ratio > 0 && s.duration === bestDuration;
-        const bQ = s.ratio > 0 && s.requests === bestRequests;
-
+        const bR = s.ratio === bestR, bD = s.ratio > 0 && s.duration === bestD, bQ = s.ratio > 0 && s.requests === bestQ;
         h += '<tr>';
-        h += `<td class="${bR ? 'font-semibold' : ''}">${esc(t.name)}</td>`;
+        h += `<td class="${bR ? 'font-semibold' : ''}">${toolLink(t)}</td>`;
         h += `<td class="${bR ? 'font-semibold' : ''}">${s.ratio.toFixed(1)}</td>`;
         h += `<td class="${bD ? 'font-semibold' : ''}">${s.duration.toFixed(1)}</td>`;
         h += `<td class="${bQ ? 'font-semibold' : ''}">${Math.round(s.requests)}</td>`;
         h += '</tr>';
       }
-
       h += '</tbody></table>';
       document.getElementById('table-quant')!.innerHTML = h;
+    }
+
+    // ── Table 4: Per-Scenario Breakdown ───────────────────────────
+
+    function renderScenario() {
+      const tools = toolOrder();
+      const scenarios = data.scenarios as string[];
+
+      let h = '<table class="three-line-table">';
+      h += '<thead><tr><th>Tool</th>';
+      for (const sc of scenarios) h += `<th>${SCEN[sc] || sc}</th>`;
+      h += '</tr></thead><tbody>';
+
+      for (const tid of tools) {
+        const t = data.tools[tid];
+        h += `<tr><td>${toolLink(t)}</td>`;
+        for (const sc of scenarios) {
+          const r = data.results[tid]?.[sc];
+          if (!r) { h += '<td class="text-gray-300">\u2014</td>'; continue; }
+          const hasIssues = r.absent_files?.length > 0 || r.different_files?.length > 0;
+          const cls = r.ratio === 100 ? 'text-gray-900' : r.ratio > 0 ? 'text-gray-600' : 'text-gray-300';
+          const cursor = hasIssues ? 'cursor-pointer hover:underline' : '';
+          h += `<td class="${cls} ${cursor}" ${hasIssues ? `data-tid="${tid}" data-sc="${sc}"` : ''}>${r.ratio.toFixed(1)}</td>`;
+        }
+        h += '</tr>';
+      }
+      h += '</tbody></table>';
+      document.getElementById('table-scenario')!.innerHTML = h;
+
+      // Click handler for detail drill-down
+      document.querySelectorAll('#table-scenario td[data-tid]').forEach(el => {
+        el.addEventListener('click', () => {
+          const tid = (el as HTMLElement).dataset.tid!;
+          const sc = (el as HTMLElement).dataset.sc!;
+          showDetail(tid, sc);
+        });
+      });
+    }
+
+    function showDetail(tid: string, sc: string) {
+      const t = data.tools[tid];
+      const r = data.results[tid][sc];
+      const panel = document.getElementById('detail-panel')!;
+      const title = document.getElementById('detail-title')!;
+      const body = document.getElementById('detail-body')!;
+
+      title.textContent = `${t.name} \u2014 ${SCEN[sc] || sc} (${r.ratio.toFixed(1)}% recovery, ${r.correct}/${r.total} files)`;
+
+      let h = '';
+
+      // Left: per-feature breakdown
+      h += '<div>';
+      h += '<p class="font-semibold text-gray-600 mb-2 text-xs uppercase tracking-wider">Per-Feature Breakdown</p>';
+      h += '<table class="three-line-table text-xs">';
+      h += '<thead><tr><th>Feature</th><th>Correct</th><th>Total</th><th>Rate (%)</th></tr></thead><tbody>';
+      for (const f of data.features) {
+        const ft = r.features[f];
+        if (!ft) continue;
+        const cls = ft.ratio === 100 ? '' : ft.ratio > 0 ? 'text-gray-600' : 'text-gray-400';
+        h += `<tr><td class="!text-left">${FEAT[f]}</td><td>${ft.correct}</td><td>${ft.total}</td><td class="${cls}">${ft.ratio.toFixed(1)}</td></tr>`;
+      }
+      h += '</tbody></table></div>';
+
+      // Right: absent + different files
+      h += '<div>';
+      if (r.absent_files?.length > 0) {
+        h += `<p class="font-semibold text-gray-600 mb-2 text-xs uppercase tracking-wider">Absent Files (${r.absent_files.length})</p>`;
+        h += '<ul class="font-mono text-xs text-gray-500 space-y-0.5 max-h-48 overflow-y-auto">';
+        for (const f of r.absent_files.slice(0, 50)) h += `<li>${esc(f)}</li>`;
+        if (r.absent_files.length > 50) h += `<li class="text-gray-300">\u2026 ${r.absent_files.length - 50} more</li>`;
+        h += '</ul>';
+      }
+      if (r.different_files?.length > 0) {
+        h += `<p class="font-semibold text-gray-600 mb-2 mt-3 text-xs uppercase tracking-wider">Different Files (${r.different_files.length})</p>`;
+        h += '<ul class="font-mono text-xs text-gray-500 space-y-0.5 max-h-48 overflow-y-auto">';
+        for (const f of r.different_files.slice(0, 50)) h += `<li>${esc(f)}</li>`;
+        if (r.different_files.length > 50) h += `<li class="text-gray-300">\u2026 ${r.different_files.length - 50} more</li>`;
+        h += '</ul>';
+      }
+      if (!r.absent_files?.length && !r.different_files?.length) {
+        h += '<p class="text-gray-500 italic">All files recovered correctly.</p>';
+      }
+      h += '</div>';
+
+      body.innerHTML = h;
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   </script>
 </Layout>

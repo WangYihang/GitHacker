@@ -390,7 +390,16 @@
         "total": 487,
         "ratio": 91.2,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -498,7 +507,16 @@
         "total": 487,
         "ratio": 91.2,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -552,7 +570,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -608,7 +641,18 @@
         "total": 487,
         "ratio": 74.1,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -662,7 +706,18 @@
         "total": 487,
         "ratio": 74.1,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -716,7 +771,18 @@
         "total": 487,
         "ratio": 74.1,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -770,7 +836,18 @@
         "total": 487,
         "ratio": 74.1,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -824,7 +901,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -880,7 +972,18 @@
         "total": 487,
         "ratio": 90.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -934,7 +1037,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -988,7 +1106,18 @@
         "total": 487,
         "ratio": 90.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1042,7 +1171,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -1096,7 +1240,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -1152,7 +1311,22 @@
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1206,7 +1380,22 @@
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1260,7 +1449,22 @@
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1314,7 +1518,22 @@
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1368,7 +1587,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -1424,7 +1658,20 @@
         "total": 487,
         "ratio": 58.3,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1478,7 +1725,20 @@
         "total": 487,
         "ratio": 58.3,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1532,7 +1792,20 @@
         "total": 487,
         "ratio": 58.3,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1586,7 +1859,20 @@
         "total": 487,
         "ratio": 58.3,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1640,7 +1926,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
@@ -1750,7 +2051,16 @@
         "total": 487,
         "ratio": 91.2,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1858,7 +2168,16 @@
         "total": 487,
         "ratio": 91.2,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": true,
@@ -1912,7 +2231,22 @@
         "total": 487,
         "ratio": 0.0,
         "different_files": [],
-        "absent_files": [],
+        "absent_files": [
+          ".git/logs/HEAD",
+          ".git/logs/refs/heads/master",
+          ".git/refs/stash",
+          ".git/logs/refs/stash",
+          ".git/objects/a1/b2c3d4e5",
+          ".git/objects/f6/789abc",
+          ".git/refs/heads/dev",
+          ".git/refs/heads/feature",
+          ".git/refs/heads/hotfix",
+          ".git/refs/heads/daily",
+          ".git/refs/heads/wip",
+          ".git/refs/tags/0.1.0",
+          ".git/refs/tags/0.2.0",
+          ".git/refs/tags/1.0.0"
+        ],
         "features": {
           "source_code": {
             "supported": false,
