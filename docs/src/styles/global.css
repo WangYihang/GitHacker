@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  body {
+    @apply text-gray-800 leading-relaxed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply text-gray-900 leading-tight;
+  }
+
+  code {
+    @apply font-mono text-sm bg-gray-100 px-1 py-0.5 rounded;
+  }
+
+  pre code {
+    @apply bg-transparent p-0;
+  }
+}
+
+@layer components {
+  /* Tables */
+  .data-table {
+    @apply w-full text-sm border-collapse;
+  }
+
+  .data-table th {
+    @apply text-left text-xs font-semibold uppercase tracking-wider text-gray-500
+           border-b-2 border-gray-900 pb-2 px-3;
+  }
+
+  .data-table td {
+    @apply px-3 py-2 border-b border-gray-200;
+  }
+
+  .data-table th:not(:first-child),
+  .data-table td:not(:first-child) {
+    @apply text-center;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-gray-50;
+  }
+
+  .data-table tbody tr.row-highlight {
+    @apply bg-blue-50/50;
+  }
+
+  .data-table tbody tr.row-highlight td:first-child {
+    @apply font-semibold;
+  }
+
+  /* Code blocks */
+  .code-block {
+    @apply bg-gray-900 text-gray-100 rounded-md p-4 text-sm font-mono overflow-x-auto leading-relaxed;
+  }
+
+  /* Section separator */
+  .section {
+    @apply py-10 border-b border-gray-200 last:border-b-0;
+  }
+
+  /* Ratio bar */
+  .ratio-bar {
+    @apply h-1.5 rounded-full bg-gray-200 overflow-hidden;
+  }
+
+  .ratio-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  .ratio-fill.high { @apply bg-gray-900; }
+  .ratio-fill.mid  { @apply bg-gray-500; }
+  .ratio-fill.low  { @apply bg-gray-300; }
+
+  /* Detail toggle */
+  .detail-row {
+    @apply hidden;
+  }
+
+  .detail-row.open {
+    display: table-row;
+  }
+
+  .detail-row td {
+    @apply bg-gray-50 p-4;
+  }
+
+  .toggle-btn {
+    @apply text-xs text-gray-500 cursor-pointer hover:text-gray-900 select-none;
+  }
+
+  /* File list */
+  .file-list {
+    @apply max-h-48 overflow-y-auto font-mono text-xs leading-relaxed text-gray-500;
+  }
+}

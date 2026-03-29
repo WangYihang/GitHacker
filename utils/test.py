@@ -5,14 +5,14 @@ import subprocess
 def start_docker(docker_compose_yml_folder):
     cwd = os.getcwd()
     os.chdir(docker_compose_yml_folder)
-    os.system('docker-compose up -d')
+    os.system('docker compose up -d')
     os.chdir(cwd)
 
 
 def stop_docker(docker_compose_yml_folder):
     cwd = os.getcwd()
     os.chdir(docker_compose_yml_folder)
-    os.system('docker-compose down')
+    os.system('docker compose down')
     os.chdir(cwd)
 
 

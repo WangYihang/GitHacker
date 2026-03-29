@@ -1,0 +1,52 @@
+name: Benchmark
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install gitpython semver coloredlogs
+
+      - name: Build tool Docker images
+        run: |
+          for tool_dir in benchmark/tools/*/; do
+            tool_name=$(basename "$tool_dir")
+            echo "Building benchmark-${tool_name}..."
+            docker build -t "benchmark-${tool_name}" "$tool_dir"
+          done
+
+      - name: Run benchmark
+        working-directory: benchmark
+        run: python run.py
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark/results/benchmark.json
+
+      - name: Update benchmark data in docs
+        run: |
+          cp benchmark/results/benchmark.json docs/public/data/benchmark.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/public/data/benchmark.json
+          git diff --cached --quiet || git commit -m "chore: update benchmark results"
+          git push

@@ -1,0 +1,139 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="GitHacker">
+  <div class="max-w-4xl mx-auto px-6">
+
+    <!-- Header -->
+    <div class="section">
+      <h1 class="text-3xl font-bold mb-3">GitHacker</h1>
+      <p class="text-gray-600 text-lg max-w-2xl">
+        A multi-threaded tool to exploit <code>.git</code> folder leakage vulnerabilities.
+        It reconstructs the target Git repository — including source code, commit history, branches, stashes, remotes, and tags.
+      </p>
+      <div class="mt-4 flex items-center gap-3">
+        <a href="https://badge.fury.io/py/GitHacker" target="_blank" rel="noopener">
+          <img src="https://badge.fury.io/py/GitHacker.svg" alt="PyPI version" />
+        </a>
+        <a href="https://pypistats.org/packages/githacker" target="_blank" rel="noopener">
+          <img src="https://img.shields.io/pypi/dm/githacker.svg" alt="PyPI downloads" />
+        </a>
+      </div>
+    </div>
+
+    <!-- Installation -->
+    <div class="section">
+      <h2 class="text-xl font-semibold mb-4">Installation</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Docker (Recommended)</h3>
+          <div class="code-block">
+            <pre>docker run \
+  -v $(pwd)/results:/tmp/githacker/results \
+  wangyihang/githacker \
+  --output-folder /tmp/githacker/results \
+  --url http://target/.git/</pre>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">pip</h3>
+          <div class="code-block">
+            <pre>pip install GitHacker
+
+githacker \
+  --url http://target/.git/ \
+  --output-folder result</pre>
+          </div>
+        </div>
+      </div>
+      <p class="mt-4 text-sm text-gray-500">
+        Add <code>--brute</code> to brute-force branch and tag names when DirectoryListings is disabled.
+      </p>
+    </div>
+
+    <!-- Capabilities -->
+    <div class="section">
+      <h2 class="text-xl font-semibold mb-4">Capabilities</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>DirectoryIndex On</th>
+            <th>DirectoryIndex Off</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Source Code Recovery</td><td>Supported</td><td>Supported</td></tr>
+          <tr><td>Reflogs</td><td>Supported</td><td>Supported</td></tr>
+          <tr><td>Stashes</td><td>Supported</td><td>Supported</td></tr>
+          <tr><td>Commit History</td><td>Supported</td><td>Supported</td></tr>
+          <tr><td>Branches</td><td>Supported</td><td>Brute-force</td></tr>
+          <tr><td>Remotes</td><td>Supported</td><td>Supported</td></tr>
+          <tr><td>Tags</td><td>Supported</td><td>Brute-force</td></tr>
+        </tbody>
+      </table>
+      <p class="mt-4 text-sm text-gray-500">
+        See the <a href="/benchmark" class="underline hover:text-gray-900">full benchmark comparison</a> against other tools.
+      </p>
+    </div>
+
+    <!-- Security -->
+    <div class="section">
+      <h2 class="text-xl font-semibold mb-4">Security Advisories</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        The remote <code>.git</code> folder may be malicious. It is recommended to run this tool
+        in a disposable environment (e.g., Docker container).
+      </p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th class="!text-left">Vulnerability</th>
+            <th>Reporter</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2022-03-01</td>
+            <td class="!text-left">RCE via malicious <code>.git/config</code> and <code>.git/hooks/*</code></td>
+            <td><a href="https://twitter.com/justinsteven" class="underline" target="_blank" rel="noopener">Justin Steven</a></td>
+          </tr>
+          <tr>
+            <td>2022-03-01</td>
+            <td class="!text-left">Arbitrary file write via recursive file downloader</td>
+            <td><a href="https://twitter.com/justinsteven" class="underline" target="_blank" rel="noopener">Justin Steven</a></td>
+          </tr>
+          <tr>
+            <td>2021-08-01</td>
+            <td class="!text-left">Malicious .git folder harmful to tool user</td>
+            <td><a href="https://drivertom.blogspot.com" class="underline" target="_blank" rel="noopener">Driver Tom</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- References -->
+    <div class="section">
+      <h2 class="text-xl font-semibold mb-4">References</h2>
+      <ul class="text-sm text-gray-600 space-y-1.5 list-disc pl-5">
+        <li><a href="https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html" class="underline hover:text-gray-900" target="_blank" rel="noopener">Git Repository Layout</a></li>
+        <li><a href="https://git-scm.com/docs" class="underline hover:text-gray-900" target="_blank" rel="noopener">Git Documentation</a></li>
+        <li><a href="https://www.youtube.com/watch?v=Bs3QpVGf2uk" class="underline hover:text-gray-900" target="_blank" rel="noopener">.git/ folder attack — Comparison of attack tools (Part I)</a></li>
+        <li><a href="https://www.youtube.com/watch?v=Xzg4kQt4qEo" class="underline hover:text-gray-900" target="_blank" rel="noopener">.git/ folder attack — Comparison of attack tools (Part II)</a></li>
+      </ul>
+    </div>
+
+    <!-- Acknowledgements -->
+    <div class="section">
+      <h2 class="text-xl font-semibold mb-4">Acknowledgements</h2>
+      <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
+        <li><a href="https://twitter.com/justinsteven" class="underline hover:text-gray-900" target="_blank" rel="noopener">Justin Steven</a></li>
+        <li><a href="https://drivertom.blogspot.com" class="underline hover:text-gray-900" target="_blank" rel="noopener">Driver Tom</a></li>
+        <li><a href="https://github.com/lesion1999" class="underline hover:text-gray-900" target="_blank" rel="noopener">lesion1999</a></li>
+        <li><a href="https://github.com/shashade250" class="underline hover:text-gray-900" target="_blank" rel="noopener">shashade250</a></li>
+      </ul>
+    </div>
+
+  </div>
+</Layout>
