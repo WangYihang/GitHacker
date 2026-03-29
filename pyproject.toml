@@ -5,11 +5,11 @@ description = "A multiple threads tool to download the `.git` folder and rebuild
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "beautifulsoup4>=4.14.2",
+    "beautifulsoup4>=4.14.3",
     "coloredlogs>=15.0.1",
-    "gitpython>=3.1.45",
-    "requests>=2.32.5",
-    "rich>=14.2.0",
+    "gitpython>=3.1.46",
+    "requests>=2.33.0",
+    "rich>=14.3.3",
     "semver>=3.0.4",
 ]
 

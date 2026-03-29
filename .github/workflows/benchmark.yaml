@@ -11,6 +11,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: write
+      deployments: write
 
     steps:
       - name: Checkout repository
@@ -42,7 +43,7 @@ jobs:
           name: benchmark-results
           path: benchmark/results/benchmark.json
 
-      - name: Update benchmark data in docs
+      - name: Commit benchmark results to repo
         run: |
           cp benchmark/results/benchmark.json docs/public/data/benchmark.json
           git config user.name "github-actions[bot]"
@@ -50,3 +51,33 @@ jobs:
           git add docs/public/data/benchmark.json
           git diff --cached --quiet || git commit -m "chore: update benchmark results"
           git push
+
+      # Deploy site with fresh benchmark data
+      # (GITHUB_TOKEN commits don't trigger other workflows, so we deploy here directly)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install site dependencies
+        working-directory: docs
+        run: npm ci
+
+      - name: Build site
+        working-directory: docs
+        run: npm run build
+
+      - name: Create Cloudflare Pages project (if not exists)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          command: pages project create githacker --production-branch master
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          command: pages deploy docs/dist --project-name=githacker --commit-dirty=true
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
