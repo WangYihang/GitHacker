@@ -2,7 +2,7 @@ name: Deploy Site
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - 'docs/**'
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
         continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
-          command: pages project create githacker --production-branch master
+          command: pages project create githacker --production-branch main
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
