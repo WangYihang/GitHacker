@@ -171,14 +171,24 @@ python -m benchmark run</pre></div><p class="mt-2">需要 Docker。也通过 <a 
         if (I18N[key]?.[lang]) el.innerHTML = I18N[key][lang];
       });
 
-      // Metadata
+      // Metadata + sample data warning
       const m = data.metadata;
       const date = new Date(m.generated_at).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
       });
-      const metaNote = m.note ? ` (${lang === 'zh' ? '示例数据' : 'sample data'})` : '';
-      document.getElementById('metadata')!.textContent =
-        `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${m.git_commit}. ${lang === 'zh' ? '随机种子' : 'Random seed'} ${m.test_repo_seed}.${metaNote}`;
+      const metaEl = document.getElementById('metadata')!;
+      if (m.note || m.git_commit === 'sample') {
+        metaEl.innerHTML =
+          `<span class="inline-block border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 text-xs px-2 py-1 rounded mb-2">${
+            lang === 'zh'
+              ? '⚠ 当前显示的是占位数据，非真实测试结果。运行 <code>python -m benchmark run</code> 生成真实数据。'
+              : '⚠ Showing placeholder data, not real benchmark results. Run <code>python -m benchmark run</code> to generate real data.'
+          }</span><br>` +
+          `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${m.git_commit}. ${lang === 'zh' ? '随机种子' : 'Random seed'} ${m.test_repo_seed}.`;
+      } else {
+        metaEl.textContent =
+          `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${m.git_commit}. ${lang === 'zh' ? '随机种子' : 'Random seed'} ${m.test_repo_seed}.`;
+      }
 
       // Methodology
       document.getElementById('methodology')!.innerHTML = METHODOLOGY[lang] || METHODOLOGY.en;
