@@ -8,13 +8,132 @@ import Layout from '../layouts/Layout.astro';
     <div class="section">
       <h1 class="text-3xl font-bold mb-2">Benchmark</h1>
       <p class="text-gray-600 text-sm leading-relaxed max-w-3xl">
-        Automated evaluation of <code>.git</code> folder exploitation tools.
-        Each tool is tested against a generated repository served under five
-        web server configurations (Apache and Nginx with DirectoryIndex on/off,
-        and PHP LFI). File recovery accuracy is measured per feature via MD5
-        comparison against the ground-truth repository.
+        A systematic, reproducible evaluation of open-source
+        <code>.git</code> folder exploitation tools. This benchmark measures
+        each tool's ability to reconstruct a Git repository from a remotely
+        exposed <code>.git</code> directory under realistic web server
+        configurations.
       </p>
       <p id="metadata" class="mt-3 text-xs text-gray-400"></p>
+    </div>
+
+    <!-- Methodology -->
+    <div class="section">
+      <h2 class="text-lg font-semibold mb-3">Methodology</h2>
+      <div class="text-sm text-gray-600 leading-relaxed space-y-4 max-w-3xl">
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Design Principles</h3>
+          <p>
+            The benchmark is designed around three principles:
+            <strong>fairness</strong> &mdash; every tool receives the same
+            target repository served by the same web server instance;
+            <strong>completeness</strong> &mdash; evaluation covers all
+            recoverable Git artifacts (source code, reflogs, stashes, commits,
+            branches, remotes, tags); and
+            <strong>reproducibility</strong> &mdash; the test repository is
+            generated from a fixed random seed, and every component
+            (repo generator, server configs, tool containers, comparison logic)
+            is version-controlled.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Test Repository</h3>
+          <p>
+            A ground-truth Git repository is generated programmatically
+            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/generate.py</code></a>,
+            random seed = 0) containing:
+            2&ndash;16 random commits, 2&ndash;8 random branches,
+            15 well-known branches (master, main, dev, release, etc.),
+            up to 16 semantic-version tags,
+            2&ndash;16 stashes,
+            files in the staging area and working directory,
+            and a PHP LFI script.
+            A <em>manifest</em> is produced that categorises every file by
+            feature (source code, reflogs, stashes, commits, branches,
+            remotes, tags), enabling per-feature accuracy measurement.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Scenarios</h3>
+          <p>The repository is served over HTTP under five configurations:</p>
+          <ol class="list-decimal pl-5 mt-1 space-y-0.5">
+            <li><strong>Apache httpd</strong> with <code>DirectoryIndex</code> enabled (default <code>httpd</code> image)</li>
+            <li><strong>Apache httpd</strong> with <code>Options -Indexes</code> (directory listing disabled)</li>
+            <li><strong>Nginx</strong> with <code>autoindex on</code></li>
+            <li><strong>Nginx</strong> with <code>autoindex off</code> (default)</li>
+            <li><strong>PHP 7.2 + Apache</strong> with a Local File Inclusion (LFI) entry point (<code>lfi.php?file=./</code>)</li>
+          </ol>
+          <p class="mt-1">
+            Each scenario runs as a Docker Compose service. Configuration files
+            are in
+            <a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>test/docker/</code></a>.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Tool Execution</h3>
+          <p>
+            Each tool runs inside its own Docker container
+            (<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/tools/</code></a>)
+            with a unified interface (<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>).
+            Containers are connected to the server via
+            <code>host.docker.internal</code>. A timeout of 300 seconds is
+            enforced per tool per scenario. Before each run the server is
+            restarted to reset access logs, enabling per-tool HTTP request
+            counting.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Comparison</h3>
+          <p>
+            After each run, recovered files are compared against the
+            ground-truth using MD5 checksums
+            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/compare.py</code></a>).
+            For each feature, we report the number of correctly recovered files,
+            absent files (present in ground-truth but missing from output),
+            and differing files (present but with different content).
+            The <code>.git/index</code> file is excluded from comparison as it
+            is always regenerated.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Metrics</h3>
+          <ul class="list-disc pl-5 mt-1 space-y-0.5">
+            <li><strong>Recovery Rate</strong> = correctly recovered files / total files in ground-truth (%)</li>
+            <li><strong>Feature Support</strong> = whether any files for a given feature were recovered (binary)</li>
+            <li><strong>Duration</strong> = wall-clock time from container start to exit (seconds)</li>
+            <li><strong>HTTP Requests</strong> = number of HTTP requests logged by the server during the run</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Reproducibility</h3>
+          <p>
+            The complete benchmark infrastructure is open-source. To reproduce:
+          </p>
+          <div class="code-block mt-2 text-xs">
+            <pre>git clone https://github.com/WangYihang/GitHacker
+cd GitHacker
+pip install gitpython semver coloredlogs
+python -m benchmark run</pre>
+          </div>
+          <p class="mt-2">
+            Requires Docker. The orchestration script
+            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/__main__.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/__main__.py</code></a>)
+            generates the repository, builds all tool images, runs every
+            tool&times;scenario combination, and outputs
+            <code>benchmark/results/benchmark.json</code>.
+            The benchmark also runs weekly via
+            <a href="https://github.com/WangYihang/GitHacker/blob/main/.github/workflows/benchmark.yaml" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900">GitHub Actions</a>.
+          </p>
+        </div>
+
+      </div>
     </div>
 
     <div id="loading" class="py-16 text-center text-sm text-gray-400">Loading...</div>
