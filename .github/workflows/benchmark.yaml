@@ -4,15 +4,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'  # Every Sunday at midnight
-  push:
-    paths:
-      - 'benchmark/**'
-      - 'test/docker/**'
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -44,13 +42,11 @@ jobs:
           name: benchmark-results
           path: benchmark/results/benchmark.json
 
-      - name: Copy results to docs
-        run: cp benchmark/results/benchmark.json docs/data/benchmark.json
-
-      - name: Deploy to Cloudflare Pages
-        if: github.ref == 'refs/heads/main'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          command: pages deploy docs --project-name=githacker-benchmark
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Update benchmark data in docs
+        run: |
+          cp benchmark/results/benchmark.json docs/public/data/benchmark.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/public/data/benchmark.json
+          git diff --cached --quiet || git commit -m "chore: update benchmark results"
+          git push

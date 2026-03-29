@@ -71,6 +71,11 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Astro
+docs/node_modules/
+docs/dist/
+docs/.astro/
+
 # PyBuilder
 .pybuilder/
 target/

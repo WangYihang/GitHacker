@@ -267,15 +267,15 @@ def run_benchmark():
     with open(output_path, 'w') as f:
         json.dump(benchmark, f, indent=2)
 
-    # Also copy to docs/data/
+    # Also copy to docs/public/data/
     docs_data_path = os.path.join(
-        os.path.dirname(__file__), '..', 'docs', 'data',
+        os.path.dirname(__file__), '..', 'docs', 'public', 'data',
     )
     os.makedirs(docs_data_path, exist_ok=True)
     shutil.copy2(output_path, os.path.join(docs_data_path, 'benchmark.json'))
 
     logging.info(f"Benchmark results saved to {output_path}")
-    logging.info("Results also copied to docs/data/benchmark.json")
+    logging.info("Results also copied to docs/public/data/benchmark.json")
 
     # Print summary
     logging.info("\n" + "=" * 60)

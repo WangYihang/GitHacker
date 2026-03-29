@@ -1,0 +1,66 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'A multi-threaded tool to exploit .git folder leakage vulnerabilities.' } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-screen flex flex-col bg-white font-sans">
+    <!-- Navigation -->
+    <nav class="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur z-50">
+      <div class="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
+        <a href="/" class="text-sm font-semibold tracking-tight text-gray-900">GitHacker</a>
+        <div class="flex items-center gap-6 text-sm">
+          <a
+            href="/"
+            class:list={['hover:text-gray-900', currentPath === '/' ? 'text-gray-900 font-medium' : 'text-gray-500']}
+          >
+            Home
+          </a>
+          <a
+            href="/benchmark"
+            class:list={['hover:text-gray-900', currentPath.startsWith('/benchmark') ? 'text-gray-900 font-medium' : 'text-gray-500']}
+          >
+            Benchmark
+          </a>
+          <a
+            href="https://github.com/WangYihang/GitHacker"
+            target="_blank"
+            rel="noopener"
+            class="text-gray-500 hover:text-gray-900"
+          >
+            GitHub
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 mt-16">
+      <div class="max-w-4xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+        <span>GitHacker &mdash; Wang Yihang</span>
+        <div class="flex gap-4">
+          <a href="https://github.com/WangYihang/GitHacker" class="hover:text-gray-600">GitHub</a>
+          <a href="https://pypi.org/project/GitHacker/" class="hover:text-gray-600">PyPI</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
