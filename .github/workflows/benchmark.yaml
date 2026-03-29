@@ -25,17 +25,8 @@ jobs:
       - name: Install Python dependencies
         run: pip install gitpython semver coloredlogs
 
-      - name: Build tool Docker images
-        run: |
-          for tool_dir in benchmark/tools/*/; do
-            tool_name=$(basename "$tool_dir")
-            echo "Building benchmark-${tool_name}..."
-            docker build -t "benchmark-${tool_name}" "$tool_dir"
-          done
-
       - name: Run benchmark
-        working-directory: benchmark
-        run: python run.py
+        run: python -m benchmark run
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4

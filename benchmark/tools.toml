@@ -1,0 +1,27 @@
+[githacker]
+name = "GitHacker"
+url = "https://github.com/WangYihang/GitHacker"
+
+[gittools]
+name = "GitTools"
+url = "https://github.com/internetwache/GitTools"
+
+[dvcs-ripper]
+name = "dvcs-ripper"
+url = "https://github.com/kost/dvcs-ripper"
+
+[githack]
+name = "GitHack"
+url = "https://github.com/lijiejie/GitHack"
+
+[git-dumper]
+name = "git-dumper"
+url = "https://github.com/arthaud/git-dumper"
+
+[gitdump]
+name = "GitDump"
+url = "https://github.com/Ebryx/GitDump"
+
+[git-dumper-hh]
+name = "git-dumper (holly-hacker)"
+url = "https://github.com/holly-hacker/git-dumper"
