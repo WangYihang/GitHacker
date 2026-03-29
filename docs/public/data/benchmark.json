@@ -3,33 +3,33 @@
     "generated_at": "2026-03-29T00:00:00+00:00",
     "git_commit": "sample",
     "test_repo_seed": 0,
-    "note": "Sample data for development. Run 'python -m benchmark run' to generate real results."
+    "note": "Sample data for development. Versions will be populated by running: python -m benchmark run"
   },
   "tools": {
     "githacker": {
       "name": "GitHacker",
       "url": "https://github.com/WangYihang/GitHacker",
-      "version": "1.1.3"
+      "version": "pending"
     },
     "gittools": {
       "name": "GitTools",
       "url": "https://github.com/internetwache/GitTools",
-      "version": "latest"
+      "version": "pending"
     },
     "dvcs-ripper": {
       "name": "dvcs-ripper",
       "url": "https://github.com/kost/dvcs-ripper",
-      "version": "latest"
+      "version": "pending"
     },
     "githack": {
       "name": "GitHack",
       "url": "https://github.com/lijiejie/GitHack",
-      "version": "latest"
+      "version": "pending"
     },
     "git-dumper": {
       "name": "git-dumper",
       "url": "https://github.com/arthaud/git-dumper",
-      "version": "1.0.7"
+      "version": "pending"
     }
   },
   "scenarios": [
