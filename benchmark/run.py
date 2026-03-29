@@ -69,6 +69,30 @@ FEATURES = [
 ]
 
 
+def docker_compose_cmd():
+    """Return the docker compose command as a list (handles both old and new style)."""
+    # Try `docker compose` (new plugin style) first, fall back to `docker-compose`
+    try:
+        subprocess.run(
+            ['docker', 'compose', 'version'],
+            check=True, capture_output=True,
+        )
+        return ['docker', 'compose']
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ['docker-compose']
+
+
+COMPOSE_CMD = None
+
+
+def get_compose_cmd():
+    global COMPOSE_CMD
+    if COMPOSE_CMD is None:
+        COMPOSE_CMD = docker_compose_cmd()
+        logging.info(f"Using compose command: {' '.join(COMPOSE_CMD)}")
+    return COMPOSE_CMD
+
+
 def build_tool_images():
     """Build Docker images for all benchmark tools."""
     for tool_id in TOOLS:
@@ -81,7 +105,6 @@ def build_tool_images():
         subprocess.run(
             ['docker', 'build', '-t', image_name, tool_dir],
             check=True,
-            capture_output=True,
         )
         logging.info(f"Built {image_name}")
 
@@ -91,10 +114,9 @@ def start_server(scenario):
     compose_dir = os.path.join(DOCKER_PATH, scenario)
     logging.info(f"Starting server: {scenario}")
     subprocess.run(
-        ['docker-compose', 'up', '-d'],
+        [*get_compose_cmd(), 'up', '-d'],
         cwd=compose_dir,
         check=True,
-        capture_output=True,
     )
     # Wait for server to be ready
     time.sleep(3)
@@ -105,10 +127,9 @@ def stop_server(scenario):
     compose_dir = os.path.join(DOCKER_PATH, scenario)
     logging.info(f"Stopping server: {scenario}")
     subprocess.run(
-        ['docker-compose', 'down'],
+        [*get_compose_cmd(), 'down'],
         cwd=compose_dir,
         check=True,
-        capture_output=True,
     )
 
 
