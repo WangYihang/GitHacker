@@ -22,10 +22,10 @@ from benchmark.report import build_report, print_summary, write_report
 from benchmark.runner import run_tool_scenario
 
 
-def setup_logging() -> None:
+def setup_logging(verbose: bool = False) -> None:
     coloredlogs.install(
         fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
-        level=logging.INFO,
+        level=logging.DEBUG if verbose else logging.INFO,
     )
 
 
@@ -85,18 +85,18 @@ def cmd_generate(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    setup_logging()
-
     parser = argparse.ArgumentParser(
         prog="benchmark",
         description="GitHacker benchmark suite",
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("run", help="Run the full benchmark suite (default)")
     sub.add_parser("generate", help="Only generate the test repository")
 
     args = parser.parse_args()
+    setup_logging(verbose=args.verbose)
 
     if args.command == "generate":
         cmd_generate(args)

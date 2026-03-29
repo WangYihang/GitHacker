@@ -96,12 +96,30 @@ def run_tool_scenario(
         if exit_code != 0:
             logger.warning("%s exited with code %d on %s", tool.id, exit_code, scenario)
 
+        # Always log tool output for debugging
+        if proc.stdout and proc.stdout.strip():
+            for line in proc.stdout.strip().split("\n")[-20:]:
+                logger.debug("  [%s stdout] %s", tool.id, line)
+        if proc.stderr and proc.stderr.strip():
+            for line in proc.stderr.strip().split("\n")[-20:]:
+                logger.warning("  [%s stderr] %s", tool.id, line)
+
         http_requests = get_request_count(scenario)
         logger.info(
             "  %s: %.1fs, exit=%d, requests=%s",
             tool.id, duration, exit_code,
             http_requests if http_requests is not None else "N/A",
         )
+
+        # Log what's in the output directory for debugging
+        try:
+            contents = list(output_dir.rglob("*"))[:10]
+            if contents:
+                logger.debug("  [%s output] %d items, first: %s", tool.id, len(list(output_dir.rglob("*"))), contents[0])
+            else:
+                logger.warning("  [%s output] empty directory!", tool.id)
+        except OSError:
+            pass
 
         # Compare recovered files
         recovered = _find_recovered_repo(output_dir)
