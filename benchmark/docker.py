@@ -181,7 +181,7 @@ def run_tool_container(
     return subprocess.run(
         [
             "docker", "run", "--rm",
-            "--add-host=host.docker.internal:host-gateway",
+            "--network", "host",
             "-v", f"{output_dir.resolve()}:/output",
             image,
             url, "/output",

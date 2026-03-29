@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 def _scenario_url(scenario: str) -> str:
     if scenario == "php-lfi":
-        return "http://host.docker.internal/lfi.php?file=./"
-    return "http://host.docker.internal"
+        return "http://127.0.0.1/lfi.php?file=./"
+    return "http://127.0.0.1"
 
 
 def _find_recovered_repo(output_dir: Path) -> Path:
@@ -77,7 +77,7 @@ def run_tool_scenario(
     exit code.
     """
     url = _scenario_url(scenario)
-    logger.info("Running %s against %s ...", tool.id, scenario)
+    logger.info("Running %s against %s (url=%s) ...", tool.id, scenario, url)
 
     # Clean output directory to prevent stale results from previous scenarios
     if output_dir.exists():
