@@ -1,6 +1,12 @@
 """
 Main benchmark orchestration script.
 Generates test repo, runs all tools against all scenarios, collects results into benchmark.json.
+
+Metrics collected per tool per scenario:
+- File recovery accuracy (per-feature and overall)
+- Execution time (seconds)
+- HTTP request count (parsed from server access log)
+- Exit code
 """
 
 import datetime
@@ -48,6 +54,14 @@ TOOLS = {
         'name': 'git-dumper',
         'url': 'https://github.com/arthaud/git-dumper',
     },
+    'gitdump': {
+        'name': 'GitDump',
+        'url': 'https://github.com/Ebryx/GitDump',
+    },
+    'git-dumper-hh': {
+        'name': 'git-dumper (holly-hacker)',
+        'url': 'https://github.com/holly-hacker/git-dumper',
+    },
 }
 
 SCENARIOS = [
@@ -69,9 +83,12 @@ FEATURES = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Docker helpers
+# ---------------------------------------------------------------------------
+
 def docker_compose_cmd():
     """Return the docker compose command as a list (handles both old and new style)."""
-    # Try `docker compose` (new plugin style) first, fall back to `docker-compose`
     try:
         subprocess.run(
             ['docker', 'compose', 'version'],
@@ -93,12 +110,33 @@ def get_compose_cmd():
     return COMPOSE_CMD
 
 
+# ---------------------------------------------------------------------------
+# Tool version extraction
+# ---------------------------------------------------------------------------
+
+def get_tool_version(tool_id):
+    """Extract version info from a built tool Docker image."""
+    image_name = f"benchmark-{tool_id}"
+    try:
+        result = subprocess.run(
+            ['docker', 'run', '--rm', '--entrypoint', 'cat',
+             image_name, '/tool-version.txt'],
+            capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception as e:
+        logging.warning(f"Could not get version for {tool_id}: {e}")
+    return 'unknown'
+
+
 def build_tool_images():
-    """Build Docker images for all benchmark tools."""
+    """Build Docker images for all benchmark tools and extract version info."""
     for tool_id in TOOLS:
         tool_dir = os.path.join(TOOLS_PATH, tool_id)
         if not os.path.exists(os.path.join(tool_dir, 'Dockerfile')):
             logging.warning(f"No Dockerfile for {tool_id}, skipping build")
+            TOOLS[tool_id]['version'] = 'unknown'
             continue
         image_name = f"benchmark-{tool_id}"
         logging.info(f"Building Docker image: {image_name}")
@@ -106,7 +144,64 @@ def build_tool_images():
             ['docker', 'build', '-t', image_name, tool_dir],
             check=True,
         )
-        logging.info(f"Built {image_name}")
+        version = get_tool_version(tool_id)
+        TOOLS[tool_id]['version'] = version
+        logging.info(f"Built {image_name} (version: {version})")
+
+
+# ---------------------------------------------------------------------------
+# Server management + access log counting
+# ---------------------------------------------------------------------------
+
+def get_server_container_name(scenario):
+    """Get the Docker container name for a scenario's web server."""
+    compose_dir = os.path.join(DOCKER_PATH, scenario)
+    try:
+        result = subprocess.run(
+            [*get_compose_cmd(), 'ps', '-q'],
+            cwd=compose_dir, capture_output=True, text=True,
+        )
+        container_id = result.stdout.strip().split('\n')[0]
+        return container_id
+    except Exception:
+        return None
+
+
+def get_access_log_line_count(scenario):
+    """Count lines in the server's access log (= number of HTTP requests served)."""
+    container_id = get_server_container_name(scenario)
+    if not container_id:
+        return None
+
+    # Try common access log paths for Apache and Nginx
+    log_paths = [
+        '/var/log/apache2/access.log',   # Apache (Debian)
+        '/var/log/apache2/other_vhosts_access.log',
+        '/proc/1/fd/1',                  # stdout (docker logs)
+        '/var/log/nginx/access.log',     # Nginx
+    ]
+
+    # Simplest: count lines from `docker logs`
+    try:
+        result = subprocess.run(
+            ['docker', 'logs', container_id],
+            capture_output=True, text=True, timeout=10,
+        )
+        # Each non-empty line in stdout is typically an access log entry
+        lines = [l for l in result.stdout.strip().split('\n') if l.strip()]
+        return len(lines)
+    except Exception:
+        return None
+
+
+def reset_server_logs(scenario):
+    """Restart the server container to reset access logs before a tool run."""
+    compose_dir = os.path.join(DOCKER_PATH, scenario)
+    subprocess.run(
+        [*get_compose_cmd(), 'restart'],
+        cwd=compose_dir, capture_output=True,
+    )
+    time.sleep(2)
 
 
 def start_server(scenario):
@@ -118,7 +213,6 @@ def start_server(scenario):
         cwd=compose_dir,
         check=True,
     )
-    # Wait for server to be ready
     time.sleep(3)
 
 
@@ -133,6 +227,10 @@ def stop_server(scenario):
     )
 
 
+# ---------------------------------------------------------------------------
+# Tool execution
+# ---------------------------------------------------------------------------
+
 def get_url_for_scenario(scenario):
     """Return the URL to use for a given scenario."""
     if scenario == 'php-lfi':
@@ -141,13 +239,22 @@ def get_url_for_scenario(scenario):
 
 
 def run_tool(tool_id, scenario, output_dir):
-    """Run a single tool against a scenario. Returns True if successful."""
+    """
+    Run a single tool against a scenario.
+    Returns (success, duration_seconds, exit_code, http_requests).
+    """
     image_name = f"benchmark-{tool_id}"
     url = get_url_for_scenario(scenario)
 
     os.makedirs(output_dir, exist_ok=True)
 
     logging.info(f"Running {tool_id} against {scenario}...")
+
+    # Reset server logs so we can count requests for this tool only
+    reset_server_logs(scenario)
+
+    start_time = time.monotonic()
+    exit_code = -1
 
     try:
         result = subprocess.run(
@@ -162,34 +269,54 @@ def run_tool(tool_id, scenario, output_dir):
             capture_output=True,
             text=True,
         )
-        if result.returncode != 0:
+        exit_code = result.returncode
+        duration = round(time.monotonic() - start_time, 2)
+
+        if exit_code != 0:
             logging.warning(
-                f"{tool_id} exited with code {result.returncode} on {scenario}",
+                f"{tool_id} exited with code {exit_code} on {scenario}",
             )
-        return True
+
+        # Count HTTP requests from server access log
+        http_requests = get_access_log_line_count(scenario)
+
+        logging.info(
+            f"  {tool_id}: {duration}s, exit={exit_code}, "
+            f"requests={http_requests or 'N/A'}",
+        )
+        return True, duration, exit_code, http_requests
+
     except subprocess.TimeoutExpired:
-        logging.error(f"{tool_id} timed out on {scenario}")
-        return False
+        duration = round(time.monotonic() - start_time, 2)
+        logging.error(f"{tool_id} timed out on {scenario} after {duration}s")
+        http_requests = get_access_log_line_count(scenario)
+        return False, duration, -1, http_requests
+
     except Exception as e:
+        duration = round(time.monotonic() - start_time, 2)
         logging.error(f"{tool_id} failed on {scenario}: {e}")
-        return False
+        return False, duration, -1, None
 
 
 def find_recovered_repo(output_dir):
     """Find the actual recovered repo directory (tools may create subdirectories)."""
-    # Check if .git exists directly in output_dir
     if os.path.exists(os.path.join(output_dir, '.git')):
         return output_dir
 
-    # Check subdirectories
-    for entry in os.listdir(output_dir):
-        subdir = os.path.join(output_dir, entry)
-        if os.path.isdir(subdir) and os.path.exists(os.path.join(subdir, '.git')):
-            return subdir
+    try:
+        for entry in os.listdir(output_dir):
+            subdir = os.path.join(output_dir, entry)
+            if os.path.isdir(subdir) and os.path.exists(os.path.join(subdir, '.git')):
+                return subdir
+    except OSError:
+        pass
 
-    # Fall back to output_dir itself
     return output_dir
 
+
+# ---------------------------------------------------------------------------
+# Main benchmark
+# ---------------------------------------------------------------------------
 
 def run_benchmark():
     """Run the full benchmark suite."""
@@ -225,7 +352,9 @@ def run_benchmark():
                 output_dir = os.path.join(
                     playground_path, tool_id, scenario,
                 )
-                success = run_tool(tool_id, scenario, output_dir)
+                success, duration, exit_code, http_requests = run_tool(
+                    tool_id, scenario, output_dir,
+                )
 
                 if success:
                     recovered_path = find_recovered_repo(output_dir)
@@ -239,11 +368,21 @@ def run_benchmark():
                         'different_files': [],
                         'absent_files': [],
                         'features': {
-                            f: {'supported': False, 'correct': 0, 'total': 0, 'ratio': 0.0}
+                            f: {
+                                'supported': False,
+                                'correct': 0,
+                                'total': 0,
+                                'ratio': 0.0,
+                            }
                             for f in FEATURES
                         },
                         'error': 'Tool timed out or failed to run',
                     }
+
+                # Add performance metrics
+                result['duration'] = duration
+                result['exit_code'] = exit_code
+                result['http_requests'] = http_requests
 
                 if tool_id not in results:
                     results[tool_id] = {}
@@ -275,6 +414,7 @@ def run_benchmark():
             tool_id: {
                 'name': info['name'],
                 'url': info['url'],
+                'version': info.get('version', 'unknown'),
             }
             for tool_id, info in TOOLS.items()
         },
@@ -304,11 +444,15 @@ def run_benchmark():
     logging.info("=" * 60)
     for tool_id in TOOLS:
         for scenario in SCENARIOS:
-            if tool_id in results and scenario in results[tool_id]:
-                r = results[tool_id][scenario]
+            r = results.get(tool_id, {}).get(scenario)
+            if r:
+                reqs = r.get('http_requests')
+                reqs_str = str(reqs) if reqs is not None else 'N/A'
                 logging.info(
-                    f"  {tool_id:15s} | {scenario:25s} | "
-                    f"{r['correct']:3d}/{r['total']:3d} = {r['ratio']:6.2f}%",
+                    f"  {tool_id:20s} | {scenario:25s} | "
+                    f"{r['correct']:3d}/{r['total']:3d} = {r['ratio']:6.2f}% | "
+                    f"{r['duration']:6.1f}s | "
+                    f"reqs={reqs_str:>5s}",
                 )
 
 

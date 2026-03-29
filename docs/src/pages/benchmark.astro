@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Benchmark — GitHacker" description="Automated comparison of .git folder exploitation tools.">
-  <div class="max-w-4xl mx-auto px-6">
+  <div class="max-w-5xl mx-auto px-6">
 
     <!-- Header -->
     <div class="section">
@@ -26,6 +26,12 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- Content -->
     <div id="content" class="hidden">
+
+      <!-- Tool Versions -->
+      <div class="section">
+        <h2 class="text-xl font-semibold mb-4">Tools Under Test</h2>
+        <div id="tool-versions" class="overflow-x-auto"></div>
+      </div>
 
       <!-- Feature Comparison -->
       <div class="section">
@@ -59,17 +65,16 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <script>
-    // Benchmark page client-side logic
-    let data = null;
+    let data: any = null;
     let currentGroup = 'index-enabled';
-    let currentScenario = null;
+    let currentScenario: string | null = null;
 
-    const FEAT = {
+    const FEAT: Record<string, string> = {
       source_code: 'Source Code', reflogs: 'Reflogs', stashes: 'Stashes',
       commits: 'Commits', branches: 'Branches', remotes: 'Remotes', tags: 'Tags',
     };
 
-    const SCEN = {
+    const SCEN: Record<string, string> = {
       'apache-index-enabled': 'Apache (Index On)', 'apache-index-disabled': 'Apache (Index Off)',
       'nginx-index-enabled': 'Nginx (Index On)', 'nginx-index-disabled': 'Nginx (Index Off)',
       'php-lfi': 'PHP LFI',
@@ -97,12 +102,11 @@ import Layout from '../layouts/Layout.astro';
       document.getElementById('loading')!.classList.add('hidden');
       document.getElementById('content')!.classList.remove('hidden');
 
-      // Metadata
       const m = data.metadata;
       const date = new Date(m.generated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-      document.getElementById('metadata')!.textContent = `Generated ${date} · commit ${m.git_commit} · seed ${m.test_repo_seed}`;
+      document.getElementById('metadata')!.textContent =
+        `Generated ${date} · commit ${m.git_commit} · seed ${m.test_repo_seed}`;
 
-      // Group tabs
       document.querySelectorAll('.group-tab').forEach(btn => {
         btn.addEventListener('click', () => {
           currentGroup = (btn as HTMLElement).dataset.group!;
@@ -114,7 +118,6 @@ import Layout from '../layouts/Layout.astro';
         });
       });
 
-      // Scenario select
       const sel = document.getElementById('scenario-select') as HTMLSelectElement;
       data.scenarios.forEach((s: string) => {
         const o = document.createElement('option');
@@ -125,16 +128,18 @@ import Layout from '../layouts/Layout.astro';
       currentScenario = data.scenarios[0];
       sel.addEventListener('change', () => { currentScenario = sel.value; renderDetail(); });
 
+      renderVersions();
       renderMatrix();
       renderDetail();
       renderScores();
     }
 
     function toolOrder(): string[] {
-      return Object.keys(data.tools).sort((a, b) => a === 'githacker' ? -1 : b === 'githacker' ? 1 : a.localeCompare(b));
+      return Object.keys(data.tools).sort((a, b) =>
+        a === 'githacker' ? -1 : b === 'githacker' ? 1 : a.localeCompare(b));
     }
 
-    function scenarios(): string[] {
+    function activeScenarios(): string[] {
       return GROUPS[currentGroup] ?? data.scenarios;
     }
 
@@ -144,8 +149,27 @@ import Layout from '../layouts/Layout.astro';
       return d.innerHTML;
     }
 
+    // -- Tool Versions Table --
+    function renderVersions() {
+      const tools = toolOrder();
+      let h = '<table class="data-table"><thead><tr><th>Tool</th><th>Version / Commit</th><th>Repository</th></tr></thead><tbody>';
+      for (const tid of tools) {
+        const t = data.tools[tid];
+        const hl = tid === 'githacker';
+        const ver = t.version || 'unknown';
+        h += `<tr class="${hl ? 'row-highlight' : ''}">`;
+        h += `<td>${esc(t.name)}</td>`;
+        h += `<td><code class="text-xs">${esc(ver)}</code></td>`;
+        h += `<td><a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline text-xs hover:text-gray-900">${esc(t.url.replace('https://github.com/', ''))}</a></td>`;
+        h += '</tr>';
+      }
+      h += '</tbody></table>';
+      document.getElementById('tool-versions')!.innerHTML = h;
+    }
+
+    // -- Feature Comparison Matrix --
     function renderMatrix() {
-      const sc = scenarios();
+      const sc = activeScenarios();
       const tools = toolOrder();
       let h = '<table class="data-table"><thead><tr><th>Tool</th>';
       for (const f of data.features) h += `<th>${FEAT[f] || f}</th>`;
@@ -154,7 +178,7 @@ import Layout from '../layouts/Layout.astro';
       for (const tid of tools) {
         const t = data.tools[tid];
         const hl = tid === 'githacker';
-        h += `<tr class="${hl ? 'row-highlight' : ''}"><td><a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline hover:text-gray-900">${esc(t.name)}</a></td>`;
+        h += `<tr class="${hl ? 'row-highlight' : ''}"><td>${esc(t.name)}</td>`;
         for (const f of data.features) {
           let sup = false, tc = 0, tf = 0;
           for (const s of sc) {
@@ -174,31 +198,41 @@ import Layout from '../layouts/Layout.astro';
       document.getElementById('feature-matrix')!.innerHTML = h;
     }
 
+    // -- Detailed Results Table --
     function renderDetail() {
-      const sc = currentScenario;
+      const sc = currentScenario!;
       const tools = toolOrder();
-      let h = '<table class="data-table"><thead><tr><th>Tool</th><th>Correct</th><th>Total</th><th>Recovery Rate</th><th></th></tr></thead><tbody>';
+      let h = '<table class="data-table"><thead><tr>';
+      h += '<th>Tool</th><th>Recovery Rate</th><th>Duration</th><th>HTTP Reqs</th><th>Exit</th><th></th>';
+      h += '</tr></thead><tbody>';
 
       for (const tid of tools) {
         const t = data.tools[tid];
         const r = data.results[tid]?.[sc];
         const hl = tid === 'githacker';
         if (!r) {
-          h += `<tr class="${hl ? 'row-highlight' : ''}"><td>${esc(t.name)}</td><td colspan="4" class="text-gray-300 text-xs">No data</td></tr>`;
+          h += `<tr class="${hl ? 'row-highlight' : ''}"><td>${esc(t.name)}</td><td colspan="5" class="text-gray-300 text-xs">No data</td></tr>`;
           continue;
         }
 
         const rc = r.ratio >= 90 ? 'high' : r.ratio >= 50 ? 'mid' : 'low';
+        const dur = r.duration != null ? `${r.duration.toFixed(1)}s` : '—';
+        const reqs = r.http_requests != null ? r.http_requests.toLocaleString() : '—';
+        const exit = r.exit_code != null ? (r.exit_code === 0 ? '0' : `${r.exit_code}`) : '—';
+        const exitCls = r.exit_code === 0 ? 'text-gray-500' : 'text-red-500';
         const hasDetail = r.features || r.absent_files?.length || r.different_files?.length;
+
         h += `<tr class="${hl ? 'row-highlight' : ''}">`;
-        h += `<td><a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline hover:text-gray-900">${esc(t.name)}</a></td>`;
-        h += `<td>${r.correct}</td><td>${r.total}</td>`;
+        h += `<td>${esc(t.name)}</td>`;
         h += `<td><div class="flex items-center gap-2"><span class="w-14 text-right text-xs">${r.ratio.toFixed(1)}%</span><div class="ratio-bar flex-1"><div class="ratio-fill ${rc}" style="width:${r.ratio}%"></div></div></div></td>`;
+        h += `<td class="text-xs text-gray-500">${dur}</td>`;
+        h += `<td class="text-xs text-gray-500">${reqs}</td>`;
+        h += `<td class="text-xs ${exitCls}">${exit}</td>`;
         h += `<td>${hasDetail ? `<span class="toggle-btn" data-tool="${tid}">details</span>` : ''}</td>`;
         h += '</tr>';
 
         if (hasDetail) {
-          h += `<tr class="detail-row" id="det-${tid}"><td colspan="5">`;
+          h += `<tr class="detail-row" id="det-${tid}"><td colspan="6">`;
           h += detailContent(r);
           h += '</td></tr>';
         }
@@ -252,30 +286,52 @@ import Layout from '../layouts/Layout.astro';
       return h;
     }
 
+    // -- Overall Score Cards --
     function renderScores() {
       const tools = toolOrder();
-      const scores: Record<string, number> = {};
+      const scores: Record<string, {ratio: number, duration: number, requests: number}> = {};
       for (const tid of tools) {
-        let sum = 0, n = 0;
+        let sumR = 0, sumD = 0, sumQ = 0, n = 0;
         for (const s of data.scenarios) {
           const r = data.results[tid]?.[s];
-          if (r) { sum += r.ratio; n++; }
+          if (r) {
+            sumR += r.ratio;
+            sumD += (r.duration || 0);
+            sumQ += (r.http_requests || 0);
+            n++;
+          }
         }
-        scores[tid] = n > 0 ? sum / n : 0;
+        scores[tid] = {
+          ratio: n > 0 ? sumR / n : 0,
+          duration: n > 0 ? sumD / n : 0,
+          requests: n > 0 ? Math.round(sumQ / n) : 0,
+        };
       }
-      const best = Math.max(...Object.values(scores));
+      const best = Math.max(...Object.values(scores).map(s => s.ratio));
 
       let h = '';
       for (const tid of tools) {
         const t = data.tools[tid];
         const sc = scores[tid];
-        const isBest = sc === best && sc > 0;
+        const isBest = sc.ratio === best && sc.ratio > 0;
+        const ver = t.version || 'unknown';
+
         h += `<div class="border border-gray-200 rounded-md p-4 ${isBest ? 'border-gray-900' : ''}">`;
-        h += `<div class="flex items-center justify-between mb-2"><a href="${esc(t.url)}" target="_blank" rel="noopener" class="text-sm font-medium underline hover:text-gray-900">${esc(t.name)}</a>`;
+        h += `<div class="flex items-center justify-between mb-1">`;
+        h += `<a href="${esc(t.url)}" target="_blank" rel="noopener" class="text-sm font-medium underline hover:text-gray-900">${esc(t.name)}</a>`;
         if (isBest) h += '<span class="text-[10px] border border-gray-900 text-gray-900 px-1.5 py-0.5 rounded-full font-medium uppercase tracking-wider">Best</span>';
         h += '</div>';
-        h += `<div class="text-2xl font-bold text-gray-900">${sc.toFixed(1)}%</div>`;
+        h += `<div class="text-[10px] text-gray-400 mb-2"><code>${esc(ver)}</code></div>`;
+        h += `<div class="text-2xl font-bold text-gray-900">${sc.ratio.toFixed(1)}%</div>`;
         h += '<div class="text-[10px] text-gray-400 mt-0.5">avg. recovery rate</div>';
+
+        // Avg duration + requests
+        h += '<div class="flex gap-4 mt-2 text-[10px] text-gray-500">';
+        h += `<span>avg. ${sc.duration.toFixed(1)}s</span>`;
+        h += `<span>avg. ${sc.requests.toLocaleString()} reqs</span>`;
+        h += '</div>';
+
+        // Per-scenario bars
         h += '<div class="mt-3 space-y-1">';
         for (const s of data.scenarios) {
           const r = data.results[tid]?.[s];
