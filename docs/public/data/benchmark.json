@@ -2,7 +2,8 @@
   "metadata": {
     "generated_at": "2026-03-29T00:00:00+00:00",
     "git_commit": "sample",
-    "test_repo_seed": 0
+    "test_repo_seed": 0,
+    "note": "Sample data for development. Run 'python -m benchmark run' to generate real results."
   },
   "tools": {
     "githacker": {
@@ -13,32 +14,22 @@
     "gittools": {
       "name": "GitTools",
       "url": "https://github.com/internetwache/GitTools",
-      "version": "a3c85e5"
+      "version": "latest"
     },
     "dvcs-ripper": {
       "name": "dvcs-ripper",
       "url": "https://github.com/kost/dvcs-ripper",
-      "version": "9c164a3"
+      "version": "latest"
     },
     "githack": {
       "name": "GitHack",
       "url": "https://github.com/lijiejie/GitHack",
-      "version": "7e6a5b2"
+      "version": "latest"
     },
     "git-dumper": {
       "name": "git-dumper",
       "url": "https://github.com/arthaud/git-dumper",
       "version": "1.0.7"
-    },
-    "gitdump": {
-      "name": "GitDump",
-      "url": "https://github.com/Ebryx/GitDump",
-      "version": "b53f5e1"
-    },
-    "git-dumper-hh": {
-      "name": "git-dumper (holly-hacker)",
-      "url": "https://github.com/holly-hacker/git-dumper",
-      "version": "d2f1a8c"
     }
   },
   "scenarios": [
@@ -571,12 +562,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -637,9 +631,9 @@
     },
     "gittools": {
       "apache-index-enabled": {
-        "correct": 360,
+        "correct": 442,
         "total": 487,
-        "ratio": 74.1,
+        "ratio": 90.8,
         "different_files": [],
         "absent_files": [
           ".git/refs/stash",
@@ -702,9 +696,9 @@
         "http_requests": 420
       },
       "apache-index-disabled": {
-        "correct": 360,
+        "correct": 442,
         "total": 487,
-        "ratio": 74.1,
+        "ratio": 90.8,
         "different_files": [],
         "absent_files": [
           ".git/refs/stash",
@@ -767,9 +761,9 @@
         "http_requests": 546
       },
       "nginx-index-enabled": {
-        "correct": 360,
+        "correct": 442,
         "total": 487,
-        "ratio": 74.1,
+        "ratio": 90.8,
         "different_files": [],
         "absent_files": [
           ".git/refs/stash",
@@ -832,9 +826,9 @@
         "http_requests": 420
       },
       "nginx-index-disabled": {
-        "correct": 360,
+        "correct": 442,
         "total": 487,
-        "ratio": 74.1,
+        "ratio": 90.8,
         "different_files": [],
         "absent_files": [
           ".git/refs/stash",
@@ -902,12 +896,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1038,12 +1035,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1172,12 +1172,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1241,12 +1244,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1307,7 +1313,7 @@
     },
     "githack": {
       "apache-index-enabled": {
-        "correct": 81,
+        "correct": 82,
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
@@ -1316,8 +1322,8 @@
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1376,7 +1382,7 @@
         "http_requests": 85
       },
       "apache-index-disabled": {
-        "correct": 81,
+        "correct": 82,
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
@@ -1385,8 +1391,8 @@
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1445,7 +1451,7 @@
         "http_requests": 110
       },
       "nginx-index-enabled": {
-        "correct": 81,
+        "correct": 82,
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
@@ -1454,8 +1460,8 @@
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1514,7 +1520,7 @@
         "http_requests": 85
       },
       "nginx-index-disabled": {
-        "correct": 81,
+        "correct": 82,
         "total": 487,
         "ratio": 16.8,
         "different_files": [],
@@ -1523,8 +1529,8 @@
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1588,12 +1594,15 @@
         "ratio": 0.0,
         "different_files": [],
         "absent_files": [
+          "index.php",
+          "config.php",
+          "lfi.php",
           ".git/logs/HEAD",
           ".git/logs/refs/heads/master",
           ".git/refs/stash",
           ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
+          ".git/objects/a1/b2c3d4e5f6",
+          ".git/objects/f6/789abcdef0",
           ".git/refs/heads/dev",
           ".git/refs/heads/feature",
           ".git/refs/heads/hotfix",
@@ -1648,650 +1657,6 @@
           }
         },
         "duration": 0.31,
-        "exit_code": 0,
-        "http_requests": 5
-      }
-    },
-    "gitdump": {
-      "apache-index-enabled": {
-        "correct": 283,
-        "total": 487,
-        "ratio": 58.3,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 6.7,
-        "exit_code": 0,
-        "http_requests": 520
-      },
-      "apache-index-disabled": {
-        "correct": 283,
-        "total": 487,
-        "ratio": 58.3,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 8.71,
-        "exit_code": 0,
-        "http_requests": 676
-      },
-      "nginx-index-enabled": {
-        "correct": 283,
-        "total": 487,
-        "ratio": 58.3,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 6.7,
-        "exit_code": 0,
-        "http_requests": 520
-      },
-      "nginx-index-disabled": {
-        "correct": 283,
-        "total": 487,
-        "ratio": 58.3,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 8.71,
-        "exit_code": 0,
-        "http_requests": 676
-      },
-      "php-lfi": {
-        "correct": 0,
-        "total": 487,
-        "ratio": 0.0,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": false,
-            "correct": 0,
-            "total": 82,
-            "ratio": 0.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": false,
-            "correct": 0,
-            "total": 342,
-            "ratio": 0.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 0.67,
-        "exit_code": 0,
-        "http_requests": 5
-      }
-    },
-    "git-dumper-hh": {
-      "apache-index-enabled": {
-        "correct": 487,
-        "total": 487,
-        "ratio": 100.0,
-        "different_files": [],
-        "absent_files": [],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": true,
-            "correct": 18,
-            "total": 18,
-            "ratio": 100.0
-          },
-          "stashes": {
-            "supported": true,
-            "correct": 2,
-            "total": 2,
-            "ratio": 100.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": true,
-            "correct": 21,
-            "total": 21,
-            "ratio": 100.0
-          },
-          "remotes": {
-            "supported": true,
-            "correct": 0,
-            "total": 0,
-            "ratio": 100.0
-          },
-          "tags": {
-            "supported": true,
-            "correct": 22,
-            "total": 22,
-            "ratio": 100.0
-          }
-        },
-        "duration": 4.2,
-        "exit_code": 0,
-        "http_requests": 780
-      },
-      "apache-index-disabled": {
-        "correct": 444,
-        "total": 487,
-        "ratio": 91.2,
-        "different_files": [],
-        "absent_files": [
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": true,
-            "correct": 18,
-            "total": 18,
-            "ratio": 100.0
-          },
-          "stashes": {
-            "supported": true,
-            "correct": 2,
-            "total": 2,
-            "ratio": 100.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": true,
-            "correct": 0,
-            "total": 0,
-            "ratio": 100.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 5.46,
-        "exit_code": 0,
-        "http_requests": 1014
-      },
-      "nginx-index-enabled": {
-        "correct": 487,
-        "total": 487,
-        "ratio": 100.0,
-        "different_files": [],
-        "absent_files": [],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": true,
-            "correct": 18,
-            "total": 18,
-            "ratio": 100.0
-          },
-          "stashes": {
-            "supported": true,
-            "correct": 2,
-            "total": 2,
-            "ratio": 100.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": true,
-            "correct": 21,
-            "total": 21,
-            "ratio": 100.0
-          },
-          "remotes": {
-            "supported": true,
-            "correct": 0,
-            "total": 0,
-            "ratio": 100.0
-          },
-          "tags": {
-            "supported": true,
-            "correct": 22,
-            "total": 22,
-            "ratio": 100.0
-          }
-        },
-        "duration": 4.2,
-        "exit_code": 0,
-        "http_requests": 780
-      },
-      "nginx-index-disabled": {
-        "correct": 444,
-        "total": 487,
-        "ratio": 91.2,
-        "different_files": [],
-        "absent_files": [
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": true,
-            "correct": 82,
-            "total": 82,
-            "ratio": 100.0
-          },
-          "reflogs": {
-            "supported": true,
-            "correct": 18,
-            "total": 18,
-            "ratio": 100.0
-          },
-          "stashes": {
-            "supported": true,
-            "correct": 2,
-            "total": 2,
-            "ratio": 100.0
-          },
-          "commits": {
-            "supported": true,
-            "correct": 342,
-            "total": 342,
-            "ratio": 100.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": true,
-            "correct": 0,
-            "total": 0,
-            "ratio": 100.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 5.46,
-        "exit_code": 0,
-        "http_requests": 1014
-      },
-      "php-lfi": {
-        "correct": 0,
-        "total": 487,
-        "ratio": 0.0,
-        "different_files": [],
-        "absent_files": [
-          ".git/logs/HEAD",
-          ".git/logs/refs/heads/master",
-          ".git/refs/stash",
-          ".git/logs/refs/stash",
-          ".git/objects/a1/b2c3d4e5",
-          ".git/objects/f6/789abc",
-          ".git/refs/heads/dev",
-          ".git/refs/heads/feature",
-          ".git/refs/heads/hotfix",
-          ".git/refs/heads/daily",
-          ".git/refs/heads/wip",
-          ".git/refs/tags/0.1.0",
-          ".git/refs/tags/0.2.0",
-          ".git/refs/tags/1.0.0"
-        ],
-        "features": {
-          "source_code": {
-            "supported": false,
-            "correct": 0,
-            "total": 82,
-            "ratio": 0.0
-          },
-          "reflogs": {
-            "supported": false,
-            "correct": 0,
-            "total": 18,
-            "ratio": 0.0
-          },
-          "stashes": {
-            "supported": false,
-            "correct": 0,
-            "total": 2,
-            "ratio": 0.0
-          },
-          "commits": {
-            "supported": false,
-            "correct": 0,
-            "total": 342,
-            "ratio": 0.0
-          },
-          "branches": {
-            "supported": false,
-            "correct": 0,
-            "total": 21,
-            "ratio": 0.0
-          },
-          "remotes": {
-            "supported": false,
-            "correct": 0,
-            "total": 0,
-            "ratio": 0.0
-          },
-          "tags": {
-            "supported": false,
-            "correct": 0,
-            "total": 22,
-            "ratio": 0.0
-          }
-        },
-        "duration": 0.42,
         "exit_code": 0,
         "http_requests": 5
       }

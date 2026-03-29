@@ -3,11 +3,11 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Benchmark — GitHacker" description="Automated comparison of .git folder exploitation tools.">
-  <div class="max-w-5xl mx-auto px-6">
+  <div class="max-w-[750px] mx-auto px-6">
 
     <div class="section">
-      <h1 class="text-3xl font-bold mb-2">Benchmark</h1>
-      <p class="text-gray-600 text-sm leading-relaxed max-w-3xl">
+      <h1 class="text-3xl font-bold mb-2" data-i18n="title">Benchmark</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-3xl" data-i18n="intro">
         A systematic, reproducible evaluation of open-source
         <code>.git</code> folder exploitation tools. This benchmark measures
         each tool's ability to reconstruct a Git repository from a remotely
@@ -19,121 +19,8 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- Methodology -->
     <div class="section">
-      <h2 class="text-lg font-semibold mb-3">Methodology</h2>
-      <div class="text-sm text-gray-600 leading-relaxed space-y-4 max-w-3xl">
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Design Principles</h3>
-          <p>
-            The benchmark is designed around three principles:
-            <strong>fairness</strong> &mdash; every tool receives the same
-            target repository served by the same web server instance;
-            <strong>completeness</strong> &mdash; evaluation covers all
-            recoverable Git artifacts (source code, reflogs, stashes, commits,
-            branches, remotes, tags); and
-            <strong>reproducibility</strong> &mdash; the test repository is
-            generated from a fixed random seed, and every component
-            (repo generator, server configs, tool containers, comparison logic)
-            is version-controlled.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Test Repository</h3>
-          <p>
-            A ground-truth Git repository is generated programmatically
-            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/generate.py</code></a>,
-            random seed = 0) containing:
-            2&ndash;16 random commits, 2&ndash;8 random branches,
-            15 well-known branches (master, main, dev, release, etc.),
-            up to 16 semantic-version tags,
-            2&ndash;16 stashes,
-            files in the staging area and working directory,
-            and a PHP LFI script.
-            A <em>manifest</em> is produced that categorises every file by
-            feature (source code, reflogs, stashes, commits, branches,
-            remotes, tags), enabling per-feature accuracy measurement.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Scenarios</h3>
-          <p>The repository is served over HTTP under five configurations:</p>
-          <ol class="list-decimal pl-5 mt-1 space-y-0.5">
-            <li><strong>Apache httpd</strong> with <code>DirectoryIndex</code> enabled (default <code>httpd</code> image)</li>
-            <li><strong>Apache httpd</strong> with <code>Options -Indexes</code> (directory listing disabled)</li>
-            <li><strong>Nginx</strong> with <code>autoindex on</code></li>
-            <li><strong>Nginx</strong> with <code>autoindex off</code> (default)</li>
-            <li><strong>PHP 7.2 + Apache</strong> with a Local File Inclusion (LFI) entry point (<code>lfi.php?file=./</code>)</li>
-          </ol>
-          <p class="mt-1">
-            Each scenario runs as a Docker Compose service. Configuration files
-            are in
-            <a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>test/docker/</code></a>.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Tool Execution</h3>
-          <p>
-            Each tool runs inside its own Docker container
-            (<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/tools/</code></a>)
-            with a unified interface (<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>).
-            Containers are connected to the server via
-            <code>host.docker.internal</code>. A timeout of 300 seconds is
-            enforced per tool per scenario. Before each run the server is
-            restarted to reset access logs, enabling per-tool HTTP request
-            counting.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Comparison</h3>
-          <p>
-            After each run, recovered files are compared against the
-            ground-truth using MD5 checksums
-            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/compare.py</code></a>).
-            For each feature, we report the number of correctly recovered files,
-            absent files (present in ground-truth but missing from output),
-            and differing files (present but with different content).
-            The <code>.git/index</code> file is excluded from comparison as it
-            is always regenerated.
-          </p>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Metrics</h3>
-          <ul class="list-disc pl-5 mt-1 space-y-0.5">
-            <li><strong>Recovery Rate</strong> = correctly recovered files / total files in ground-truth (%)</li>
-            <li><strong>Feature Support</strong> = whether any files for a given feature were recovered (binary)</li>
-            <li><strong>Duration</strong> = wall-clock time from container start to exit (seconds)</li>
-            <li><strong>HTTP Requests</strong> = number of HTTP requests logged by the server during the run</li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Reproducibility</h3>
-          <p>
-            The complete benchmark infrastructure is open-source. To reproduce:
-          </p>
-          <div class="code-block mt-2 text-xs">
-            <pre>git clone https://github.com/WangYihang/GitHacker
-cd GitHacker
-pip install gitpython semver coloredlogs
-python -m benchmark run</pre>
-          </div>
-          <p class="mt-2">
-            Requires Docker. The orchestration script
-            (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/__main__.py" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900"><code>benchmark/__main__.py</code></a>)
-            generates the repository, builds all tool images, runs every
-            tool&times;scenario combination, and outputs
-            <code>benchmark/results/benchmark.json</code>.
-            The benchmark also runs weekly via
-            <a href="https://github.com/WangYihang/GitHacker/blob/main/.github/workflows/benchmark.yaml" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900">GitHub Actions</a>.
-          </p>
-        </div>
-
-      </div>
+      <h2 class="text-lg font-semibold mb-3" data-i18n="methodology_title">Methodology</h2>
+      <div class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed space-y-4 max-w-3xl" id="methodology"></div>
     </div>
 
     <div id="loading" class="py-16 text-center text-sm text-gray-400">Loading...</div>
@@ -141,46 +28,31 @@ python -m benchmark run</pre>
 
     <div id="content" class="hidden">
 
-      <!-- Table 1: Tools Under Test -->
+      <!-- Table 1: Feature Support (merged with tool info) -->
       <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 1. Tools Under Test</h2>
-        <p class="text-xs text-gray-500 mb-4">Version or commit hash at the time of evaluation.</p>
-        <div id="table-tools" class="overflow-x-auto"></div>
-      </div>
-
-      <!-- Table 2: Feature Support -->
-      <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 2. Feature Support</h2>
-        <p class="text-xs text-gray-500 mb-4">
-          Evaluated with DirectoryIndex
-          <select id="mode-select" class="text-xs border border-gray-300 rounded px-1.5 py-0.5 bg-white align-baseline">
-            <option value="enabled">enabled</option>
-            <option value="disabled">disabled</option>
-          </select>.
-          &#10003; = supported, &#10007; = not supported. Best highlighted in <strong>bold</strong>.
-        </p>
+        <h2 class="text-lg font-semibold mb-1" data-i18n="t1_title">Table 1. Feature Support by Tool</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" id="t1-caption"></p>
         <div id="table-features" class="overflow-x-auto"></div>
       </div>
 
-      <!-- Table 3: Quantitative Results -->
+      <!-- Table 2: Quantitative Results -->
       <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 3. Quantitative Results</h2>
-        <p class="text-xs text-gray-500 mb-4">
-          Average across all five scenarios. Best value in each column is <strong>bold</strong>.
+        <h2 class="text-lg font-semibold mb-1" data-i18n="t2_title">Table 2. Quantitative Results</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t2_caption">
+          Average across all five scenarios. Best value in each column is bold.
         </p>
         <div id="table-quant" class="overflow-x-auto"></div>
       </div>
 
-      <!-- Table 4: Per-Scenario Breakdown -->
+      <!-- Table 3: Per-Scenario Breakdown -->
       <div class="section">
-        <h2 class="text-lg font-semibold mb-1">Table 4. Per-Scenario Breakdown</h2>
-        <p class="text-xs text-gray-500 mb-4">
-          Recovery rate (%) for each tool under each scenario.
-          Click a cell to view absent and differing files below.
+        <h2 class="text-lg font-semibold mb-1" data-i18n="t3_title">Table 3. Per-Scenario Breakdown</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t3_caption">
+          Recovery rate (%) per tool per scenario. Click a cell to inspect absent and differing files.
         </p>
         <div id="table-scenario" class="overflow-x-auto"></div>
         <div id="detail-panel" class="mt-4 hidden">
-          <div class="border-t-2 border-gray-900 pt-3">
+          <div class="border-t-2 border-gray-900 dark:border-gray-300 pt-3">
             <p id="detail-title" class="text-sm font-semibold mb-2"></p>
             <div id="detail-body" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
           </div>
@@ -192,19 +64,82 @@ python -m benchmark run</pre>
 
   <script>
     let data: any = null;
+    let lang = localStorage.getItem('lang') || 'en';
     let mode = 'enabled';
 
-    const FEAT: Record<string, string> = {
-      source_code: 'Source Code', reflogs: 'Reflogs', stashes: 'Stashes',
-      commits: 'Commits', branches: 'Branches', remotes: 'Remotes', tags: 'Tags',
+    // ── i18n strings ──────────────────────────────────────────────
+
+    const I18N: Record<string, Record<string, string>> = {
+      title: { en: 'Benchmark', zh: '基准测试' },
+      intro: {
+        en: 'A systematic, reproducible evaluation of open-source <code>.git</code> folder exploitation tools. This benchmark measures each tool\u2019s ability to reconstruct a Git repository from a remotely exposed <code>.git</code> directory under realistic web server configurations.',
+        zh: '对开源 <code>.git</code> 目录利用工具的系统性、可复现评估。本基准测试衡量每个工具在真实 Web 服务器配置下，从远程暴露的 <code>.git</code> 目录重建 Git 仓库的能力。',
+      },
+      methodology_title: { en: 'Methodology', zh: '方法论' },
+      t1_title: { en: 'Table 1. Feature Support by Tool', zh: '表 1. 各工具功能支持情况' },
+      t2_title: { en: 'Table 2. Quantitative Results', zh: '表 2. 定量结果' },
+      t2_caption: {
+        en: 'Average across all five scenarios. Best value in each column is bold.',
+        zh: '五种场景的平均值。每列最优值加粗。',
+      },
+      t3_title: { en: 'Table 3. Per-Scenario Breakdown', zh: '表 3. 分场景详情' },
+      t3_caption: {
+        en: 'Recovery rate (%) per tool per scenario. Click a cell to inspect absent and differing files.',
+        zh: '每个工具在每个场景下的恢复率 (%)。点击单元格查看缺失和差异文件。',
+      },
     };
-    const SCEN: Record<string, string> = {
-      'apache-index-enabled': 'Apache (Index On)',
-      'apache-index-disabled': 'Apache (Index Off)',
-      'nginx-index-enabled': 'Nginx (Index On)',
-      'nginx-index-disabled': 'Nginx (Index Off)',
-      'php-lfi': 'PHP LFI',
+
+    const FEAT: Record<string, Record<string, string>> = {
+      source_code: { en: 'Source Code', zh: '源代码' },
+      reflogs:     { en: 'Reflogs',     zh: 'Reflogs' },
+      stashes:     { en: 'Stashes',     zh: 'Stashes' },
+      commits:     { en: 'Commits',     zh: 'Commits' },
+      branches:    { en: 'Branches',    zh: 'Branches' },
+      remotes:     { en: 'Remotes',     zh: 'Remotes' },
+      tags:        { en: 'Tags',        zh: 'Tags' },
     };
+
+    const SCEN: Record<string, Record<string, string>> = {
+      'apache-index-enabled':  { en: 'Apache (Index On)',  zh: 'Apache (索引开)' },
+      'apache-index-disabled': { en: 'Apache (Index Off)', zh: 'Apache (索引关)' },
+      'nginx-index-enabled':   { en: 'Nginx (Index On)',   zh: 'Nginx (索引开)' },
+      'nginx-index-disabled':  { en: 'Nginx (Index Off)',  zh: 'Nginx (索引关)' },
+      'php-lfi':               { en: 'PHP LFI',           zh: 'PHP LFI' },
+    };
+
+    const METHODOLOGY: Record<string, string> = {
+      en: `
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Design Principles</h3><p>The benchmark is designed around three principles: <strong>fairness</strong> \u2014 every tool receives the same target repository served by the same web server instance; <strong>completeness</strong> \u2014 evaluation covers all recoverable Git artifacts (source code, reflogs, stashes, commits, branches, remotes, tags); and <strong>reproducibility</strong> \u2014 the test repository is generated from a fixed random seed, and every component is version-controlled.</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Test Repository</h3><p>A ground-truth Git repository is generated programmatically (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/generate.py</code></a>, random seed\u00a0=\u00a00) containing: 2\u201316 random commits, 2\u20138 random branches, 15 well-known branches (master, main, dev, release, etc.), up to 16 semantic-version tags, 2\u201316 stashes, files in the staging area and working directory, and a PHP LFI script. A <em>manifest</em> categorises every file by feature, enabling per-feature accuracy measurement.</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Scenarios</h3><p>The repository is served over HTTP under five configurations:</p><ol class="list-decimal pl-5 mt-1 space-y-0.5"><li><strong>Apache httpd</strong> with <code>DirectoryIndex</code> enabled</li><li><strong>Apache httpd</strong> with <code>Options -Indexes</code> (directory listing disabled)</li><li><strong>Nginx</strong> with <code>autoindex on</code></li><li><strong>Nginx</strong> with <code>autoindex off</code> (default)</li><li><strong>PHP 7.2 + Apache</strong> with a Local File Inclusion entry point</li></ol><p class="mt-1">Each runs as a Docker Compose service. Configs: <a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>test/docker/</code></a>.</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Tool Execution</h3><p>Each tool runs in its own Docker container (<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/tools/</code></a>) with a unified interface (<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>). A 300-second timeout is enforced. The server is restarted before each run to reset access logs.</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Comparison &amp; Metrics</h3><p>Recovered files are compared via MD5 checksums (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/compare.py</code></a>). Metrics: <strong>Recovery Rate</strong> = correct files / total files; <strong>Feature Support</strong> = binary per feature; <strong>Duration</strong> = wall-clock seconds; <strong>HTTP Requests</strong> = server log line count.</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Reproducibility</h3><div class="code-block mt-2 text-xs"><pre>git clone https://github.com/WangYihang/GitHacker
+cd GitHacker && pip install gitpython semver coloredlogs
+python -m benchmark run</pre></div><p class="mt-2">Requires Docker. Also runs weekly via <a href="https://github.com/WangYihang/GitHacker/blob/main/.github/workflows/benchmark.yaml" target="_blank" rel="noopener" class="underline hover:decoration-gray-900">GitHub Actions</a>.</p></div>
+      `,
+      zh: `
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">设计原则</h3><p>本基准测试围绕三个原则设计：<strong>公平性</strong>\u2014\u2014每个工具测试相同的目标仓库和相同的 Web 服务器实例；<strong>完整性</strong>\u2014\u2014评估覆盖所有可恢复的 Git 产物（源代码、reflogs、stashes、commits、branches、remotes、tags）；<strong>可复现性</strong>\u2014\u2014测试仓库由固定随机种子生成，所有组件均受版本控制。</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">测试仓库</h3><p>通过程序化方式生成 ground-truth Git 仓库（<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/generate.py</code></a>，随机种子\u00a0=\u00a00），包含：2\u201316 个随机提交、2\u20138 个随机分支、15 个常见分支名、最多 16 个语义化版本标签、2\u201316 个 stash、暂存区和工作目录文件，以及 PHP LFI 脚本。生成 <em>manifest</em> 按功能分类所有文件，支持按功能维度计算准确率。</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">测试场景</h3><p>仓库在五种 HTTP 配置下提供服务：</p><ol class="list-decimal pl-5 mt-1 space-y-0.5"><li><strong>Apache httpd</strong>，<code>DirectoryIndex</code> 启用</li><li><strong>Apache httpd</strong>，<code>Options -Indexes</code>（目录列表禁用）</li><li><strong>Nginx</strong>，<code>autoindex on</code></li><li><strong>Nginx</strong>，<code>autoindex off</code>（默认）</li><li><strong>PHP 7.2 + Apache</strong>，本地文件包含（LFI）入口</li></ol><p class="mt-1">每个场景以 Docker Compose 服务运行。配置文件：<a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>test/docker/</code></a>。</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">工具执行</h3><p>每个工具在独立的 Docker 容器中运行（<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/tools/</code></a>），统一接口（<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>）。超时时间 300 秒。每次运行前重启服务器以重置访问日志。</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">对比与指标</h3><p>通过 MD5 校验和对比恢复的文件（<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline hover:decoration-gray-900"><code>benchmark/compare.py</code></a>）。指标：<strong>恢复率</strong> = 正确文件数 / 总文件数；<strong>功能支持</strong> = 按功能二值判定；<strong>耗时</strong> = 墙钟秒数；<strong>HTTP 请求数</strong> = 服务器日志行数。</p></div>
+        <div><h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">可复现性</h3><div class="code-block mt-2 text-xs"><pre>git clone https://github.com/WangYihang/GitHacker
+cd GitHacker && pip install gitpython semver coloredlogs
+python -m benchmark run</pre></div><p class="mt-2">需要 Docker。也通过 <a href="https://github.com/WangYihang/GitHacker/blob/main/.github/workflows/benchmark.yaml" target="_blank" rel="noopener" class="underline hover:decoration-gray-900">GitHub Actions</a> 每周自动运行。</p></div>
+      `,
+    };
+
+    const T1_CAPTION: Record<string, string> = {
+      en: '\u2713 = supported, \u2717 = not supported. DirectoryIndex {mode}. Tool names link to repositories; versions link to releases or commits. Best highlighted in bold.',
+      zh: '\u2713 = 支持, \u2717 = 不支持。DirectoryIndex {mode}。工具名链接到仓库；版本号链接到发布或提交。最优工具加粗显示。',
+    };
+    const MODE_LABELS: Record<string, Record<string, string>> = {
+      enabled:  { en: 'enabled', zh: '启用' },
+      disabled: { en: 'disabled', zh: '禁用' },
+    };
+
+    // ── Data + Init ───────────────────────────────────────────────
 
     document.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -218,23 +153,40 @@ python -m benchmark run</pre>
       }
     });
 
+    window.addEventListener('langchange', (e: any) => {
+      lang = e.detail;
+      if (data) renderAll();
+    });
+
     function init() {
       document.getElementById('loading')!.classList.add('hidden');
       document.getElementById('content')!.classList.remove('hidden');
+      renderAll();
+    }
 
+    function renderAll() {
+      // Static i18n
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = (el as HTMLElement).dataset.i18n!;
+        if (I18N[key]?.[lang]) el.innerHTML = I18N[key][lang];
+      });
+
+      // Metadata
       const m = data.metadata;
-      const date = new Date(m.generated_at).toLocaleDateString('en-US', {
+      const date = new Date(m.generated_at).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', {
         year: 'numeric', month: 'short', day: 'numeric',
       });
+      const metaNote = m.note ? ` (${lang === 'zh' ? '示例数据' : 'sample data'})` : '';
       document.getElementById('metadata')!.textContent =
-        `Generated ${date}. Commit ${m.git_commit}. Random seed ${m.test_repo_seed}.`;
+        `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${m.git_commit}. ${lang === 'zh' ? '随机种子' : 'Random seed'} ${m.test_repo_seed}.${metaNote}`;
 
-      document.getElementById('mode-select')!.addEventListener('change', (e) => {
-        mode = (e.target as HTMLSelectElement).value;
-        renderFeatures();
-      });
+      // Methodology
+      document.getElementById('methodology')!.innerHTML = METHODOLOGY[lang] || METHODOLOGY.en;
 
-      renderTools();
+      // Table caption
+      document.getElementById('t1-caption')!.textContent =
+        (T1_CAPTION[lang] || T1_CAPTION.en).replace('{mode}', MODE_LABELS[mode][lang]);
+
       renderFeatures();
       renderQuant();
       renderScenario();
@@ -251,44 +203,38 @@ python -m benchmark run</pre>
       return d.innerHTML;
     }
 
+    function ghPath(t: any): string {
+      return t.url.replace('https://github.com/', '');
+    }
+
     function toolLink(t: any): string {
-      return `<a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900">${esc(t.name)}</a>`;
+      return `<a href="${esc(t.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(t.name)}</a>`;
+    }
+
+    function starBadge(t: any): string {
+      const path = ghPath(t);
+      return `<a href="${esc(t.url)}/stargazers" target="_blank" rel="noopener"><img src="https://img.shields.io/github/stars/${path}?style=flat-square&amp;label=&amp;color=grey" alt="stars" class="inline h-4 align-text-bottom opacity-70" loading="lazy"></a>`;
     }
 
     function versionLink(t: any): string {
       const ver = t.version || '\u2014';
-      // If version looks like a commit hash (short hex), link to the commit
+      if (ver === 'latest' || ver === 'unknown' || ver === '\u2014') {
+        return `<span class="font-mono text-xs text-gray-400">${esc(ver)}</span>`;
+      }
       const isHash = /^[0-9a-f]{7,}$/i.test(ver);
-      if (isHash) {
-        const commitUrl = `${t.url}/commit/${ver}`;
-        return `<a href="${esc(commitUrl)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(ver)}</a>`;
-      }
-      // If version looks like semver, link to release tag
-      if (/^\d+\.\d+/.test(ver)) {
-        const tagUrl = `${t.url}/releases/tag/v${ver}`;
-        return `<a href="${esc(tagUrl)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(ver)}</a>`;
-      }
-      return `<span class="font-mono text-xs text-gray-500">${esc(ver)}</span>`;
+      const href = isHash ? `${t.url}/commit/${ver}` : `${t.url}/releases/tag/v${ver}`;
+      return `<a href="${esc(href)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(ver)}</a>`;
     }
 
-    // ── Table 1: Tools Under Test ─────────────────────────────────
-
-    function renderTools() {
-      const tools = toolOrder();
-      let h = '<table class="three-line-table">';
-      h += '<thead><tr><th>Tool</th><th>Version</th><th>Repository</th></tr></thead><tbody>';
-      for (const tid of tools) {
-        const t = data.tools[tid];
-        h += `<tr><td>${esc(t.name)}</td>`;
-        h += `<td>${versionLink(t)}</td>`;
-        h += `<td class="!text-left"><a href="${esc(t.url)}" target="_blank" rel="noopener" class="font-mono text-xs text-gray-500 underline decoration-gray-300 hover:decoration-gray-900">${esc(t.url.replace('https://github.com/', ''))}</a></td>`;
-        h += '</tr>';
-      }
-      h += '</tbody></table>';
-      document.getElementById('table-tools')!.innerHTML = h;
+    function featLabel(f: string): string {
+      return FEAT[f]?.[lang] || FEAT[f]?.en || f;
     }
 
-    // ── Table 2: Feature Support ──────────────────────────────────
+    function scenLabel(sc: string): string {
+      return SCEN[sc]?.[lang] || SCEN[sc]?.en || sc;
+    }
+
+    // ── Table 1: Feature Support (merged with tool info) ──────────
 
     function renderFeatures() {
       const scenarios = mode === 'enabled'
@@ -296,6 +242,23 @@ python -m benchmark run</pre>
         : data.scenarios.filter((s: string) => s.includes('disabled'));
       const tools = toolOrder();
       const features = data.features as string[];
+
+      // Update caption with mode select
+      const captionText = (T1_CAPTION[lang] || T1_CAPTION.en).replace('{mode}', '');
+      const captionEl = document.getElementById('t1-caption')!;
+      captionEl.innerHTML = '';
+      // Build caption with inline select
+      const before = (T1_CAPTION[lang] || T1_CAPTION.en).split('{mode}')[0];
+      const after = (T1_CAPTION[lang] || T1_CAPTION.en).split('{mode}')[1];
+      captionEl.innerHTML = `${esc(before)}<select id="mode-select" class="text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded px-1.5 py-0.5 bg-white align-baseline">${
+        ['enabled', 'disabled'].map(m =>
+          `<option value="${m}" ${m === mode ? 'selected' : ''}>${MODE_LABELS[m][lang]}</option>`
+        ).join('')
+      }</select>${esc(after)}`;
+      document.getElementById('mode-select')!.addEventListener('change', (e) => {
+        mode = (e.target as HTMLSelectElement).value;
+        renderFeatures();
+      });
 
       const supportCounts: Record<string, number> = {};
       for (const tid of tools) {
@@ -312,15 +275,16 @@ python -m benchmark run</pre>
       const maxSupport = Math.max(...Object.values(supportCounts));
 
       let h = '<table class="three-line-table">';
-      h += '<thead><tr><th>Tool</th>';
-      for (const f of features) h += `<th>${FEAT[f]}</th>`;
-      h += '<th>Total</th></tr></thead><tbody>';
+      h += `<thead><tr><th>${lang === 'zh' ? '工具' : 'Tool'}</th><th>${lang === 'zh' ? '版本' : 'Version'}</th>`;
+      for (const f of features) h += `<th>${featLabel(f)}</th>`;
+      h += `<th>${lang === 'zh' ? '合计' : 'Total'}</th></tr></thead><tbody>`;
 
       for (const tid of tools) {
         const t = data.tools[tid];
         const isBest = supportCounts[tid] === maxSupport;
         h += `<tr class="${isBest ? 'best' : ''}">`;
-        h += `<td>${toolLink(t)}</td>`;
+        h += `<td class="!text-left"><div class="flex items-center gap-1.5">${toolLink(t)} ${starBadge(t)}</div></td>`;
+        h += `<td>${versionLink(t)}</td>`;
         let count = 0;
         for (const f of features) {
           let sup = false;
@@ -328,7 +292,7 @@ python -m benchmark run</pre>
             if (data.results[tid]?.[sc]?.features?.[f]?.supported) sup = true;
           }
           if (sup) count++;
-          h += `<td>${sup ? '&#10003;' : '<span class="text-gray-300">&#10007;</span>'}</td>`;
+          h += `<td>${sup ? '&#10003;' : '<span class="text-gray-300 dark:text-gray-600">&#10007;</span>'}</td>`;
         }
         h += `<td>${count}/${features.length}</td></tr>`;
       }
@@ -336,7 +300,7 @@ python -m benchmark run</pre>
       document.getElementById('table-features')!.innerHTML = h;
     }
 
-    // ── Table 3: Quantitative Results ─────────────────────────────
+    // ── Table 2: Quantitative Results ─────────────────────────────
 
     function renderQuant() {
       const tools = toolOrder();
@@ -349,11 +313,7 @@ python -m benchmark run</pre>
           if (!r) continue;
           sr += r.ratio; sd += (r.duration ?? 0); sq += (r.http_requests ?? 0); n++;
         }
-        stats[tid] = {
-          ratio: n > 0 ? sr / n : 0,
-          duration: n > 0 ? sd / n : 0,
-          requests: n > 0 ? sq / n : 0,
-        };
+        stats[tid] = { ratio: n ? sr/n : 0, duration: n ? sd/n : 0, requests: n ? sq/n : 0 };
       }
 
       const vals = Object.values(stats);
@@ -362,42 +322,38 @@ python -m benchmark run</pre>
       const bestD = active.length ? Math.min(...active.map(s => s.duration)) : 0;
       const bestQ = active.length ? Math.min(...active.map(s => s.requests)) : 0;
 
+      const L = lang === 'zh';
       let h = '<table class="three-line-table">';
-      h += '<thead><tr><th>Tool</th><th>Avg. Recovery (%)</th><th>Avg. Duration (s)</th><th>Avg. HTTP Requests</th></tr></thead><tbody>';
+      h += `<thead><tr><th>${L ? '工具' : 'Tool'}</th><th>${L ? '平均恢复率 (%)' : 'Avg. Recovery (%)'}</th><th>${L ? '平均耗时 (s)' : 'Avg. Duration (s)'}</th><th>${L ? '平均请求数' : 'Avg. HTTP Requests'}</th></tr></thead><tbody>`;
       for (const tid of tools) {
-        const t = data.tools[tid];
-        const s = stats[tid];
+        const t = data.tools[tid], s = stats[tid];
         const bR = s.ratio === bestR, bD = s.ratio > 0 && s.duration === bestD, bQ = s.ratio > 0 && s.requests === bestQ;
-        h += '<tr>';
-        h += `<td class="${bR ? 'font-semibold' : ''}">${toolLink(t)}</td>`;
+        h += `<tr><td class="${bR ? 'font-semibold' : ''}">${toolLink(t)}</td>`;
         h += `<td class="${bR ? 'font-semibold' : ''}">${s.ratio.toFixed(1)}</td>`;
         h += `<td class="${bD ? 'font-semibold' : ''}">${s.duration.toFixed(1)}</td>`;
-        h += `<td class="${bQ ? 'font-semibold' : ''}">${Math.round(s.requests)}</td>`;
-        h += '</tr>';
+        h += `<td class="${bQ ? 'font-semibold' : ''}">${Math.round(s.requests)}</td></tr>`;
       }
       h += '</tbody></table>';
       document.getElementById('table-quant')!.innerHTML = h;
     }
 
-    // ── Table 4: Per-Scenario Breakdown ───────────────────────────
+    // ── Table 3: Per-Scenario ─────────────────────────────────────
 
     function renderScenario() {
       const tools = toolOrder();
-      const scenarios = data.scenarios as string[];
-
       let h = '<table class="three-line-table">';
-      h += '<thead><tr><th>Tool</th>';
-      for (const sc of scenarios) h += `<th>${SCEN[sc] || sc}</th>`;
+      h += `<thead><tr><th>${lang === 'zh' ? '工具' : 'Tool'}</th>`;
+      for (const sc of data.scenarios) h += `<th>${scenLabel(sc)}</th>`;
       h += '</tr></thead><tbody>';
 
       for (const tid of tools) {
         const t = data.tools[tid];
         h += `<tr><td>${toolLink(t)}</td>`;
-        for (const sc of scenarios) {
+        for (const sc of data.scenarios) {
           const r = data.results[tid]?.[sc];
           if (!r) { h += '<td class="text-gray-300">\u2014</td>'; continue; }
           const hasIssues = r.absent_files?.length > 0 || r.different_files?.length > 0;
-          const cls = r.ratio === 100 ? 'text-gray-900' : r.ratio > 0 ? 'text-gray-600' : 'text-gray-300';
+          const cls = r.ratio === 100 ? '' : r.ratio > 0 ? 'text-gray-500' : 'text-gray-300 dark:text-gray-600';
           const cursor = hasIssues ? 'cursor-pointer hover:underline' : '';
           h += `<td class="${cls} ${cursor}" ${hasIssues ? `data-tid="${tid}" data-sc="${sc}"` : ''}>${r.ratio.toFixed(1)}</td>`;
         }
@@ -406,62 +362,54 @@ python -m benchmark run</pre>
       h += '</tbody></table>';
       document.getElementById('table-scenario')!.innerHTML = h;
 
-      // Click handler for detail drill-down
       document.querySelectorAll('#table-scenario td[data-tid]').forEach(el => {
         el.addEventListener('click', () => {
-          const tid = (el as HTMLElement).dataset.tid!;
-          const sc = (el as HTMLElement).dataset.sc!;
-          showDetail(tid, sc);
+          showDetail((el as HTMLElement).dataset.tid!, (el as HTMLElement).dataset.sc!);
         });
       });
     }
 
     function showDetail(tid: string, sc: string) {
-      const t = data.tools[tid];
-      const r = data.results[tid][sc];
+      const t = data.tools[tid], r = data.results[tid][sc];
       const panel = document.getElementById('detail-panel')!;
-      const title = document.getElementById('detail-title')!;
-      const body = document.getElementById('detail-body')!;
+      const L = lang === 'zh';
 
-      title.textContent = `${t.name} \u2014 ${SCEN[sc] || sc} (${r.ratio.toFixed(1)}% recovery, ${r.correct}/${r.total} files)`;
+      document.getElementById('detail-title')!.textContent =
+        `${t.name} \u2014 ${scenLabel(sc)} (${L ? '恢复率' : 'recovery'} ${r.ratio.toFixed(1)}%, ${r.correct}/${r.total} ${L ? '文件' : 'files'})`;
 
-      let h = '';
-
-      // Left: per-feature breakdown
-      h += '<div>';
-      h += '<p class="font-semibold text-gray-600 mb-2 text-xs uppercase tracking-wider">Per-Feature Breakdown</p>';
+      let h = '<div>';
+      h += `<p class="font-semibold text-gray-600 dark:text-gray-400 mb-2 text-xs uppercase tracking-wider">${L ? '按功能分类' : 'Per-Feature Breakdown'}</p>`;
       h += '<table class="three-line-table text-xs">';
-      h += '<thead><tr><th>Feature</th><th>Correct</th><th>Total</th><th>Rate (%)</th></tr></thead><tbody>';
+      h += `<thead><tr><th>${L ? '功能' : 'Feature'}</th><th>${L ? '正确' : 'Correct'}</th><th>${L ? '总计' : 'Total'}</th><th>${L ? '恢复率 (%)' : 'Rate (%)'}</th></tr></thead><tbody>`;
       for (const f of data.features) {
         const ft = r.features[f];
         if (!ft) continue;
         const cls = ft.ratio === 100 ? '' : ft.ratio > 0 ? 'text-gray-600' : 'text-gray-400';
-        h += `<tr><td class="!text-left">${FEAT[f]}</td><td>${ft.correct}</td><td>${ft.total}</td><td class="${cls}">${ft.ratio.toFixed(1)}</td></tr>`;
+        h += `<tr><td class="!text-left">${featLabel(f)}</td><td>${ft.correct}</td><td>${ft.total}</td><td class="${cls}">${ft.ratio.toFixed(1)}</td></tr>`;
       }
       h += '</tbody></table></div>';
 
-      // Right: absent + different files
       h += '<div>';
       if (r.absent_files?.length > 0) {
-        h += `<p class="font-semibold text-gray-600 mb-2 text-xs uppercase tracking-wider">Absent Files (${r.absent_files.length})</p>`;
+        h += `<p class="font-semibold text-gray-600 dark:text-gray-400 mb-2 text-xs uppercase tracking-wider">${L ? '缺失文件' : 'Absent Files'} (${r.absent_files.length})</p>`;
         h += '<ul class="font-mono text-xs text-gray-500 space-y-0.5 max-h-48 overflow-y-auto">';
         for (const f of r.absent_files.slice(0, 50)) h += `<li>${esc(f)}</li>`;
         if (r.absent_files.length > 50) h += `<li class="text-gray-300">\u2026 ${r.absent_files.length - 50} more</li>`;
         h += '</ul>';
       }
       if (r.different_files?.length > 0) {
-        h += `<p class="font-semibold text-gray-600 mb-2 mt-3 text-xs uppercase tracking-wider">Different Files (${r.different_files.length})</p>`;
+        h += `<p class="font-semibold text-gray-600 dark:text-gray-400 mb-2 mt-3 text-xs uppercase tracking-wider">${L ? '差异文件' : 'Different Files'} (${r.different_files.length})</p>`;
         h += '<ul class="font-mono text-xs text-gray-500 space-y-0.5 max-h-48 overflow-y-auto">';
         for (const f of r.different_files.slice(0, 50)) h += `<li>${esc(f)}</li>`;
         if (r.different_files.length > 50) h += `<li class="text-gray-300">\u2026 ${r.different_files.length - 50} more</li>`;
         h += '</ul>';
       }
       if (!r.absent_files?.length && !r.different_files?.length) {
-        h += '<p class="text-gray-500 italic">All files recovered correctly.</p>';
+        h += `<p class="text-gray-500 italic">${L ? '所有文件均已正确恢复。' : 'All files recovered correctly.'}</p>`;
       }
       h += '</div>';
 
-      body.innerHTML = h;
+      document.getElementById('detail-body')!.innerHTML = h;
       panel.classList.remove('hidden');
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }

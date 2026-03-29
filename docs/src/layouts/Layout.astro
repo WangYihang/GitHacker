@@ -18,45 +18,53 @@ const currentPath = Astro.url.pathname;
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      // Restore theme before paint to prevent flash
+      (function() {
+        const t = localStorage.getItem('theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
-  <body class="min-h-screen flex flex-col bg-white font-sans">
-    <!-- Navigation -->
-    <nav class="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur z-50">
-      <div class="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
-        <a href="/" class="text-sm font-semibold tracking-tight text-gray-900">GitHacker</a>
-        <div class="flex items-center gap-6 text-sm">
+  <body class="min-h-screen flex flex-col">
+    <nav class="nav-bar">
+      <div class="max-w-[750px] mx-auto px-6 h-12 flex items-center justify-between">
+        <a href="/" class="text-sm font-semibold tracking-tight">GitHacker</a>
+        <div class="flex items-center gap-5 text-sm">
           <a
             href="/"
-            class:list={['hover:text-gray-900', currentPath === '/' ? 'text-gray-900 font-medium' : 'text-gray-500']}
-          >
-            Home
-          </a>
+            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath === '/' ? 'font-medium' : 'text-gray-500']}
+          >Home</a>
           <a
             href="/benchmark"
-            class:list={['hover:text-gray-900', currentPath.startsWith('/benchmark') ? 'text-gray-900 font-medium' : 'text-gray-500']}
-          >
-            Benchmark
-          </a>
-          <a
-            href="https://github.com/WangYihang/GitHacker"
-            target="_blank"
-            rel="noopener"
-            class="text-gray-500 hover:text-gray-900"
-          >
-            GitHub
-          </a>
+            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath.startsWith('/benchmark') ? 'font-medium' : 'text-gray-500']}
+          >Benchmark</a>
+          <a href="https://github.com/WangYihang/GitHacker" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-200">GitHub</a>
+
+          <span class="text-gray-300 dark:text-gray-700">|</span>
+
+          <!-- Language toggle -->
+          <button id="lang-toggle" class="toggle-btn" title="切换语言 / Switch language">
+            EN
+          </button>
+
+          <!-- Theme toggle -->
+          <button id="theme-toggle" class="toggle-btn" title="Toggle theme">
+            <span id="theme-icon-light" class="hidden">☀</span>
+            <span id="theme-icon-dark">☾</span>
+          </button>
         </div>
       </div>
     </nav>
 
-    <!-- Main content -->
     <main class="flex-1">
       <slot />
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-200 mt-16">
-      <div class="max-w-4xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+    <footer class="site-footer">
+      <div class="max-w-[750px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
         <span>GitHacker &mdash; Wang Yihang</span>
         <div class="flex gap-4">
           <a href="https://github.com/WangYihang/GitHacker" class="hover:text-gray-600">GitHub</a>
@@ -64,5 +72,40 @@ const currentPath = Astro.url.pathname;
         </div>
       </div>
     </footer>
+
+    <script is:inline>
+      // Theme toggle
+      const themeBtn = document.getElementById('theme-toggle');
+      const iconLight = document.getElementById('theme-icon-light');
+      const iconDark = document.getElementById('theme-icon-dark');
+      function updateThemeIcons() {
+        const dark = document.documentElement.classList.contains('dark');
+        iconLight.classList.toggle('hidden', !dark);
+        iconDark.classList.toggle('hidden', dark);
+      }
+      updateThemeIcons();
+      themeBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const dark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        updateThemeIcons();
+      });
+
+      // Language toggle
+      const langBtn = document.getElementById('lang-toggle');
+      let currentLang = localStorage.getItem('lang') || 'en';
+      function applyLang() {
+        langBtn.textContent = currentLang === 'en' ? 'EN' : '中';
+        document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh';
+        // Dispatch custom event for pages to react
+        window.dispatchEvent(new CustomEvent('langchange', { detail: currentLang }));
+      }
+      applyLang();
+      langBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'zh' : 'en';
+        localStorage.setItem('lang', currentLang);
+        applyLang();
+      });
+    </script>
   </body>
 </html>

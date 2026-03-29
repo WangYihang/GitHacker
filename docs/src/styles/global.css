@@ -7,49 +7,73 @@
 
 @layer base {
   body {
-    @apply text-gray-800 leading-relaxed;
+    @apply text-gray-800 leading-relaxed bg-white;
+  }
+  .dark body, body.dark {
+    @apply bg-gray-950 text-gray-300;
   }
 
   h1, h2, h3, h4 {
     @apply text-gray-900 leading-tight;
   }
+  .dark h1, .dark h2, .dark h3, .dark h4 {
+    @apply text-gray-100;
+  }
 
   code {
     @apply font-mono text-sm bg-gray-100 px-1 py-0.5 rounded;
+  }
+  .dark code {
+    @apply bg-gray-800 text-gray-300;
   }
 
   pre code {
     @apply bg-transparent p-0;
   }
+
+  a {
+    @apply decoration-gray-300;
+  }
+  .dark a {
+    @apply decoration-gray-600;
+  }
 }
 
 @layer components {
-  /* Code blocks */
   .code-block {
     @apply bg-gray-900 text-gray-100 rounded-md p-4 text-sm font-mono overflow-x-auto leading-relaxed;
   }
+  .dark .code-block {
+    @apply bg-gray-800;
+  }
 
-  /* Section separator */
   .section {
     @apply py-10 border-b border-gray-200 last:border-b-0;
+  }
+  .dark .section {
+    @apply border-gray-800;
   }
 
   /*
    * Academic three-line table (三线表)
-   * - Top rule (2px)
-   * - Below header (1px)
-   * - Bottom rule (2px)
-   * - No vertical lines, no internal row borders
    */
   .three-line-table {
     @apply w-full text-sm border-collapse;
     border-top: 2px solid #111827;
     border-bottom: 2px solid #111827;
   }
+  .dark .three-line-table {
+    border-top-color: #d1d5db;
+    border-bottom-color: #d1d5db;
+  }
 
   .three-line-table thead th {
     @apply text-left text-xs font-semibold py-2 px-3 text-gray-900;
     border-bottom: 1px solid #111827;
+  }
+  .dark .three-line-table thead th {
+    @apply text-gray-200;
+    border-bottom-color: #d1d5db;
   }
 
   .three-line-table thead th:not(:first-child) {
@@ -65,8 +89,37 @@
     @apply text-center;
   }
 
-  /* Best tool row */
   .three-line-table tbody tr.best td {
     @apply font-semibold;
+  }
+
+  /* Nav */
+  .nav-bar {
+    @apply border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur z-50;
+  }
+  .dark .nav-bar {
+    @apply border-gray-800 bg-gray-950/95;
+  }
+
+  /* Footer */
+  .site-footer {
+    @apply border-t border-gray-200 mt-16;
+  }
+  .dark .site-footer {
+    @apply border-gray-800;
+  }
+
+  /* Toggle buttons */
+  .toggle-btn {
+    @apply text-xs text-gray-500 cursor-pointer hover:text-gray-900 select-none px-1.5 py-0.5 rounded;
+  }
+  .dark .toggle-btn {
+    @apply hover:text-gray-200;
+  }
+  .toggle-btn.active {
+    @apply bg-gray-900 text-white;
+  }
+  .dark .toggle-btn.active {
+    @apply bg-gray-200 text-gray-900;
   }
 }
