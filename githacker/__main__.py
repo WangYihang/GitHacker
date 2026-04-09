@@ -280,11 +280,23 @@ class GitHacker:
             for line in f:
                 if line.startswith('ref: '):
                     ref_path = line.split('ref: ')[1].strip()
+                    if not re.fullmatch(r'refs/[a-zA-Z0-9_./-]+', ref_path) or '..' in ref_path:
+                        logging.error(
+                            f"Invalid or malicious ref path in .git/HEAD: {ref_path}",
+                        )
+                        continue
                     file_path = os.path.join(
                         self.temp_dst, os.path.sep.join(
                             ['.git', 'logs', ref_path],
                         ),
                     )
+                    sandbox = os.path.realpath(self.temp_dst) + os.sep
+                    resolved_path = os.path.realpath(file_path)
+                    if not resolved_path.startswith(sandbox):
+                        logging.error(
+                            f"Path traversal detected, resolved path escapes temp dir: {ref_path}",
+                        )
+                        continue
                     if os.path.exists(file_path):
                         with open(file_path, 'rb') as ff:
                             data = ff.read()
