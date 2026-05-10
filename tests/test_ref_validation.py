@@ -136,12 +136,13 @@ def test_load_ref_wordlist_entry_cap(tmp_path):
 
 def _make_hacker(tmp_path):
     """Build a GitHacker without running start() — patch __init__ minimally."""
+    from pathlib import Path as _Path
     g = GitHacker.__new__(GitHacker)
-    import queue as _queue
-    g.q = _queue.Queue()
     g.url = "http://127.0.0.1/"
+    g.temp_dst_path = _Path(str(tmp_path))
     g.temp_dst = str(tmp_path)
     g.cached_404_url = set()
+    g._pending = []
     return g
 
 
@@ -167,9 +168,7 @@ def test_add_packed_refs_tasks_filters_unsafe(tmp_path):
     )
     g = _make_hacker(tmp_path)
     n = g.add_packed_refs_tasks()
-    queued = []
-    while not g.q.empty():
-        queued.append(g.q.get_nowait())
+    queued = list(g._pending)
 
     # Three named refs were queued (each also adds a logs/* sibling, so 6 total).
     assert n == 3
@@ -242,13 +241,13 @@ def test_safe_path_segment_rejects_invalid(seg):
 def test_add_task_rejects_traversal(tmp_path, payload):
     g = _make_hacker(tmp_path)
     assert g.add_task(payload) is False
-    assert g.q.empty()
+    assert g._pending == []
 
 
 def test_add_task_accepts_valid(tmp_path):
     g = _make_hacker(tmp_path)
     assert g.add_task([".git", "config"]) is True
-    assert g.q.get_nowait() == [".git", "config"]
+    assert g._pending == [[".git", "config"]]
 
 
 # ---------------------------------------------------------------------------

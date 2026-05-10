@@ -1,14 +1,14 @@
 import argparse
+import concurrent.futures
 import hashlib
 import logging
 import os
-import queue
 import re
 import shutil
 import subprocess
 import tempfile
-import threading
 import time
+from pathlib import Path
 from urllib.parse import quote, urljoin, urlparse
 
 import bs4
@@ -137,26 +137,34 @@ def _load_ref_wordlist(path):
 class GitHacker:
     def __init__(
         self, url, dst, threads=0x08, brute=True,
-        disable_manually_check=True, delay=0,
+        prompt_for_dangerous_files=False, delay=0,
         tag_wordlist=None, branch_wordlist=None,
         insecure=False,
     ) -> None:
-        self.q: queue.Queue[list[str]] = queue.Queue()
         self.url = url
-        self.temp_dst = tempfile.mkdtemp()
+        self.temp_dst_path = Path(tempfile.mkdtemp())
+        self.temp_dst = str(self.temp_dst_path)
         self.final_dst = dst
         self.repo = None
         self.thread_number = threads
         self.max_semanic_version = 10
         self.delay = delay
         self.brute = brute
-        self.disable_manually_check = disable_manually_check
+        self.prompt_for_dangerous_files = prompt_for_dangerous_files
         self.tag_wordlist_path = tag_wordlist
         self.branch_wordlist_path = branch_wordlist
         self.session = _build_session(verify=not insecure, threads=threads)
         parsed = urlparse(url)
         self._origin = (parsed.scheme, parsed.netloc)
         self._origin_path = parsed.path or '/'
+        self._pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=max(int(threads), 1),
+            thread_name_prefix='githacker',
+        )
+        # Wave-scoped task buffer: add_task() appends here, _drain() submits
+        # the batch to the pool and waits for completion. Clearing per wave
+        # keeps the basic→packed-refs→head→blob→fsck phase boundaries.
+        self._pending: list[list[str]] = []
         self.default_git_files_maybe_dangerous = [
             ['.git', 'config'],
             ['.git', 'hooks', 'applypatch-msg'],
@@ -205,13 +213,13 @@ class GitHacker:
             )
             return False
 
-        for _ in range(self.thread_number):
-            threading.Thread(target=self.worker, daemon=True).start()
-
-        if self.directory_listing_enabled():
-            return self.sighted()
-        else:
-            return self.blind()
+        try:
+            if self.directory_listing_enabled():
+                return self.sighted()
+            else:
+                return self.blind()
+        finally:
+            self._pool.shutdown(wait=True)
 
     def directory_listing_enabled(self):
         response = self.session.get(f"{self.url}.git/")
@@ -228,27 +236,29 @@ class GitHacker:
 
     def sighted(self):
         self.add_folder(self.url, '.git/')
-        self.q.join()
+        self._drain()
         return self.git_clone()
 
     def is_dangerous_git_file(self, filepath):
-        normalized_path = os.path.normpath(filepath)
+        # Compare on a Path so the suffix-match works regardless of which
+        # separator the caller used (URL-derived "/" vs. native os.sep).
+        parts = Path(filepath).parts
         # We consider all files not in self.default_git_files_maybe_dangerous
-        # are safe.But that could be dangerous when git add another config file
-        # someday which may lead to another RCE, so this function should be more
-        # conservative to return False. Maybe a white list is safer. (TODO)
-        for dangerous_git_file in self.default_git_files_maybe_dangerous:
-            dangerous_git_filepath = os.path.sep.join(dangerous_git_file)
-            if normalized_path.endswith(dangerous_git_filepath):
+        # are safe. But that could be dangerous when git add another config
+        # file someday which may lead to another RCE, so this function
+        # should be more conservative to return False. Maybe a white list is
+        # safer. (TODO)
+        for dangerous in self.default_git_files_maybe_dangerous:
+            tail = tuple(dangerous)
+            if len(parts) >= len(tail) and parts[-len(tail):] == tail:
                 return True
 
-        # The following operation will mark any files under `.git/hooks` to be
-        # dangerous. Consider all git hooks could be dangerous, this operation
-        # is not redundant with the previous for loop, because the git may add
-        # more default hook files someday. I don't want to continuously maintain
-        # the self.default_git_files_maybe_dangerous blacklist.
-        normalized_folder = os.path.split(normalized_path)[0]
-        if normalized_folder.endswith(os.path.sep.join(['.git', 'hooks'])):
+        # The following operation will mark any files under `.git/hooks` to
+        # be dangerous. Consider all git hooks could be dangerous, this
+        # operation is not redundant with the previous for loop, because git
+        # may add more default hook files someday. I don't want to
+        # continuously maintain the maybe-dangerous blacklist.
+        if len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks'):
             return True
 
         return False
@@ -285,25 +295,21 @@ class GitHacker:
 
     def blind(self):
         logging.info('Downloading basic files...')
-        tn = self.add_basic_file_tasks()
-        if tn > 0:
-            self.q.join()
+        if self.add_basic_file_tasks() > 0:
+            self._drain()
 
         logging.info('Parsing packed-refs to expand refs...')
-        tn = self.add_packed_refs_tasks()
-        if tn > 0:
-            self.q.join()
+        if self.add_packed_refs_tasks() > 0:
+            self._drain()
 
         logging.info('Downloading head files...')
-        tn = self.add_head_file_tasks()
-        if tn > 0:
-            self.q.join()
+        if self.add_head_file_tasks() > 0:
+            self._drain()
 
         logging.info('Downloading blob files...')
         self.repo = git.Repo(self.temp_dst)
-        tn = self.add_blob_file_tasks()
-        if tn > 0:
-            self.q.join()
+        if self.add_blob_file_tasks() > 0:
+            self._drain()
 
         logging.info('Running git fsck files...')
         while True:
@@ -316,7 +322,7 @@ class GitHacker:
                 process.stdout + b'\n' + process.stderr,
             )
             if tn > 0:
-                self.q.join()
+                self._drain()
             else:
                 break
 
@@ -326,26 +332,22 @@ class GitHacker:
         """
         copy useful files like .git/ref/stash which will not be downloaded via git clone
         """
-        files = [
-            '.git/COMMIT_EDITMSG',
-            '.git/ORIG_HEAD',
-            '.git/objects/pack',
-            '.git/refs/stash',
-        ]
-        for file in files:
-            src = os.path.join(self.temp_dst, file)
-            dst = os.path.join(self.final_dst, file)
-            if os.path.exists(src):
-                shutil.copy(src, dst)
+        final = Path(self.final_dst)
+        for rel in (
+            ('.git', 'COMMIT_EDITMSG'),
+            ('.git', 'ORIG_HEAD'),
+            ('.git', 'objects', 'pack'),
+            ('.git', 'refs', 'stash'),
+        ):
+            src = self.temp_dst_path.joinpath(*rel)
+            if src.exists():
+                shutil.copy(src, final.joinpath(*rel))
 
-        folders = [
-            '.git/logs',
-        ]
-        for folder in folders:
-            src = os.path.join(self.temp_dst, folder)
-            dst = os.path.join(self.final_dst, folder)
+        for rel in (('.git', 'logs'),):
+            src = self.temp_dst_path.joinpath(*rel)
+            dst = final.joinpath(*rel)
             shutil.rmtree(dst, ignore_errors=True)
-            if os.path.exists(src):
+            if src.exists():
                 shutil.copytree(src, dst)
 
     def git_clone(self):
@@ -409,12 +411,24 @@ class GitHacker:
         if url in self.cached_404_url:
             logging.warning(f"{relative_path} does not exist")
             return False
-        elif os.path.exists(os.path.join(self.temp_dst, *path_components)):
+        elif self.temp_dst_path.joinpath(*path_components).exists():
             logging.debug(f"{relative_path} alread existed")
             return False
         else:
-            self.q.put(path_components)
+            self._pending.append(path_components)
             return True
+
+    def _drain(self):
+        """Submit every task buffered since the last drain to the pool and
+        block until they all complete. `fut.result()` re-raises any worker
+        exception so that bugs surface instead of being swallowed."""
+        if not self._pending:
+            return
+        tasks = self._pending
+        self._pending = []
+        futures = [self._pool.submit(self._fetch_one, t) for t in tasks]
+        for fut in concurrent.futures.as_completed(futures):
+            fut.result()
 
     def add_hashes_parsed(self, content):
         hashes = set(re.findall(r'([a-f\d]{40})', content.decode('utf-8')))
@@ -433,8 +447,8 @@ class GitHacker:
         `_is_safe_ref_segment` before being passed into add_task, so a
         malicious server cannot turn this into path traversal.
         """
-        path = os.path.join(self.temp_dst, '.git', 'packed-refs')
-        if not os.path.exists(path):
+        path = self.temp_dst_path.joinpath('.git', 'packed-refs')
+        if not path.exists():
             return 0
         n = 0
         with open(path, 'r', encoding='utf-8', errors='replace') as f:
@@ -464,7 +478,7 @@ class GitHacker:
 
     def add_head_file_tasks(self):
         n = 0
-        head_path = os.path.join(self.temp_dst, '.git', 'HEAD')
+        head_path = self.temp_dst_path.joinpath('.git', 'HEAD')
         with open(head_path) as f:
             for line in f:
                 if line.startswith('ref: '):
@@ -477,13 +491,11 @@ class GitHacker:
                             f"Skipping unsafe HEAD ref: {ref_path!r}",
                         )
                         continue
-                    file_path = os.path.join(
-                        self.temp_dst, '.git', 'logs', *segments,
+                    file_path = self.temp_dst_path.joinpath(
+                        '.git', 'logs', *segments,
                     )
-                    if os.path.exists(file_path):
-                        with open(file_path, 'rb') as ff:
-                            data = ff.read()
-                            n += self.add_hashes_parsed(data)
+                    if file_path.exists():
+                        n += self.add_hashes_parsed(file_path.read_bytes())
         return n
 
     def parse_current_branch_name(self):
@@ -663,26 +675,17 @@ class GitHacker:
         url_path = '/'.join(quote(seg, safe='') for seg in path_components)
         return f"{self.url}{url_path}"
 
-    def worker(self):
-        while True:
-            path_components = self.q.get()
-            if '00000000000000000000000000000000000000' in path_components:
-                self.q.task_done()
-                continue
-            else:
-                fs_path = os.path.join(self.temp_dst, *path_components)
-                url = self.construct_url_from_path_components(path_components)
-                if not os.path.exists(fs_path):
-                    status_code, length, result = self.wget(url, fs_path)
-                    if result:
-                        logging.info(
-                            f"[{length} bytes] {status_code} {url[len(self.url):]}",
-                        )
-                    else:
-                        logging.error(
-                            f"[{length} bytes] {status_code} {url[len(self.url):]}",
-                        )
-                self.q.task_done()
+    def _fetch_one(self, path_components):
+        # Skip the all-zero "null" SHA reflog entries — they're not real objects.
+        if '00000000000000000000000000000000000000' in path_components:
+            return
+        fs_path = self.temp_dst_path.joinpath(*path_components)
+        if fs_path.exists():
+            return
+        url = self.construct_url_from_path_components(path_components)
+        status_code, length, result = self.wget(url, fs_path)
+        log = logging.info if result else logging.error
+        log(f"[{length} bytes] {status_code} {url[len(self.url):]}")
 
     def check_file_content(self, content):
         if content.startswith(b'<') or len(content) == 0:
@@ -696,25 +699,27 @@ class GitHacker:
         if response.status_code == 404:
             self.cached_404_url.add(url)
 
-        # if manually check is disabled, we will definitely not downloading any dangerous git files
-        if self.disable_manually_check and self.is_dangerous_git_file(path):
+        path = Path(path)
+        is_dangerous = self.is_dangerous_git_file(str(path))
+
+        # When the user has not opted in to manual confirmation we silently
+        # skip anything that could RCE on checkout (config/hooks/etc.).
+        if not self.prompt_for_dangerous_files and is_dangerous:
             logging.error(
                 f"{path} is potential dangerous, skip downloading this file",
             )
             return (-1, -1, False)
 
-        folder = os.path.dirname(path)
         try:
-            os.makedirs(folder, exist_ok=True)
+            path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logging.error(f"makedirs({folder!r}) failed: {e!r}")
+            logging.error(f"mkdir({path.parent!r}) failed: {e!r}")
             return (-1, -1, False)
         status_code = response.status_code
         content = response.content
         result = False
         if status_code == 200 and self.check_file_content(content):
-            # if manually check is enabled, we will ask user to confirm the security of the potentially dangerous file
-            if not self.disable_manually_check and self.is_dangerous_git_file(path):
+            if self.prompt_for_dangerous_files and is_dangerous:
                 logging.error(
                     f"{path} is potential dangerous, you need to confirm the content is safe.",
                 )
@@ -725,21 +730,18 @@ class GitHacker:
                     f"Are you sure that the content of {path} is safe? (y/N)",
                 ).strip().lower() == 'y'
                 if safe:
-                    with open(path, 'wb') as f:
-                        n = f.write(content)
-                        if n == len(content):
-                            result = True
+                    n = path.write_bytes(content)
+                    if n == len(content):
+                        result = True
                 else:
                     logging.warning(
                         f"{path} is marked as dangerous, it will not be downloaded.",
                     )
                     result = False
             else:
-                # the file is not dangerous, just save it
-                with open(path, 'wb') as f:
-                    n = f.write(content)
-                    if n == len(content):
-                        result = True
+                n = path.write_bytes(content)
+                if n == len(content):
+                    result = True
         return (status_code, len(content), result)
 
 
@@ -832,7 +834,7 @@ def main():
             dst=folder,
             threads=args.threads,
             brute=args.brute,
-            disable_manually_check=not args.enable_manually_check_dangerous_git_files,
+            prompt_for_dangerous_files=args.enable_manually_check_dangerous_git_files,
             delay=args.delay,
             tag_wordlist=args.tag_wordlist,
             branch_wordlist=args.branch_wordlist,
