@@ -17,3 +17,11 @@ url = "https://github.com/lijiejie/GitHack"
 [git-dumper]
 name = "git-dumper"
 url = "https://github.com/arthaud/git-dumper"
+
+[dumpall]
+name = "dumpall"
+url = "https://github.com/0xHJK/dumpall"
+
+[rbozburun-git-hacker]
+name = "git-hacker (rbozburun)"
+url = "https://github.com/rbozburun/git-hacker"
