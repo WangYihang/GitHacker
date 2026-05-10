@@ -26,8 +26,74 @@ def md5(data):
     return hashlib.md5(bytes(data, encoding='utf-8')).hexdigest()
 
 
+# Strict subset of git-check-ref-format. Validates a single segment of a ref
+# name (the part between two `/`s). Names containing `/` must be split first
+# and each segment validated independently. This is the gate every ref name
+# from server-controlled or user-supplied input must pass before being
+# appended to default_git_files / queued, so a malicious value cannot reach
+# the path-join in worker() with `..`, NUL, or absolute components.
+_REF_SEGMENT_RE = re.compile(r'^[A-Za-z0-9._\-+]+\Z')
+
+_MAX_WORDLIST_BYTES = 1 * 1024 * 1024
+_MAX_WORDLIST_ENTRIES = 100_000
+
+
+def _is_safe_ref_segment(seg):
+    if not isinstance(seg, str) or not seg:
+        return False
+    if seg in ('.', '..'):
+        return False
+    if seg.startswith('.') or seg.endswith('.lock'):
+        return False
+    return bool(_REF_SEGMENT_RE.match(seg))
+
+
+def _is_safe_sha(sha):
+    return isinstance(sha, str) and bool(re.fullmatch(r'[0-9a-fA-F]{40}', sha))
+
+
+def _load_ref_wordlist(path):
+    """Load a ref wordlist file. Returns a list of validated segment-lists.
+
+    Lines starting with `#` and blank lines are skipped. Names may contain
+    `/` (e.g. `feature/login`); every segment is validated and the entry is
+    dropped (with a warning) if any segment fails. Hard caps on file size
+    and entry count guard against accidental DoS.
+    """
+    size = os.path.getsize(path)
+    if size > _MAX_WORDLIST_BYTES:
+        raise ValueError(
+            f"wordlist {path} too large: {size} bytes "
+            f"(limit {_MAX_WORDLIST_BYTES})",
+        )
+    out = []
+    with open(path, 'r', encoding='utf-8', errors='replace') as f:
+        for raw in f:
+            name = raw.strip()
+            if not name or name.startswith('#'):
+                continue
+            segs = name.split('/')
+            if not all(_is_safe_ref_segment(s) for s in segs):
+                logging.warning(
+                    f"Skipping unsafe wordlist entry: {name!r}",
+                )
+                continue
+            out.append(segs)
+            if len(out) >= _MAX_WORDLIST_ENTRIES:
+                logging.warning(
+                    'Wordlist truncated at %d entries',
+                    _MAX_WORDLIST_ENTRIES,
+                )
+                break
+    return out
+
+
 class GitHacker:
-    def __init__(self, url, dst, threads=0x08, brute=True, disable_manually_check=True, delay=0) -> None:
+    def __init__(
+        self, url, dst, threads=0x08, brute=True,
+        disable_manually_check=True, delay=0,
+        tag_wordlist=None, branch_wordlist=None,
+    ) -> None:
         self.q: queue.Queue[list[str]] = queue.Queue()
         self.url = url
         self.temp_dst = tempfile.mkdtemp()
@@ -39,6 +105,8 @@ class GitHacker:
         self.brute = brute
         self.verify = False
         self.disable_manually_check = disable_manually_check
+        self.tag_wordlist_path = tag_wordlist
+        self.branch_wordlist_path = branch_wordlist
         self.default_git_files_maybe_dangerous = [
             ['.git', 'config'],
             ['.git', 'hooks', 'applypatch-msg'],
@@ -165,6 +233,11 @@ class GitHacker:
         if tn > 0:
             self.q.join()
 
+        logging.info('Parsing packed-refs to expand refs...')
+        tn = self.add_packed_refs_tasks()
+        if tn > 0:
+            self.q.join()
+
         logging.info('Downloading head files...')
         tn = self.add_head_file_tasks()
         if tn > 0:
@@ -274,6 +347,43 @@ class GitHacker:
                 n += 1
         return n
 
+    def add_packed_refs_tasks(self):
+        """Parse `.git/packed-refs` (already on disk) and queue named refs.
+
+        Recovers refs whose names cannot be brute-forced (e.g. random
+        16-char branch names). Every ref name is validated per-segment via
+        `_is_safe_ref_segment` before being passed into add_task, so a
+        malicious server cannot turn this into path traversal.
+        """
+        path = os.path.join(self.temp_dst, '.git', 'packed-refs')
+        if not os.path.exists(path):
+            return 0
+        n = 0
+        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+            for line in f:
+                line = line.rstrip('\n').rstrip('\r')
+                if not line or line.startswith('#') or line.startswith('^'):
+                    continue
+                parts = line.split(' ', 1)
+                if len(parts) != 2:
+                    continue
+                sha, ref = parts
+                if not _is_safe_sha(sha):
+                    continue
+                segments = ref.split('/')
+                if len(segments) < 3 or segments[0] != 'refs':
+                    continue
+                if not all(_is_safe_ref_segment(s) for s in segments):
+                    logging.warning(
+                        f"Skipping unsafe ref from packed-refs: {ref!r}",
+                    )
+                    continue
+                if self.add_task(['.git'] + segments):
+                    n += 1
+                # Reflog for the ref is best-effort and may simply 404.
+                self.add_task(['.git', 'logs'] + segments)
+        return n
+
     def add_head_file_tasks(self):
         n = 0
         with open(os.path.join(self.temp_dst, os.path.sep.join(['.git', 'HEAD']))) as f:
@@ -321,33 +431,58 @@ class GitHacker:
         )
         return branch_names_uniq
 
+    def _tag_brute_names(self):
+        """Yield tag names tried in --brute mode. All values are constructed
+        from bounded loops over digits/letters, so they pass _is_safe_ref_segment
+        by construction; we still validate to keep one gate for everything.
+        """
+        n = self.max_semanic_version
+        for major in range(n):
+            for minor in range(n):
+                for patch in range(n):
+                    yield f"v{major}.{minor}.{patch}"
+                    yield f"{major}.{minor}.{patch}"
+                yield f"v{major}.{minor}"
+                yield f"{major}.{minor}"
+            yield f"v{major}"
+            yield f"{major}"
+        for extra in (
+            'latest', 'stable', 'release', 'rc', 'beta',
+            'alpha', 'preview', 'prod', 'hotfix',
+        ):
+            yield extra
+        for year in range(2015, 2031):
+            yield f"{year}"
+            for month in range(1, 13):
+                yield f"{year}.{month:02d}"
+
     def complete_basic_files_list(self):
         # git tags
         if self.brute:
-            for major in range(self.max_semanic_version):
-                for minor in range(self.max_semanic_version):
-                    for patch in range(self.max_semanic_version):
-                        self.default_git_files.append(
-                            [
-                                '.git', 'refs', 'tags',
-                                f"v{major}.{minor}.{patch}",
-                            ],
-                        )
-                        self.default_git_files.append(
-                            [
-                                '.git', 'refs', 'tags',
-                                f"{major}.{minor}.{patch}",
-                            ],
-                        )
+            tag_names = list(self._tag_brute_names())
         else:
-            self.default_git_files.append(['.git', 'refs', 'tags', 'v0.0.1'])
-            self.default_git_files.append(['.git', 'refs', 'tags', '0.0.1'])
-            self.default_git_files.append(['.git', 'refs', 'tags', 'v1.0.0'])
-            self.default_git_files.append(['.git', 'refs', 'tags', '1.0.0'])
+            tag_names = ['v0.0.1', '0.0.1', 'v1.0.0', '1.0.0']
+
+        if self.tag_wordlist_path:
+            for segs in _load_ref_wordlist(self.tag_wordlist_path):
+                if len(segs) == 1:
+                    tag_names.append(segs[0])
+                else:
+                    self.default_git_files.append(
+                        ['.git', 'refs', 'tags', *segs],
+                    )
+
+        for name in tag_names:
+            if not _is_safe_ref_segment(name):
+                logging.warning(f"Skipping unsafe tag name: {name!r}")
+                continue
+            self.default_git_files.append(['.git', 'refs', 'tags', name])
 
         branch_names = [
             'daily',
             'dev',
+            'develop',
+            'development',
             'feature',
             'feat',
             'fix',
@@ -356,10 +491,15 @@ class GitHacker:
             'main',
             'master',
             'ng',
+            'preprod',
+            'prod',
+            'production',
             'quickfix',
             'release',
+            'staging',
             'test',
             'testing',
+            'trunk',
             'wip',
         ]
 
@@ -368,6 +508,32 @@ class GitHacker:
 
         # extract branch names from branch changing logs in `.git/logs/HEAD`
         branch_names += self.parse_logged_branch_names()
+
+        if self.branch_wordlist_path:
+            for segs in _load_ref_wordlist(self.branch_wordlist_path):
+                if len(segs) == 1:
+                    branch_names.append(segs[0])
+                else:
+                    for prefix in (
+                        ['.git', 'logs', 'refs', 'heads'],
+                        ['.git', 'logs', 'refs', 'remotes', 'origin'],
+                        ['.git', 'refs', 'remotes', 'origin'],
+                        ['.git', 'refs', 'heads'],
+                    ):
+                        self.default_git_files.append(prefix + segs)
+
+        # Validate every branch name once before fanning out to folders.
+        # Server-controlled names from parse_current_branch_name /
+        # parse_logged_branch_names land here too, so this is the trust
+        # boundary — anything failing the check is dropped with a warning.
+        safe_branch_names = []
+        for branch_name in branch_names:
+            if not _is_safe_ref_segment(branch_name):
+                logging.warning(
+                    f"Skipping unsafe branch name: {branch_name!r}",
+                )
+                continue
+            safe_branch_names.append(branch_name)
 
         # git remote branches
         expand_branch_name_folder = [
@@ -378,7 +544,7 @@ class GitHacker:
         ]
 
         for folder in expand_branch_name_folder:
-            for branch_name in branch_names:
+            for branch_name in safe_branch_names:
                 folder_copy = folder.copy()
                 folder_copy[-1] = branch_name
                 self.default_git_files.append(folder_copy)
@@ -528,6 +694,14 @@ def main():
         '--brute', required=False, default=False, help='enable brute forcing branch/tag names', action='store_true',
     )
     parser.add_argument(
+        '--tag-wordlist', required=False, default=None,
+        help='extra tag names file (one per line, # comments allowed)',
+    )
+    parser.add_argument(
+        '--branch-wordlist', required=False, default=None,
+        help='extra branch names file (one per line, # comments allowed)',
+    )
+    parser.add_argument(
         '--enable-manually-check-dangerous-git-files',
         required=False,
         default=False,
@@ -573,6 +747,8 @@ def main():
             brute=args.brute,
             disable_manually_check=not args.enable_manually_check_dangerous_git_files,
             delay=args.delay,
+            tag_wordlist=args.tag_wordlist,
+            branch_wordlist=args.branch_wordlist,
         ).start()
         if result:
             succeed_urls.append(url)
