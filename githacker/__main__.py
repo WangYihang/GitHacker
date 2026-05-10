@@ -20,7 +20,9 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
-__version__ = '1.1.7'
+# Kept in sync with pyproject.toml's project.version by bump-my-version
+# (see [tool.bump-my-version.files] in pyproject.toml).
+__version__ = '1.1.3'
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 

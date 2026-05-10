@@ -107,26 +107,33 @@ apt install docker-compose
 # Download GitHacker
 git clone https://github.com/WangYihang/GitHacker
 cd GitHacker
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+
+# Install with the dev group (pulls pytest plus the verboselogs/jinja2
+# helpers used by utils/diff.py).
+uv sync --group dev
 ```
 
-### Run tests
+### Run unit tests
+
+```
+uv run pytest
+```
+
+### Run end-to-end docker scenarios
+
+The `utils/` folder holds developer-only scripts (not part of the published
+CLI) used to generate scenario repos, drive the docker test harness, and
+diff results into HTML reports.
 
 ```
 # Generate testing repo
-python utils/gen.py
+uv run python utils/gen.py
 
-# Run testcases
-sudo su
-source venv/bin/activate
-pip install -r requirements.txt
-python utils/test.py
-exit
+# Run testcases (needs docker)
+sudo -E uv run python utils/test.py
 
 # Diff results
-python utils/diff.py
+uv run python utils/diff.py
 ```
 
 ## Check report

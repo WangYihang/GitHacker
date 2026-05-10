@@ -9,7 +9,6 @@ dependencies = [
     "coloredlogs>=15.0.1",
     "gitpython>=3.1.46",
     "requests>=2.33.0",
-    "rich>=14.3.3",
     "semver>=3.0.4",
 ]
 
@@ -19,6 +18,10 @@ githacker = "githacker.__main__:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    # Used by utils/diff.py — a developer-only diff/report helper that
+    # compares dumped repos against the originals during local benchmarking.
+    "verboselogs>=1.7",
+    "jinja2>=3.1",
 ]
 
 [tool.pytest.ini_options]
@@ -45,7 +48,12 @@ setup_hooks = []
 pre_commit_hooks = []
 post_commit_hooks = []
 
-[tool.bump-my-version.files]
-"pyproject.toml" = [
-    'project.version'
-]
+[[tool.bump-my-version.files]]
+filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
+
+[[tool.bump-my-version.files]]
+filename = "githacker/__main__.py"
+search = "__version__ = '{current_version}'"
+replace = "__version__ = '{new_version}'"
