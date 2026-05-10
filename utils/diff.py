@@ -5,8 +5,7 @@ import os
 
 import coloredlogs
 import verboselogs
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 
 verboselogs.install()
 logger = logging.getLogger(__name__)
@@ -43,8 +42,10 @@ def diff(left, right):
                 correct += 1
                 continue
 
-            origin_md5 = md5(open(filename, 'rb').read())
-            current_md5 = md5(open(current_filename, 'rb').read())
+            with open(filename, 'rb') as f:
+                origin_md5 = md5(f.read())
+            with open(current_filename, 'rb') as f:
+                current_md5 = md5(f.read())
             if origin_md5 == current_md5:
                 correct += 1
             else:

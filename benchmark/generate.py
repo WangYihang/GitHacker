@@ -12,12 +12,11 @@ from pathlib import Path
 import semver
 from git import Repo
 
+from benchmark import config
 from benchmark.compare import Manifest
-from benchmark.config import RANDOM_SEED, REPO_PATH
+from benchmark.config import REPO_PATH
 
 logger = logging.getLogger(__name__)
-
-random.seed(RANDOM_SEED)
 
 _CHARSET = string.ascii_letters + string.digits
 
@@ -155,6 +154,9 @@ def _collect_manifest(repo_path: Path) -> Manifest:
 
 def generate_repo(path: Path | None = None) -> Manifest:
     """Generate a test repository and return its feature manifest."""
+    # Seed at call time so --seed / GITHACKER_BENCH_SEED override the default
+    # configured before generate_repo runs.
+    random.seed(config.RANDOM_SEED)
     path = path or REPO_PATH
     if path.exists():
         shutil.rmtree(path)

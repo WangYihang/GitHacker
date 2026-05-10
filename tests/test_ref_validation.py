@@ -5,20 +5,18 @@ cannot reach the path-join in worker() with traversal payloads.
 
 from __future__ import annotations
 
-import os
 from unittest import mock
 
 import pytest
 
 from githacker.__main__ import (
+    _MAX_WORDLIST_BYTES,
     GitHacker,
     _is_safe_path_segment,
     _is_safe_ref_segment,
     _is_safe_sha,
     _load_ref_wordlist,
-    _MAX_WORDLIST_BYTES,
 )
-
 
 # ---------------------------------------------------------------------------
 # _is_safe_ref_segment

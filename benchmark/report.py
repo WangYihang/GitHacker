@@ -32,7 +32,7 @@ def build_report(
     """Create a ``BenchmarkReport`` from collected results."""
     return BenchmarkReport(
         metadata=Metadata(
-            generated_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            generated_at=datetime.datetime.now(datetime.UTC).isoformat(),
             git_commit=_git_commit(),
             test_repo_seed=seed,
         ),

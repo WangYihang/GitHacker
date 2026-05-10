@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import shutil
 
 import coloredlogs
 
+from benchmark import config
 from benchmark.config import (
     PLAYGROUND_PATH,
-    RANDOM_SEED,
     REPO_PATH,
     SCENARIOS,
     load_tools,
@@ -73,7 +74,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     logging.info("=" * 60)
     logging.info("Step 4: Generating report")
     logging.info("=" * 60)
-    report = build_report(tools, results, seed=RANDOM_SEED)
+    report = build_report(tools, results, seed=config.RANDOM_SEED)
     write_report(report)
     print_summary(tools, results)
 
@@ -90,6 +91,16 @@ def main() -> None:
         description="GitHacker benchmark suite",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--timeout", type=int,
+        default=int(os.environ.get("GITHACKER_BENCH_TIMEOUT", config.TOOL_TIMEOUT)),
+        help="Per-tool, per-scenario timeout in seconds (default: %(default)d)",
+    )
+    parser.add_argument(
+        "--seed", type=int,
+        default=int(os.environ.get("GITHACKER_BENCH_SEED", config.RANDOM_SEED)),
+        help="Random seed used in the report header (default: %(default)d)",
+    )
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("run", help="Run the full benchmark suite (default)")
@@ -97,6 +108,11 @@ def main() -> None:
 
     args = parser.parse_args()
     setup_logging(verbose=args.verbose)
+
+    # Override module-scope defaults so downstream callers (runner, report)
+    # see the user's choices without having to thread args through.
+    config.TOOL_TIMEOUT = args.timeout
+    config.RANDOM_SEED = args.seed
 
     if args.command == "generate":
         cmd_generate(args)

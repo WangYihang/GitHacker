@@ -7,11 +7,12 @@ import logging
 import socket
 import subprocess
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
-from benchmark.config import DOCKER_DIR, TOOL_TIMEOUT, TOOLS_DIR
+from benchmark import config
+from benchmark.config import DOCKER_DIR, TOOLS_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,7 @@ def run_tool_container(
             image,
             url, "/output",
         ],
-        timeout=TOOL_TIMEOUT,
+        timeout=config.TOOL_TIMEOUT,
         capture_output=True,
         text=True,
     )

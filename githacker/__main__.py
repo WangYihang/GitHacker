@@ -19,7 +19,6 @@ import urllib3
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 # Kept in sync with pyproject.toml's project.version by bump-my-version
 # (see [tool.bump-my-version.files] in pyproject.toml).
 __version__ = '1.1.3'
@@ -113,7 +112,7 @@ def _load_ref_wordlist(path):
             f"(limit {_MAX_WORDLIST_BYTES})",
         )
     out = []
-    with open(path, 'r', encoding='utf-8', errors='replace') as f:
+    with open(path, encoding='utf-8', errors='replace') as f:
         for raw in f:
             name = raw.strip()
             if not name or name.startswith('#'):
@@ -258,10 +257,7 @@ class GitHacker:
         # operation is not redundant with the previous for loop, because git
         # may add more default hook files someday. I don't want to
         # continuously maintain the maybe-dangerous blacklist.
-        if len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks'):
-            return True
-
-        return False
+        return len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks')
 
     def add_folder(self, base_url, folder):
         url = f"{base_url}{folder}"
@@ -451,7 +447,7 @@ class GitHacker:
         if not path.exists():
             return 0
         n = 0
-        with open(path, 'r', encoding='utf-8', errors='replace') as f:
+        with open(path, encoding='utf-8', errors='replace') as f:
             for line in f:
                 line = line.rstrip('\n').rstrip('\r')
                 if not line or line.startswith('#') or line.startswith('^'):
@@ -546,11 +542,10 @@ class GitHacker:
                 yield f"{major}.{minor}"
             yield f"v{major}"
             yield f"{major}"
-        for extra in (
+        yield from (
             'latest', 'stable', 'release', 'rc', 'beta',
             'alpha', 'preview', 'prod', 'hotfix',
-        ):
-            yield extra
+        )
         for year in range(2015, 2031):
             yield f"{year}"
             for month in range(1, 13):
@@ -688,9 +683,7 @@ class GitHacker:
         log(f"[{length} bytes] {status_code} {url[len(self.url):]}")
 
     def check_file_content(self, content):
-        if content.startswith(b'<') or len(content) == 0:
-            return False
-        return True
+        return not (content.startswith(b'<') or len(content) == 0)
 
     def wget(self, url, path):
         time.sleep(self.delay)

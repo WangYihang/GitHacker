@@ -18,6 +18,7 @@ githacker = "githacker.__main__:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
+    "ruff>=0.6",
     # Used by utils/diff.py — a developer-only diff/report helper that
     # compares dumped repos against the originals during local benchmarking.
     "verboselogs>=1.7",
@@ -26,6 +27,26 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["docs", "playground", "benchmark/results", "test/report"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",  # pycodestyle / pyflakes
+    "I",            # import sorting
+    "B",            # flake8-bugbear
+    "UP",           # pyupgrade
+    "SIM",          # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long — keep messages readable, line-length is advisory
+    "B008",  # function-call default args (argparse pattern)
+    "SIM105", # contextlib.suppress is not always clearer than try/except/pass
+    "B904",  # raise from — noisy in CLI tools
+]
 
 [tool.bumpversion]
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"

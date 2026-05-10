@@ -51,7 +51,7 @@ def generate_random_stashes(repo, root, n):
 def generate_random_tags(repo, root, n):
     version = semver.VersionInfo(0, 0, 1)
     repo.git.checkout('release')
-    for i in range(0x10):
+    for _ in range(0x10):
         if random.choice([True, False]):
             version = random.choice(
                 [version.bump_patch, version.bump_minor, version.bump_major],
