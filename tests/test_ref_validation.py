@@ -12,6 +12,7 @@ import pytest
 
 from githacker.__main__ import (
     GitHacker,
+    _is_safe_path_segment,
     _is_safe_ref_segment,
     _is_safe_sha,
     _load_ref_wordlist,
@@ -187,3 +188,107 @@ def test_add_packed_refs_tasks_filters_unsafe(tmp_path):
 def test_add_packed_refs_tasks_missing_file(tmp_path):
     g = _make_hacker(tmp_path)
     assert g.add_packed_refs_tasks() == 0
+
+
+# ---------------------------------------------------------------------------
+# _is_safe_path_segment — looser than _is_safe_ref_segment because real
+# .git filenames begin with a dot.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("seg", [
+    ".git",
+    ".gitignore",
+    "HEAD",
+    "config",
+    "pack-1234abcd5678ef901234abcd5678ef9012345678.pack",
+    "applypatch-msg",
+    "main",
+    "v1.2.3",
+    "feat+x",
+])
+def test_safe_path_segment_accepts_valid(seg):
+    assert _is_safe_path_segment(seg) is True
+
+
+@pytest.mark.parametrize("seg", [
+    "",
+    ".",
+    "..",
+    "../etc",
+    "etc/passwd",
+    "a\\b",
+    "a\x00b",
+    "a b",
+    "/etc/passwd",
+    "foo\nbar",
+    None,
+])
+def test_safe_path_segment_rejects_invalid(seg):
+    assert _is_safe_path_segment(seg) is False
+
+
+# ---------------------------------------------------------------------------
+# add_task — central trust gate for path components
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("payload", [
+    [".git", "..", "etc", "passwd"],
+    [".git", "objects", "../../../etc/passwd"],
+    ["/etc/passwd"],
+    [".git", ""],
+    [".git", "config\x00malicious"],
+    [".git", "....//"],
+])
+def test_add_task_rejects_traversal(tmp_path, payload):
+    g = _make_hacker(tmp_path)
+    assert g.add_task(payload) is False
+    assert g.q.empty()
+
+
+def test_add_task_accepts_valid(tmp_path):
+    g = _make_hacker(tmp_path)
+    assert g.add_task([".git", "config"]) is True
+    assert g.q.get_nowait() == [".git", "config"]
+
+
+# ---------------------------------------------------------------------------
+# construct_url_from_path_components — percent-encodes each segment
+# ---------------------------------------------------------------------------
+
+def test_construct_url_quotes_segments(tmp_path):
+    g = _make_hacker(tmp_path)
+    g.url = "http://example.com/"
+    # Reserved chars would never reach this method (add_task rejects them),
+    # but defensive encoding keeps the URL well-formed.
+    assert g.construct_url_from_path_components([".git", "HEAD"]) == \
+        "http://example.com/.git/HEAD"
+    # The `+` in a tag name like `v1.2+meta` needs to survive as-is — `+` is
+    # an unreserved char that quote(safe='') leaves alone.
+    assert g.construct_url_from_path_components([".git", "refs", "tags", "v1.2+meta"]) == \
+        "http://example.com/.git/refs/tags/v1.2%2Bmeta"
+
+
+# ---------------------------------------------------------------------------
+# _is_same_origin_descendant — blocks subdomain spoofing
+# ---------------------------------------------------------------------------
+
+def test_same_origin_descendant_accepts_descendant(tmp_path):
+    g = _make_hacker(tmp_path)
+    g.url = "http://victim.com/path/"
+    g._origin = ("http", "victim.com")
+    g._origin_path = "/path/"
+    assert g._is_same_origin_descendant("http://victim.com/path/.git/HEAD") is True
+
+
+@pytest.mark.parametrize("evil", [
+    "http://victim.com.attacker.com/path/.git/HEAD",   # subdomain spoof
+    "http://attacker.com/path/.git/HEAD",              # different host
+    "https://victim.com/path/.git/HEAD",               # scheme mismatch
+    "http://victim.com/other/.git/HEAD",               # outside base path
+])
+def test_same_origin_descendant_blocks_spoofing(tmp_path, evil):
+    g = _make_hacker(tmp_path)
+    g.url = "http://victim.com/path/"
+    g._origin = ("http", "victim.com")
+    g._origin_path = "/path/"
+    assert g._is_same_origin_descendant(evil) is False
