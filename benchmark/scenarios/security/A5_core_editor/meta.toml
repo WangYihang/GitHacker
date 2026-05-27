@@ -1,0 +1,5 @@
+category = "RCE"
+severity = "L"
+cve = ""
+description = "core.editor / sequence.editor in .git/config executes attacker command on git commit / rebase (uncommon for pillagers)"
+server_mode = "static"

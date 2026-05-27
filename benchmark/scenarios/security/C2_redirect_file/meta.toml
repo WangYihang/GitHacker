@@ -1,0 +1,6 @@
+category = "Info"
+severity = "M"
+cve = ""
+description = "Server responds to every request with 302 Location: file:///etc/passwd; a pillager that follows non-HTTP(S) redirects ends up reading local files"
+server_mode = "redirect"
+redirect_to = "file:///etc/passwd"

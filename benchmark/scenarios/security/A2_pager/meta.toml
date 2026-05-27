@@ -1,0 +1,5 @@
+category = "RCE"
+severity = "M"
+cve = ""
+description = "core.pager in .git/config executes attacker command on git log / git show / git diff"
+server_mode = "static"

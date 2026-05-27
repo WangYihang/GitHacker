@@ -1,0 +1,5 @@
+category = "RCE"
+severity = "H"
+cve = ""
+description = "filter.<name>.smudge in .git/config + .gitattributes filter=<name> on a tracked file executes attacker command on git checkout"
+server_mode = "static"
