@@ -1,125 +1,252 @@
 @import "tailwindcss";
 
+/*
+ * GitHacker docs — academic paper aesthetic.
+ *
+ * Design tokens are CSS custom properties so dark mode only flips the
+ * --paper / --ink / --rule / --accent variables instead of duplicating
+ * every selector.  Components compose from these, not from raw colors.
+ */
+
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --font-serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "Liberation Mono", monospace;
+}
+
+:root {
+  /* Paper-and-ink ramp (warm off-white through near-black). */
+  --paper:       #fafaf8;
+  --paper-soft:  #f1f0ec;
+  --rule-soft:   #d6d4cd;
+  --rule:        #4a4842;
+  --ink-mute:    #8a8780;
+  --ink-soft:    #4a4842;
+  --ink:         #1c1b18;
+
+  /* Brand accent: academic deep red.  Distinct from Git's logo orange,
+     reads grayscale-friendly when printed. */
+  --accent:      #8b0000;
+  --accent-soft: #f3e5e5;
+
+  /* Status colors used inside tables and badges. */
+  --c-pass:      #1f6b3a;
+  --c-fail:      var(--accent);
+  --c-timeout:   #8a8780;
+  --c-error:     #8a8780;
+
+  /* Severity tints (H/M/L) derived from accent. */
+  --sev-h:       var(--accent);
+  --sev-m:       #a3554a;
+  --sev-l:       var(--ink-mute);
+}
+
+.dark {
+  --paper:       #13110d;
+  --paper-soft:  #1c1b18;
+  --rule-soft:   #3a3631;
+  --rule:        #6c6962;
+  --ink-mute:    #8a8780;
+  --ink-soft:    #c4c0b3;
+  --ink:         #e8e4d8;
+  --accent:      #d97070;
+  --accent-soft: #2a1818;
+  --c-pass:      #58c184;
+  --c-timeout:   #8a8780;
+  --c-error:     #8a8780;
+  --sev-h:       var(--accent);
+  --sev-m:       #d99488;
+  --sev-l:       var(--ink-mute);
 }
 
 @layer base {
-  body {
-    @apply text-gray-800 leading-relaxed bg-white;
-  }
-  .dark body, body.dark {
-    @apply bg-gray-950 text-gray-300;
+  html {
+    color: var(--ink);
+    background: var(--paper);
   }
 
-  h1, h2, h3, h4 {
-    @apply text-gray-900 leading-tight;
+  body {
+    font-family: var(--font-serif);
+    color: var(--ink);
+    background: var(--paper);
+    font-size: 17.5px;
+    line-height: 1.65;
+    font-feature-settings: "kern", "liga";
+    font-variant-numeric: oldstyle-nums;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  .dark h1, .dark h2, .dark h3, .dark h4 {
-    @apply text-gray-100;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    color: var(--ink);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  h1 { font-size: 1.875rem; }   /* 30px */
+  h2 { font-size: 1.25rem;  }   /* 20px */
+  h3 { font-size: 1.0625rem;}   /* 17px */
+
+  /* Captions, table headers, navigation labels.  Apply `.smallcaps` to
+     opt in to academic small-caps treatment. */
+  .smallcaps {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 
   code {
-    @apply font-mono text-sm bg-gray-100 px-1 py-0.5 rounded;
-  }
-  .dark code {
-    @apply bg-gray-800 text-gray-300;
+    font-size: 0.9em;
+    background: var(--paper-soft);
+    color: var(--ink);
+    padding: 0.05em 0.35em;
+    border-radius: 2px;
   }
 
   pre code {
-    @apply bg-transparent p-0;
+    background: transparent;
+    padding: 0;
   }
 
   a {
-    @apply decoration-gray-300;
+    color: inherit;
+    text-decoration-color: var(--rule-soft);
+    text-underline-offset: 2px;
   }
-  .dark a {
-    @apply decoration-gray-600;
+  a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  /* Selection in the brand accent. */
+  ::selection {
+    background: var(--accent);
+    color: var(--paper);
   }
 }
 
 @layer components {
+  /* ─── Code blocks (multiline) ───────────────────────────────── */
   .code-block {
-    @apply bg-gray-900 text-gray-100 rounded-md p-4 text-sm font-mono overflow-x-auto leading-relaxed;
+    background: var(--paper-soft);
+    color: var(--ink);
+    border-left: 2px solid var(--rule-soft);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    overflow-x: auto;
   }
   .dark .code-block {
-    @apply bg-gray-800;
+    background: var(--paper-soft);
   }
 
+  /* ─── Section dividers (kept for legacy pages) ──────────────── */
   .section {
-    @apply py-10 border-b border-gray-200 last:border-b-0;
+    padding-top: 1.75rem;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--rule-soft);
   }
-  .dark .section {
-    @apply border-gray-800;
+  .section:last-child {
+    border-bottom: 0;
   }
 
-  /*
-   * Academic three-line table (三线表)
-   */
+  /* ─── Three-line table (三线表) ─────────────────────────────── */
   .three-line-table {
-    @apply w-full text-sm border-collapse;
-    border-top: 2px solid #111827;
-    border-bottom: 2px solid #111827;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    line-height: 1.45;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
-  .dark .three-line-table {
-    border-top-color: #d1d5db;
-    border-bottom-color: #d1d5db;
+  .three-line-table thead tr {
+    border-top: 1.5px solid var(--ink);
+    border-bottom: 0.75px solid var(--ink);
+  }
+  .three-line-table tbody tr:last-child {
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .three-line-table th {
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 6px 12px;
+    color: var(--ink);
+    text-align: center;
+  }
+  .three-line-table th:first-child {
+    text-align: left;
+  }
+  .three-line-table td {
+    padding: 6px 12px;
+    text-align: center;
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  .three-line-table td:first-child {
+    text-align: left;
+    color: var(--ink);
+  }
+  .three-line-table tbody tr.best td,
+  .three-line-table tbody tr td.best {
+    font-weight: 600;
+    color: var(--ink);
   }
 
-  .three-line-table thead th {
-    @apply text-left text-xs font-semibold py-2 px-3 text-gray-900;
-    border-bottom: 1px solid #111827;
-  }
-  .dark .three-line-table thead th {
-    @apply text-gray-200;
-    border-bottom-color: #d1d5db;
-  }
-
-  .three-line-table thead th:not(:first-child) {
-    @apply text-center;
-  }
-
-  .three-line-table tbody td {
-    @apply px-3 py-1.5;
-    border: none;
-  }
-
-  .three-line-table tbody td:not(:first-child) {
-    @apply text-center;
-  }
-
-  .three-line-table tbody tr.best td {
-    @apply font-semibold;
-  }
-
-  /* Nav */
+  /* ─── Page chrome ───────────────────────────────────────────── */
   .nav-bar {
-    @apply border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur z-50;
+    border-bottom: 1px solid var(--rule-soft);
+    background: color-mix(in srgb, var(--paper) 95%, transparent);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
   }
-  .dark .nav-bar {
-    @apply border-gray-800 bg-gray-950/95;
-  }
-
-  /* Footer */
   .site-footer {
-    @apply border-t border-gray-200 mt-16;
-  }
-  .dark .site-footer {
-    @apply border-gray-800;
+    border-top: 1px solid var(--rule-soft);
+    margin-top: 4rem;
+    color: var(--ink-mute);
   }
 
-  /* Toggle buttons */
+  /* ─── Toggle buttons (theme / lang) ─────────────────────────── */
   .toggle-btn {
-    @apply text-xs text-gray-500 cursor-pointer hover:text-gray-900 select-none px-1.5 py-0.5 rounded;
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: transparent;
+    border: 0;
+    font-family: var(--font-serif);
+    letter-spacing: 0.02em;
   }
-  .dark .toggle-btn {
-    @apply hover:text-gray-200;
+  .toggle-btn:hover {
+    color: var(--ink);
   }
   .toggle-btn.active {
-    @apply bg-gray-900 text-white;
+    background: var(--ink);
+    color: var(--paper);
   }
-  .dark .toggle-btn.active {
-    @apply bg-gray-200 text-gray-900;
+}
+
+/* ─── Print: drop dark chrome, preserve table rules ─────────── */
+@media print {
+  html, body {
+    background: #fff;
+    color: #000;
   }
+  .nav-bar, .site-footer, .toggle-btn { display: none; }
+  a { text-decoration: none; color: #000; }
+  .three-line-table th,
+  .three-line-table td { color: #000; }
 }

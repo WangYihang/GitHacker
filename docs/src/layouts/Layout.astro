@@ -6,8 +6,17 @@ interface Props {
   description?: string;
 }
 
-const { title, description = 'A multi-threaded tool to exploit .git folder leakage vulnerabilities.' } = Astro.props;
+const {
+  title,
+  description = 'An empirical study of .git folder leakage exploitation.',
+} = Astro.props;
 const currentPath = Astro.url.pathname;
+
+const navLinks: Array<{ href: string; label: string; match: (p: string) => boolean }> = [
+  { href: '/',            label: 'Home',       match: (p) => p === '/' },
+  { href: '/benchmark',   label: 'Benchmark',  match: (p) => p.startsWith('/benchmark') },
+  { href: '/security',    label: 'Security',   match: (p) => p.startsWith('/security') },
+];
 ---
 
 <!doctype html>
@@ -18,10 +27,19 @@ const currentPath = Astro.url.pathname;
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <slot name="head" />
+
+    <!-- Academic serif + monospace.  Source Serif 4 carries the body;
+         JetBrains Mono is used for code, tabular figures, and IDs. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap"
+    />
+
     <script is:inline>
-      // Restore theme before paint to prevent flash
-      (function() {
+      // Restore theme before paint to prevent flash.
+      (function () {
         const t = localStorage.getItem('theme');
         if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark');
@@ -31,31 +49,30 @@ const currentPath = Astro.url.pathname;
   </head>
   <body class="min-h-screen flex flex-col">
     <nav class="nav-bar">
-      <div class="max-w-[1200px] mx-auto px-6 h-12 flex items-center justify-between">
-        <a href="/" class="text-sm font-semibold tracking-tight">GitHacker</a>
-        <div class="flex items-center gap-5 text-sm">
+      <div class="max-w-[820px] mx-auto px-6 h-12 flex items-center justify-between">
+        <a href="/" class="text-sm font-semibold tracking-tight smallcaps">GitHacker</a>
+        <div class="flex items-center gap-5 text-[13px]">
+          {navLinks.map((l) => (
+            <a
+              href={l.href}
+              class:list={[
+                'hover:opacity-100 transition-opacity',
+                l.match(currentPath) ? 'font-semibold' : 'opacity-60',
+              ]}
+            >
+              {l.label}
+            </a>
+          ))}
           <a
-            href="/"
-            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath === '/' ? 'font-medium' : 'text-gray-500']}
-          >Home</a>
-          <a
-            href="/benchmark"
-            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath.startsWith('/benchmark') ? 'font-medium' : 'text-gray-500']}
-          >Benchmark</a>
-          <a
-            href="/security"
-            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath.startsWith('/security') ? 'font-medium' : 'text-gray-500']}
-          >Security</a>
-          <a href="https://github.com/WangYihang/GitHacker" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-200">GitHub</a>
+            href="https://github.com/WangYihang/GitHacker"
+            target="_blank"
+            rel="noopener"
+            class="opacity-60 hover:opacity-100 transition-opacity"
+          >GitHub</a>
 
-          <span class="text-gray-300 dark:text-gray-700">|</span>
+          <span class="opacity-30">|</span>
 
-          <!-- Language toggle -->
-          <button id="lang-toggle" class="toggle-btn" title="切换语言 / Switch language">
-            EN
-          </button>
-
-          <!-- Theme toggle -->
+          <button id="lang-toggle" class="toggle-btn" title="切换语言 / Switch language">EN</button>
           <button id="theme-toggle" class="toggle-btn" title="Toggle theme">
             <span id="theme-icon-light" class="hidden">☀</span>
             <span id="theme-icon-dark">☾</span>
@@ -69,11 +86,11 @@ const currentPath = Astro.url.pathname;
     </main>
 
     <footer class="site-footer">
-      <div class="max-w-[1200px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
-        <span>GitHacker &mdash; Wang Yihang</span>
-        <div class="flex gap-4">
-          <a href="https://github.com/WangYihang/GitHacker" class="hover:text-gray-600">GitHub</a>
-          <a href="https://pypi.org/project/GitHacker/" class="hover:text-gray-600">PyPI</a>
+      <div class="max-w-[820px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-[12px]">
+        <span class="smallcaps">GitHacker · Wang Yihang</span>
+        <div class="flex gap-4 opacity-70">
+          <a href="https://github.com/WangYihang/GitHacker">GitHub</a>
+          <a href="https://pypi.org/project/GitHacker/">PyPI</a>
         </div>
       </div>
     </footer>
@@ -102,7 +119,6 @@ const currentPath = Astro.url.pathname;
       function applyLang() {
         langBtn.textContent = currentLang === 'en' ? 'EN' : '中';
         document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh';
-        // Dispatch custom event for pages to react
         window.dispatchEvent(new CustomEvent('langchange', { detail: currentLang }));
       }
       applyLang();
