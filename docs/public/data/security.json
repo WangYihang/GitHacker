@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-27T10:27:01+00:00",
-  "git_commit": "b18b62a10addc7bcf847191e02c8e00b3cccefc8",
+  "generated_at": "2026-05-27T10:37:03+00:00",
+  "git_commit": "bdff7ee18cc4de4ed04e332ea69e42908dd103f1",
   "tools": {
     "githacker": {
       "name": "GitHacker",
       "url": "https://github.com/WangYihang/GitHacker",
-      "version": "1.1.7"
+      "version": "1.1.3+local"
     },
     "gittools": {
       "name": "GitTools",
@@ -50,49 +50,49 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.69,
+          "duration": 0.71,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:25:46 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:25:46 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:25:46 INFO 1 / 1 were exploited successfully\n2026-05-27 10:25:46 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:35:55 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:35:55 INFO Directory listing enable under: apache\n2026-05-27 10:35:55 INFO Cloning downloaded repo from /tmp/tmpn8_rerx2 to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:35:55 ERROR fatal: repository '/tmp/tmpn8_rerx2' does not exist\n2026-05-27 10:35:55 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 2.16,
+          "duration": 0.56,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "dvcs-ripper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 2.08,
+          "duration": 0.33,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 1.15,
+          "duration": 0.59,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "FAIL",
           "evidence": "PWNED_A1 created in canary dir",
-          "duration": 3.24,
+          "duration": 0.81,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
         "dumpall": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 1.94,
+          "duration": 0.73,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "rbozburun-git-hacker": {
           "verdict": "FAIL",
           "evidence": "PWNED_A1 created in canary dir",
-          "duration": 1.32,
+          "duration": 0.64,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -108,49 +108,49 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.75,
+          "duration": 0.67,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:25:59 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:25:59 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:25:59 INFO 1 / 1 were exploited successfully\n2026-05-27 10:25:59 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:00 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:00 INFO Directory listing enable under: apache\n2026-05-27 10:36:00 INFO Cloning downloaded repo from /tmp/tmphilshd2a to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:00 ERROR fatal: repository '/tmp/tmphilshd2a' does not exist\n2026-05-27 10:36:00 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.51,
+          "duration": 0.53,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "dvcs-ripper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.34,
+          "duration": 0.32,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.59,
+          "duration": 0.58,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.8,
+          "duration": 0.75,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
         "dumpall": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.69,
+          "duration": 0.73,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.61,
+          "duration": 0.63,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -166,49 +166,49 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.7,
+          "duration": 0.74,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:03 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:03 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:03 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:03 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:04 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:04 INFO Directory listing enable under: apache\n2026-05-27 10:36:04 INFO Cloning downloaded repo from /tmp/tmpded9s21l to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:04 ERROR fatal: repository '/tmp/tmpded9s21l' does not exist\n2026-05-27 10:36:04 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.5,
+          "duration": 0.55,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "dvcs-ripper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.3,
+          "duration": 0.31,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.57,
+          "duration": 0.67,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.81,
+          "duration": 0.78,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
         "dumpall": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.71,
+          "duration": 0.73,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.66,
+          "duration": 0.62,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -224,473 +224,9 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.68,
+          "duration": 0.7,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:08 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:08 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:08 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:08 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.53,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.34,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.65,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.77,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.85,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.63,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "A5_core_editor",
-      "category": "RCE",
-      "severity": "L",
-      "description": "core.editor / sequence.editor in .git/config executes attacker command on git commit / rebase (uncommon for pillagers)",
-      "cve": "",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.78,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:12 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:12 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:12 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:12 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.54,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.29,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.56,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.8,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.67,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.64,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "B1_index_traversal",
-      "category": "AFW",
-      "severity": "H",
-      "description": "Crafted .git/index has entries with ../../ paths; git checkout / checkout-index writes blobs outside the repo (Driver Tom 2021)",
-      "cve": "",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.69,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:17 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:17 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:17 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:17 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.58,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.35,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 1.19,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 0.79,
-          "exit_code": 0,
-          "stderr_tail": "[-] http://127.0.0.1:8080/.gitignore responded with status code 404\nUpdated 1 path from the index"
-        },
-        "dumpall": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 1.1,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 0.64,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "C1_html_traversal",
-      "category": "AFW",
-      "severity": "H",
-      "description": "HTML directory listing with traversal anchor (<a href=\"../../canary/...\">) lets a recursive pillager write outside its output directory (justinsteven 2022 second PoC)",
-      "cve": "",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.67,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:22 ERROR FileExistsError(17, 'File exists')\n2026-05-27 10:26:22 ERROR [335 bytes] 404 .git//////canary/PWNED_C1\n2026-05-27 10:26:22 INFO Cloning downloaded repo from /tmp/tmp9wtsxhio to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:22 ERROR fatal: repository '/tmp/tmp9wtsxhio' does not exist\n2026-05-27 10:26:22 INFO 0 / 1 were exploited successfully"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.5,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.3,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.59,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.74,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 128."
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.72,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.64,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "C2_redirect_file",
-      "category": "Info",
-      "severity": "M",
-      "description": "Server responds to every request with 302 Location: file:///etc/passwd; a pillager that follows non-HTTP(S) redirects ends up reading local files",
-      "cve": "",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.64,
-          "exit_code": 1,
-          "stderr_tail": "    adapter = self.get_adapter(url=request.url)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/requests/sessions.py\", line 881, in get_adapter\n    raise InvalidSchema(f\"No connection adapters were found for {url!r}\")\nrequests.exceptions.InvalidSchema: No connection adapters were found for 'file:///etc/passwd'"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.48,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.3,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.58,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.66,
-          "exit_code": 0,
-          "stderr_tail": "[-] http://127.0.0.1:8080//.git/HEAD responded with status code 302"
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.69,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.52,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "C3_redirect_ssrf",
-      "category": "Info",
-      "severity": "L",
-      "description": "Server redirects every request to http://127.0.0.1:12345/, an internal SSRF target; a sidecar listener on that port writes the canary if hit",
-      "cve": "",
-      "results": {
-        "githacker": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.66,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:30 INFO 1 urls to be exploited\n2026-05-27 10:26:30 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:30 ERROR The target url(http://127.0.0.1:8080//) is not a valid git repository, `.git/HEAD` not exists\n2026-05-27 10:26:30 INFO 0 / 1 were exploited successfully"
-        },
-        "gittools": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.61,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.31,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.58,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.69,
-          "exit_code": 0,
-          "stderr_tail": "[-] http://127.0.0.1:8080//.git/HEAD responded with status code 302"
-        },
-        "dumpall": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.67,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.52,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "E1_cve_2025_48384",
-      "category": "CVE",
-      "severity": "H",
-      "description": "Submodule path containing carriage return in .gitmodules; on git clone --recursive, hook is written to attacker-controlled location (in-the-wild exploited 2025; Linux/macOS)",
-      "cve": "CVE-2025-48384",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.69,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:35 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:35 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:35 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:35 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.49,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.38,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.58,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.75,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.76,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.66,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "E2_cve_2024_32002",
-      "category": "CVE",
-      "severity": "H",
-      "description": "Submodule with case-insensitive name collision plus symlink writes a hook on git clone --recursive (vulnerable git versions on case-insensitive filesystems)",
-      "cve": "CVE-2024-32002",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.75,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:40 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:40 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:40 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:40 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
-        },
-        "gittools": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.55,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "dvcs-ripper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.34,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "githack": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.66,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "git-dumper": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.79,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
-        },
-        "dumpall": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.74,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "rbozburun-git-hacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.61,
-          "exit_code": 0,
-          "stderr_tail": ""
-        }
-      }
-    },
-    {
-      "id": "E3_cve_2018_11235",
-      "category": "CVE",
-      "severity": "M",
-      "description": "Submodule path containing ../ escapes $GIT_DIR/modules, allowing post-checkout hook execution (patched in modern git; tests fall back to PASS)",
-      "cve": "CVE-2018-11235",
-      "results": {
-        "githacker": {
-          "verdict": "PASS",
-          "evidence": "",
-          "duration": 0.75,
-          "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:44 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:44 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:44 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:44 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:09 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:09 INFO Directory listing enable under: apache\n2026-05-27 10:36:09 INFO Cloning downloaded repo from /tmp/tmps_ui2y3o to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:09 ERROR fatal: repository '/tmp/tmps_ui2y3o' does not exist\n2026-05-27 10:36:09 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
@@ -709,14 +245,72 @@
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.58,
+          "duration": 0.59,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.77,
+          "duration": 0.76,
+          "exit_code": 0,
+          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.73,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.67,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "A5_core_editor",
+      "category": "RCE",
+      "severity": "L",
+      "description": "core.editor / sequence.editor in .git/config executes attacker command on git commit / rebase (uncommon for pillagers)",
+      "cve": "",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.7,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:13 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:13 INFO Directory listing enable under: apache\n2026-05-27 10:36:13 INFO Cloning downloaded repo from /tmp/tmpqd28li8_ to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:13 ERROR fatal: repository '/tmp/tmpqd28li8_' does not exist\n2026-05-27 10:36:13 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.5,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.32,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.59,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.76,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
@@ -730,7 +324,413 @@
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
+          "duration": 0.61,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "B1_index_traversal",
+      "category": "AFW",
+      "severity": "H",
+      "description": "Crafted .git/index has entries with ../../ paths; git checkout / checkout-index writes blobs outside the repo (Driver Tom 2021)",
+      "cve": "",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.67,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:17 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:17 INFO Directory listing enable under: apache\n2026-05-27 10:36:17 INFO Cloning downloaded repo from /tmp/tmpm8shqxc0 to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:17 ERROR fatal: repository '/tmp/tmpm8shqxc0' does not exist\n2026-05-27 10:36:17 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.53,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.33,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 1.09,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_B1 created in canary dir",
+          "duration": 0.8,
+          "exit_code": 0,
+          "stderr_tail": "[-] http://127.0.0.1:8080/.gitignore responded with status code 404\nUpdated 1 path from the index"
+        },
+        "dumpall": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_B1 created in canary dir",
+          "duration": 1.12,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_B1 created in canary dir",
+          "duration": 0.62,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "C1_html_traversal",
+      "category": "AFW",
+      "severity": "H",
+      "description": "HTML directory listing with traversal anchor (<a href=\"../../canary/...\">) lets a recursive pillager write outside its output directory (justinsteven 2022 second PoC)",
+      "cve": "",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.68,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:23 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:23 INFO Directory listing enable under: apache\n2026-05-27 10:36:23 INFO Cloning downloaded repo from /tmp/tmpyrecfmwo to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:23 ERROR fatal: repository '/tmp/tmpyrecfmwo' does not exist\n2026-05-27 10:36:23 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.49,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.31,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.6,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.76,
+          "exit_code": 0,
+          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 128."
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.73,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.61,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "C2_redirect_file",
+      "category": "Info",
+      "severity": "M",
+      "description": "Server responds to every request with 302 Location: file:///etc/passwd; a pillager that follows non-HTTP(S) redirects ends up reading local files",
+      "cve": "",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.67,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:27 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to file:///etc/passwd\n2026-05-27 10:36:27 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/logs/HEAD to file:///etc/passwd\n2026-05-27 10:36:27 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to file:///etc/passwd\n2026-05-27 10:36:27 ERROR The target url(http://127.0.0.1:8080//) is not a valid git repository, .git/HEAD not exists\n2026-05-27 10:36:27 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.49,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.32,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.6,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.69,
+          "exit_code": 0,
+          "stderr_tail": "[-] http://127.0.0.1:8080//.git/HEAD responded with status code 302"
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.71,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.55,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "C3_redirect_ssrf",
+      "category": "Info",
+      "severity": "L",
+      "description": "Server redirects every request to http://127.0.0.1:12345/, an internal SSRF target; a sidecar listener on that port writes the canary if hit",
+      "cve": "",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.68,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/logs/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 ERROR The target url(http://127.0.0.1:8080//) is not a valid git repository, .git/HEAD not exists\n2026-05-27 10:36:31 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_C3 created in canary dir",
+          "duration": 0.62,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.34,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_C3 created in canary dir",
+          "duration": 0.65,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.76,
+          "exit_code": 0,
+          "stderr_tail": "[-] http://127.0.0.1:8080//.git/HEAD responded with status code 302"
+        },
+        "dumpall": {
+          "verdict": "FAIL",
+          "evidence": "PWNED_C3 created in canary dir",
+          "duration": 0.76,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.54,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "E1_cve_2025_48384",
+      "category": "CVE",
+      "severity": "H",
+      "description": "Submodule path containing carriage return in .gitmodules; on git clone --recursive, hook is written to attacker-controlled location (in-the-wild exploited 2025; Linux/macOS)",
+      "cve": "CVE-2025-48384",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.72,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:36 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:36 INFO Directory listing enable under: apache\n2026-05-27 10:36:36 INFO Cloning downloaded repo from /tmp/tmpn2d9ohpf to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:36 ERROR fatal: repository '/tmp/tmpn2d9ohpf' does not exist\n2026-05-27 10:36:36 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.53,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.3,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.58,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.8,
+          "exit_code": 0,
+          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.75,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
           "duration": 0.64,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "E2_cve_2024_32002",
+      "category": "CVE",
+      "severity": "H",
+      "description": "Submodule with case-insensitive name collision plus symlink writes a hook on git clone --recursive (vulnerable git versions on case-insensitive filesystems)",
+      "cve": "CVE-2024-32002",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.72,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:41 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:41 INFO Directory listing enable under: apache\n2026-05-27 10:36:41 INFO Cloning downloaded repo from /tmp/tmpdjm8g6ko to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:41 ERROR fatal: repository '/tmp/tmpdjm8g6ko' does not exist\n2026-05-27 10:36:41 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.54,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.31,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.59,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.78,
+          "exit_code": 0,
+          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.71,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.65,
+          "exit_code": 0,
+          "stderr_tail": ""
+        }
+      }
+    },
+    {
+      "id": "E3_cve_2018_11235",
+      "category": "CVE",
+      "severity": "M",
+      "description": "Submodule path containing ../ escapes $GIT_DIR/modules, allowing post-checkout hook execution (patched in modern git; tests fall back to PASS)",
+      "cve": "CVE-2018-11235",
+      "results": {
+        "githacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.72,
+          "exit_code": 0,
+          "stderr_tail": "2026-05-27 10:36:45 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:45 INFO Directory listing enable under: apache\n2026-05-27 10:36:45 INFO Cloning downloaded repo from /tmp/tmppesr92b3 to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:45 ERROR fatal: repository '/tmp/tmppesr92b3' does not exist\n2026-05-27 10:36:45 INFO 0 / 1 were exploited successfully"
+        },
+        "gittools": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.53,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "dvcs-ripper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.32,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "githack": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.62,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "git-dumper": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.78,
+          "exit_code": 0,
+          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
+        },
+        "dumpall": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.72,
+          "exit_code": 0,
+          "stderr_tail": ""
+        },
+        "rbozburun-git-hacker": {
+          "verdict": "PASS",
+          "evidence": "",
+          "duration": 0.66,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -746,14 +746,14 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.69,
+          "duration": 0.79,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:49 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:49 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:49 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:49 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:50 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:50 INFO Directory listing enable under: apache\n2026-05-27 10:36:50 INFO Cloning downloaded repo from /tmp/tmp7paieiwc to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:50 ERROR fatal: repository '/tmp/tmp7paieiwc' does not exist\n2026-05-27 10:36:50 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.52,
+          "duration": 0.54,
           "exit_code": 0,
           "stderr_tail": ""
         },
@@ -767,14 +767,14 @@
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.6,
+          "duration": 0.61,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.82,
+          "duration": 0.83,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
@@ -788,7 +788,7 @@
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.61,
+          "duration": 0.65,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -806,26 +806,26 @@
           "evidence": "",
           "duration": 0.72,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:53 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:53 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:53 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:53 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:54 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:54 INFO Directory listing enable under: apache\n2026-05-27 10:36:54 INFO Cloning downloaded repo from /tmp/tmp1i8z4zy5 to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:54 ERROR fatal: repository '/tmp/tmp1i8z4zy5' does not exist\n2026-05-27 10:36:54 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.57,
+          "duration": 0.51,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "dvcs-ripper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.33,
+          "duration": 0.32,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.6,
+          "duration": 0.63,
           "exit_code": 0,
           "stderr_tail": ""
         },
@@ -846,7 +846,7 @@
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.63,
+          "duration": 0.68,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -862,49 +862,49 @@
         "githacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.7,
+          "duration": 0.73,
           "exit_code": 0,
-          "stderr_tail": "2026-05-27 10:26:57 ERROR Cloning into '/output/c1cf85aac35112e14ee5ee15c72c62fc'...\ndone.\n2026-05-27 10:26:57 INFO Check it out: /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:26:57 INFO 1 / 1 were exploited successfully\n2026-05-27 10:26:57 INFO http://127.0.0.1:8080//.git/ -> /output/c1cf85aac35112e14ee5ee15c72c62fc"
+          "stderr_tail": "2026-05-27 10:36:59 INFO Exploiting http://127.0.0.1:8080//.git/ into /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:59 INFO Directory listing enable under: apache\n2026-05-27 10:36:59 INFO Cloning downloaded repo from /tmp/tmpr29fszk1 to /output/c1cf85aac35112e14ee5ee15c72c62fc\n2026-05-27 10:36:59 ERROR fatal: repository '/tmp/tmpr29fszk1' does not exist\n2026-05-27 10:36:59 INFO 0 / 1 were exploited successfully"
         },
         "gittools": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.53,
+          "duration": 0.56,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "dvcs-ripper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.28,
+          "duration": 0.35,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "githack": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.59,
+          "duration": 0.63,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "git-dumper": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.83,
+          "duration": 0.8,
           "exit_code": 0,
           "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
         },
         "dumpall": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.69,
+          "duration": 0.71,
           "exit_code": 0,
           "stderr_tail": ""
         },
         "rbozburun-git-hacker": {
           "verdict": "PASS",
           "evidence": "",
-          "duration": 0.62,
+          "duration": 0.63,
           "exit_code": 0,
           "stderr_tail": ""
         }
