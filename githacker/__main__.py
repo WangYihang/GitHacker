@@ -70,8 +70,40 @@ def _is_safe_path_segment(seg):
     return bool(_PATH_SEGMENT_RE.match(seg))
 
 
+class _OriginRestrictedSession(requests.Session):
+    """A requests.Session that refuses to follow cross-origin redirects.
+
+    The remote `.git/` server is untrusted; if it answers a request with
+    a 3xx pointing to a different host (or a different scheme/port),
+    following it turns the pillager into an SSRF primitive — a malicious
+    server can make us probe internal IPs or trigger requests against
+    services that only trust the local network. Setting
+    ``expected_origin`` to the (scheme, netloc) tuple of the user-provided
+    URL makes ``get_redirect_target`` return ``None`` whenever the
+    Location header would take us off-origin, which causes requests to
+    stop following the chain.
+    """
+
+    expected_origin: tuple[str, str] | None = None
+
+    def get_redirect_target(self, resp):
+        target = super().get_redirect_target(resp)
+        if not target or self.expected_origin is None:
+            return target
+        # Resolve relative Locations against the response URL.
+        absolute = urljoin(resp.url, target)
+        parsed = urlparse(absolute)
+        if (parsed.scheme, parsed.netloc) != self.expected_origin:
+            logging.warning(
+                'refusing cross-origin redirect from %s to %s',
+                resp.url, absolute,
+            )
+            return None
+        return target
+
+
 def _build_session(verify, threads):
-    s = requests.Session()
+    s = _OriginRestrictedSession()
     s.verify = verify
     retry = Retry(
         total=3,
@@ -156,6 +188,10 @@ class GitHacker:
         parsed = urlparse(url)
         self._origin = (parsed.scheme, parsed.netloc)
         self._origin_path = parsed.path or '/'
+        # Lock the session's redirect-following to the same origin so an
+        # untrusted server cannot use 3xx responses as an SSRF springboard
+        # into the pillager's network.
+        self.session.expected_origin = self._origin
         self._pool = concurrent.futures.ThreadPoolExecutor(
             max_workers=max(int(threads), 1),
             thread_name_prefix='githacker',
