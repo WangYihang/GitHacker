@@ -1,0 +1,291 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Security — GitHacker" description="Adversarial benchmark of .git folder exploitation tools: who gets pwned by a malicious server?">
+  <div class="max-w-[750px] mx-auto px-6">
+
+    <div class="section">
+      <h1 class="text-3xl font-bold mb-2" data-i18n="title">Security Benchmark</h1>
+      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-3xl" data-i18n="intro">
+        The flip side of the performance benchmark: when a pillager downloads
+        a maliciously crafted <code>.git/</code>, does the tool get pwned?
+        Each row is a known attack primitive (justinsteven 2022,
+        Driver&nbsp;Tom 2021, plus assorted git CVEs). A cell is
+        <strong>FAIL</strong> if the canary fired — i.e., the malicious
+        server achieved code execution, arbitrary file write, or SSRF
+        against the tool.
+      </p>
+      <p id="metadata" class="mt-3 text-xs text-gray-400"></p>
+    </div>
+
+    <div id="loading" class="py-16 text-center text-sm text-gray-400">Loading…</div>
+    <div id="error" class="hidden py-16 text-center text-sm text-red-600">Failed to load data.</div>
+
+    <div id="content" class="hidden">
+
+      <!-- Summary -->
+      <div class="section">
+        <h2 class="text-lg font-semibold mb-1" data-i18n="t_summary_title">Summary</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t_summary_caption">
+          PASS / total. Higher is better. Best in bold.
+        </p>
+        <div id="table-summary" class="overflow-x-auto"></div>
+      </div>
+
+      <!-- Per-test breakdown -->
+      <div class="section">
+        <h2 class="text-lg font-semibold mb-1" data-i18n="t_detail_title">Per-Test Breakdown</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t_detail_caption">
+          Click a row for the attack description, CVE link, and evidence
+          captured during the run.
+        </p>
+        <div id="table-detail" class="overflow-x-auto"></div>
+        <div id="detail-panel" class="mt-4 hidden">
+          <div class="border-t-2 border-gray-900 dark:border-gray-300 pt-3">
+            <p id="detail-title" class="text-sm font-semibold mb-2"></p>
+            <p id="detail-desc" class="text-xs text-gray-600 dark:text-gray-400 mb-2"></p>
+            <p id="detail-cve" class="text-xs text-gray-600 dark:text-gray-400 mb-2"></p>
+            <div id="detail-evidence" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    type ToolMeta = { name: string; url: string; version: string };
+    type ToolRun = {
+      verdict: 'PASS' | 'FAIL' | 'TIMEOUT' | 'ERROR';
+      evidence?: string;
+      duration?: number;
+      exit_code?: number;
+      stderr_tail?: string;
+    };
+    type TestData = {
+      id: string;
+      category: 'RCE' | 'AFW' | 'Info' | 'CVE';
+      severity: 'H' | 'M' | 'L';
+      description: string;
+      cve?: string | null;
+      results: Record<string, ToolRun>;
+    };
+    type SecurityReport = {
+      schema_version: number;
+      generated_at: string;
+      git_commit: string;
+      tools: Record<string, ToolMeta>;
+      tests: TestData[];
+    };
+
+    let data: SecurityReport | null = null;
+    let lang = localStorage.getItem('lang') || 'en';
+
+    const I18N: Record<string, Record<string, string>> = {
+      title: { en: 'Security Benchmark', zh: '安全性基准测试' },
+      intro: {
+        en: 'The flip side of the performance benchmark: when a pillager downloads a maliciously crafted <code>.git/</code>, does the tool get pwned? Each row is a known attack primitive (justinsteven 2022, Driver&nbsp;Tom 2021, plus assorted git CVEs). A cell is <strong>FAIL</strong> if the canary fired — i.e., the malicious server achieved code execution, arbitrary file write, or SSRF against the tool.',
+        zh: '与性能基准互为镜像：当 pillager 下载一个精心构造的恶意 <code>.git/</code> 时，工具会不会反被攻陷？每一行是一种已知的攻击原语（justinsteven 2022、Driver&nbsp;Tom 2021，以及若干 git CVE）。单元格为 <strong>FAIL</strong> 表示 canary 触发——即恶意服务器对工具实现了代码执行、任意文件写入、或 SSRF。',
+      },
+      t_summary_title: { en: 'Summary', zh: '总览' },
+      t_summary_caption: {
+        en: 'PASS / total. Higher is better. Best in bold.',
+        zh: 'PASS / 总数。越高越好。最优值加粗。',
+      },
+      t_detail_title: { en: 'Per-Test Breakdown', zh: '逐项详情' },
+      t_detail_caption: {
+        en: 'Click a row for the attack description, CVE link, and evidence captured during the run.',
+        zh: '点击一行查看攻击描述、CVE 链接，以及运行时捕获的证据。',
+      },
+    };
+
+    const SEV_LABELS: Record<string, Record<string, string>> = {
+      H: { en: 'High',   zh: '高' },
+      M: { en: 'Medium', zh: '中' },
+      L: { en: 'Low',    zh: '低' },
+    };
+
+    const CATEGORY_LABELS: Record<string, Record<string, string>> = {
+      RCE:  { en: 'RCE',                       zh: '远程代码执行' },
+      AFW:  { en: 'Arbitrary File Write',      zh: '任意文件写入' },
+      Info: { en: 'Information Disclosure',    zh: '信息泄露' },
+      CVE:  { en: 'Git CVE',                   zh: 'Git 漏洞' },
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/data/security.json');
+        if (!res.ok) throw new Error();
+        data = await res.json();
+        init();
+      } catch {
+        document.getElementById('loading')!.classList.add('hidden');
+        document.getElementById('error')!.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('langchange', (e: any) => {
+      lang = e.detail;
+      if (data) renderAll();
+    });
+
+    function init() {
+      document.getElementById('loading')!.classList.add('hidden');
+      document.getElementById('content')!.classList.remove('hidden');
+      renderAll();
+    }
+
+    function renderAll() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = (el as HTMLElement).dataset.i18n!;
+        if (I18N[key]?.[lang]) el.innerHTML = I18N[key][lang];
+      });
+
+      const date = new Date(data!.generated_at).toLocaleDateString(
+        lang === 'zh' ? 'zh-CN' : 'en-US',
+        { year: 'numeric', month: 'short', day: 'numeric' },
+      );
+      document.getElementById('metadata')!.textContent =
+        `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${data!.git_commit.slice(0, 7)}.`;
+
+      renderSummary();
+      renderDetail();
+    }
+
+    function toolOrder(): string[] {
+      return Object.keys(data!.tools).sort((a, b) =>
+        a === 'githacker' ? -1 : b === 'githacker' ? 1 : a.localeCompare(b));
+    }
+
+    function esc(s: string): string {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function passCount(tid: string): { pass: number; total: number } {
+      let pass = 0;
+      for (const t of data!.tests) {
+        const r = t.results[tid];
+        if (r && r.verdict === 'PASS') pass++;
+      }
+      return { pass, total: data!.tests.length };
+    }
+
+    function renderSummary() {
+      const tools = toolOrder();
+      const totals = tools.map(t => passCount(t));
+      const best = Math.max(...totals.map(x => x.pass));
+
+      let html = '<table class="data-table">';
+      html += '<thead><tr>';
+      html += `<th class="!text-left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
+      html += `<th>${lang === 'zh' ? '版本' : 'Version'}</th>`;
+      html += `<th>${lang === 'zh' ? '通过 / 总数' : 'PASS / Total'}</th>`;
+      html += `<th>${lang === 'zh' ? '通过率' : 'Pass rate'}</th>`;
+      html += '</tr></thead><tbody>';
+      tools.forEach((tid, i) => {
+        const tool = data!.tools[tid];
+        const { pass, total } = totals[i];
+        const isBest = pass === best;
+        const cell = isBest ? `<strong>${pass} / ${total}</strong>` : `${pass} / ${total}`;
+        const pct = total > 0 ? ((pass / total) * 100).toFixed(1) : '0.0';
+        html += `<tr>
+          <td class="!text-left"><a href="${esc(tool.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(tool.name)}</a></td>
+          <td><code class="text-xs">${esc(tool.version)}</code></td>
+          <td>${cell}</td>
+          <td>${pct}%</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('table-summary')!.innerHTML = html;
+    }
+
+    function verdictBadge(v: string): string {
+      switch (v) {
+        case 'PASS':
+          return '<span class="text-green-700 dark:text-green-400 font-medium">PASS</span>';
+        case 'FAIL':
+          return '<span class="text-red-700 dark:text-red-400 font-bold">FAIL</span>';
+        case 'TIMEOUT':
+          return '<span class="text-yellow-700 dark:text-yellow-400">TIMEOUT</span>';
+        case 'ERROR':
+          return '<span class="text-gray-500">ERROR</span>';
+        default:
+          return esc(v);
+      }
+    }
+
+    function sevBadge(s: string): string {
+      const label = SEV_LABELS[s]?.[lang] || s;
+      const cls = s === 'H'
+        ? 'text-red-700 dark:text-red-400 font-medium'
+        : s === 'M' ? 'text-yellow-700 dark:text-yellow-400' : 'text-gray-500';
+      return `<span class="${cls}">${label}</span>`;
+    }
+
+    function renderDetail() {
+      const tools = toolOrder();
+      let html = '<table class="data-table">';
+      html += '<thead><tr>';
+      html += `<th class="!text-left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
+      html += `<th>${lang === 'zh' ? '类别' : 'Category'}</th>`;
+      html += `<th>${lang === 'zh' ? '严重度' : 'Severity'}</th>`;
+      html += '<th>CVE</th>';
+      tools.forEach(tid => {
+        html += `<th>${esc(data!.tools[tid].name)}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      data!.tests.forEach((test, ti) => {
+        html += `<tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900" data-test-idx="${ti}">`;
+        html += `<td class="!text-left font-mono text-xs">${esc(test.id)}</td>`;
+        html += `<td class="text-xs">${esc(CATEGORY_LABELS[test.category]?.[lang] || test.category)}</td>`;
+        html += `<td>${sevBadge(test.severity)}</td>`;
+        const cveLink = test.cve
+          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline text-xs">${esc(test.cve)}</a>`
+          : '<span class="text-gray-400 text-xs">—</span>';
+        html += `<td>${cveLink}</td>`;
+        tools.forEach(tid => {
+          const r = test.results[tid];
+          html += `<td>${r ? verdictBadge(r.verdict) : '<span class="text-gray-400">—</span>'}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('table-detail')!.innerHTML = html;
+
+      document.querySelectorAll<HTMLElement>('[data-test-idx]').forEach(row => {
+        row.addEventListener('click', () => showDetail(parseInt(row.dataset.testIdx!, 10)));
+      });
+    }
+
+    function showDetail(idx: number) {
+      const test = data!.tests[idx];
+      document.getElementById('detail-title')!.textContent = test.id;
+      document.getElementById('detail-desc')!.textContent = test.description;
+
+      const cveEl = document.getElementById('detail-cve')!;
+      if (test.cve) {
+        cveEl.innerHTML = `CVE: <a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline">${esc(test.cve)}</a>`;
+      } else {
+        cveEl.textContent = '';
+      }
+
+      const tools = toolOrder();
+      let html = '';
+      tools.forEach(tid => {
+        const r = test.results[tid];
+        const tool = data!.tools[tid];
+        html += `<div>
+          <p class="font-medium mb-1">${esc(tool.name)} ${verdictBadge(r?.verdict || '—')}</p>
+          ${r?.evidence ? `<p class="text-xs text-gray-500 dark:text-gray-400">${esc(r.evidence)}</p>` : ''}
+          ${r?.duration ? `<p class="text-xs text-gray-400">${r.duration.toFixed(2)}s</p>` : ''}
+        </div>`;
+      });
+      document.getElementById('detail-evidence')!.innerHTML = html;
+      document.getElementById('detail-panel')!.classList.remove('hidden');
+    }
+  </script>
+</Layout>

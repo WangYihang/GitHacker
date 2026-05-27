@@ -41,6 +41,10 @@ const currentPath = Astro.url.pathname;
             href="/benchmark"
             class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath.startsWith('/benchmark') ? 'font-medium' : 'text-gray-500']}
           >Benchmark</a>
+          <a
+            href="/security"
+            class:list={['hover:text-gray-900 dark:hover:text-gray-200', currentPath.startsWith('/security') ? 'font-medium' : 'text-gray-500']}
+          >Security</a>
           <a href="https://github.com/WangYihang/GitHacker" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-200">GitHub</a>
 
           <span class="text-gray-300 dark:text-gray-700">|</span>
