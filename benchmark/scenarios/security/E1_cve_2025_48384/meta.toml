@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "H"
+cve = "CVE-2025-48384"
+description = "Submodule path containing carriage return in .gitmodules; on git clone --recursive, hook is written to attacker-controlled location (in-the-wild exploited 2025; Linux/macOS)"
+server_mode = "static"

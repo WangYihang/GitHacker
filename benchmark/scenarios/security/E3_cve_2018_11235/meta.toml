@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "M"
+cve = "CVE-2018-11235"
+description = "Submodule path containing ../ escapes $GIT_DIR/modules, allowing post-checkout hook execution (patched in modern git; tests fall back to PASS)"
+server_mode = "static"

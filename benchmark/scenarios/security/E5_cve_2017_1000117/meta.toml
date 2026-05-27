@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "M"
+cve = "CVE-2017-1000117"
+description = "Submodule SSH URL of form 'ssh://-oProxyCommand=...' executes attacker command on git clone --recurse-submodules (patched in git ≥ 2.13.5)"
+server_mode = "static"

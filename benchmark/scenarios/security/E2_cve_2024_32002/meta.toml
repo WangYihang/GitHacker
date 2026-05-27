@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "H"
+cve = "CVE-2024-32002"
+description = "Submodule with case-insensitive name collision plus symlink writes a hook on git clone --recursive (vulnerable git versions on case-insensitive filesystems)"
+server_mode = "static"

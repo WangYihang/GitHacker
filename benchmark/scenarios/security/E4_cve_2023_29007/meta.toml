@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "M"
+cve = "CVE-2023-29007"
+description = "Submodule URL >1024 chars injects arbitrary git config sections (core.pager etc.) via 'git submodule sync/deinit' on patched git also blocked; here as regression"
+server_mode = "static"
