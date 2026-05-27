@@ -188,6 +188,78 @@ def test_add_packed_refs_tasks_missing_file(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# add_head_file_tasks — regression for the path-traversal vector reported in
+# PR #65 (https://github.com/WangYihang/GitHacker/pull/65). A malicious
+# server can craft `.git/HEAD` with a traversal ref like
+# `ref: ../../../etc/passwd`; once `.git/logs/` exists on disk (which the
+# first download wave always creates), the kernel resolves the join and
+# the original code would `open()` the escaped path. The fix is the same
+# per-segment validator that protects the rest of the queue.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("payload", [
+    "../../../etc/passwd",
+    "../../../../etc/passwd",
+    "refs/heads/../../etc/passwd",       # mid-path traversal
+    "refs/heads/main\x00/../../etc/passwd",
+    "/etc/passwd",                       # absolute path → empty first segment
+    "refs/heads/.evil",                  # leading-dot ref name
+    "refs/heads/main.lock",              # .lock-suffixed ref
+])
+def test_add_head_file_tasks_rejects_traversal(tmp_path, payload):
+    """The malicious ref must not produce any queued task, and no `..`
+    component should slip through to the filesystem layer."""
+    git_dir = tmp_path / ".git"
+    (git_dir / "logs").mkdir(parents=True)
+    # `.git/logs/` must exist for the kernel to even resolve `..` past the
+    # parent — without it `os.path.exists()` short-circuits to False and
+    # the vulnerability never triggers in the first place. The first
+    # download wave always creates this directory in real runs.
+    (git_dir / "HEAD").write_text(f"ref: {payload}\n", encoding="utf-8")
+
+    g = _make_hacker(tmp_path)
+    n = g.add_head_file_tasks()
+
+    assert n == 0
+    assert g._pending == []
+
+
+def test_add_head_file_tasks_accepts_valid_ref(tmp_path):
+    """The validator must not over-block: a normal HEAD pointing at an
+    on-disk logs file should still be parsed for object hashes."""
+    git_dir = tmp_path / ".git"
+    (git_dir / "logs" / "refs" / "heads").mkdir(parents=True)
+    (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    # A reflog line with two valid 40-char hex SHAs.
+    sha_a = "a" * 40
+    sha_b = "b" * 40
+    (git_dir / "logs" / "refs" / "heads" / "main").write_text(
+        f"{sha_a} {sha_b} You <you@x> 1700000000 +0000\tcommit: x\n",
+        encoding="utf-8",
+    )
+
+    g = _make_hacker(tmp_path)
+    n = g.add_head_file_tasks()
+
+    assert n == 2  # both hashes queued as .git/objects/<aa>/<rest> tasks
+    queued_paths = ["/".join(p) for p in g._pending]
+    assert f".git/objects/{sha_a[:2]}/{sha_a[2:]}" in queued_paths
+    assert f".git/objects/{sha_b[:2]}/{sha_b[2:]}" in queued_paths
+
+
+def test_add_head_file_tasks_valid_ref_without_logs(tmp_path):
+    """A well-formed HEAD whose logs file hasn't been downloaded yet
+    should be a no-op (no traversal, no error)."""
+    git_dir = tmp_path / ".git"
+    git_dir.mkdir()
+    (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+
+    g = _make_hacker(tmp_path)
+    assert g.add_head_file_tasks() == 0
+    assert g._pending == []
+
+
+# ---------------------------------------------------------------------------
 # _is_safe_path_segment — looser than _is_safe_ref_segment because real
 # .git filenames begin with a dot.
 # ---------------------------------------------------------------------------
