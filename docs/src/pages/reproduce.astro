@@ -1,0 +1,90 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+---
+
+<Layout title="Reproduce — GitHacker" description="Install GitHacker and re-run the benchmarks.">
+  <article class="max-w-[680px] mx-auto px-6 pt-8 pb-16">
+
+    <header>
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]">Reproducibility</p>
+      <h1 class="mt-1 text-[28px] leading-tight">How to reproduce these results</h1>
+      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed">
+        Every page on this site is generated from a deterministic harness.
+        The same Docker invocation that we run weekly in CI will reproduce
+        the numbers in <a href="/benchmark" class="underline">Benchmark</a>
+        and <a href="/security" class="underline">Security</a> on any
+        machine with Docker and roughly 4 GB of RAM.
+      </p>
+    </header>
+
+    <SectionHeading n={1} id="install">Install GitHacker itself</SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+      To <em>use</em> GitHacker against a remote target — separate from
+      the benchmark harness — either run the Docker image or install from PyPI:
+    </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+      <div>
+        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1">Docker</p>
+        <pre class="code-block text-[12.5px]"><code>docker run \
+  -v $(pwd)/results:/tmp/githacker/results \
+  wangyihang/githacker \
+  --output-folder /tmp/githacker/results \
+  --url http://target/.git/</code></pre>
+      </div>
+      <div>
+        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1">pip</p>
+        <pre class="code-block text-[12.5px]"><code>pip install GitHacker
+
+githacker \
+  --url http://target/.git/ \
+  --output-folder result</code></pre>
+      </div>
+    </div>
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+      Add <code>--brute</code> to brute-force branch and tag names when
+      directory listing is disabled on the target.
+    </p>
+
+    <SectionHeading n={2} id="benchmark">Re-run the benchmark</SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+      The full performance suite (7 tools × 5 web-server scenarios) runs from this repo:
+    </p>
+    <pre class="code-block mt-3 text-[12.5px]"><code>git clone https://github.com/WangYihang/GitHacker
+cd GitHacker
+pip install gitpython semver coloredlogs
+python -m benchmark run</code></pre>
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+      Output writes to <code>docs/public/data/benchmark.json</code>; rebuild this site to view.
+      The test repository is generated from a fixed random seed
+      (<code>seed=0</code>), so all numbers are deterministic.
+      Full configuration: <a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark" target="_blank" rel="noopener" class="underline">benchmark/</a>.
+    </p>
+
+    <SectionHeading n={3} id="security">Re-run the security suite</SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+      The adversarial scenarios (15 tests × 7 tools, malicious server vs.
+      pillager) ship as a sibling command:
+    </p>
+    <pre class="code-block mt-3 text-[12.5px]"><code>python -m benchmark security</code></pre>
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+      Results land in <code>docs/public/data/security.json</code>.  The
+      runner enforces a 90-second per-tool timeout and tears down each
+      Docker container between cases.
+    </p>
+
+    <SectionHeading n={4} id="env">Pinned environment</SectionHeading>
+    <ul class="mt-2 ml-5 list-disc text-[13.5px] text-[var(--ink-soft)] leading-relaxed">
+      <li>Docker 24+ (BuildKit enabled)</li>
+      <li>Python 3.10+ for the runner</li>
+      <li>~4 GB RAM and one CPU core per concurrent tool slot</li>
+      <li>Internet access for the initial tool-image builds (none required afterwards)</li>
+    </ul>
+    <p class="mt-3 text-[13px] text-[var(--ink-mute)]">
+      Tool versions and the harness commit are recorded in the
+      <code>metadata</code> block of each JSON output, so any plot you
+      see on this site can be traced back to an exact reproducible
+      configuration.
+    </p>
+  </article>
+</Layout>

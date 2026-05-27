@@ -1,139 +1,125 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Figure from '../components/Figure.astro';
+import Citation from '../components/Citation.astro';
+import { strings } from '../i18n/strings';
+import { benchmark, rankedTools } from '../lib/benchmark';
+import { leaderboardSvg } from '../lib/figures/leaderboard';
+
+const en = strings.en.home;
+const ranked = rankedTools();
+const figure1 = leaderboardSvg(ranked.map((r) => ({ id: r.id, meta: r.meta, mean: r.mean })));
+
+const meta = benchmark.metadata;
+const generatedDate = new Date(meta.generated_at).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'short', day: 'numeric',
+});
 ---
 
-<Layout title="GitHacker">
-  <div class="max-w-[750px] mx-auto px-6">
+<Layout title="GitHacker — An Empirical Study of .git Leakage Exploitation">
+  <article class="max-w-[680px] mx-auto px-6 pt-10 pb-16">
 
-    <!-- Header -->
-    <div class="section">
-      <h1 class="text-3xl font-bold mb-3">GitHacker</h1>
-      <p class="text-gray-600 text-lg max-w-2xl">
-        A multi-threaded tool to exploit <code>.git</code> folder leakage vulnerabilities.
-        It reconstructs the target Git repository — including source code, commit history, branches, stashes, remotes, and tags.
+    <!-- ── Title block ─────────────────────────────────────────── -->
+    <header class="mb-7">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]" data-i18n="home.titleLine1" set:html={en.titleLine1} />
+      <h1 class="mt-1 text-[30px] leading-[1.15]" data-i18n="home.titleLine2" set:html={en.titleLine2} />
+      <p class="mt-3 text-[12.5px] text-[var(--ink-mute)]">
+        <span class="smallcaps">Wang Yihang</span>
+        &nbsp;·&nbsp; benchmark updated {generatedDate} &nbsp;·&nbsp; commit
+        <code class="text-[11.5px]">{meta.git_commit}</code>
       </p>
-      <div class="mt-4 flex items-center gap-3">
-        <a href="https://badge.fury.io/py/GitHacker" target="_blank" rel="noopener">
-          <img src="https://badge.fury.io/py/GitHacker.svg" alt="PyPI version" />
-        </a>
-        <a href="https://pypistats.org/packages/githacker" target="_blank" rel="noopener">
-          <img src="https://img.shields.io/pypi/dm/githacker.svg" alt="PyPI downloads" />
-        </a>
-      </div>
-    </div>
+    </header>
 
-    <!-- Installation -->
-    <div class="section">
-      <h2 class="text-xl font-semibold mb-4">Installation</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Docker (Recommended)</h3>
-          <div class="code-block">
-            <pre>docker run \
-  -v $(pwd)/results:/tmp/githacker/results \
-  wangyihang/githacker \
-  --output-folder /tmp/githacker/results \
-  --url http://target/.git/</pre>
-          </div>
-        </div>
-        <div>
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">pip</h3>
-          <div class="code-block">
-            <pre>pip install GitHacker
+    <!-- ── Abstract ────────────────────────────────────────────── -->
+    <section class="mb-7 pl-6 pr-2 border-l border-[var(--rule-soft)]">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]" data-i18n="home.abstractHeading">{en.abstractHeading}</p>
+      <p class="mt-1 italic text-[14.5px] leading-[1.7]" data-i18n="home.abstract" set:html={en.abstract} />
+    </section>
 
-githacker \
-  --url http://target/.git/ \
-  --output-folder result</pre>
-          </div>
-        </div>
-      </div>
-      <p class="mt-4 text-sm text-gray-500">
-        Add <code>--brute</code> to brute-force branch and tag names when DirectoryListings is disabled.
-      </p>
-    </div>
+    <!-- ── §1 Introduction ─────────────────────────────────────── -->
+    <SectionHeading n={1} id="intro">
+      <span data-i18n="home.introHeading">{en.introHeading}</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="home.intro" set:html={en.intro} />
 
-    <!-- Capabilities -->
-    <div class="section">
-      <h2 class="text-xl font-semibold mb-4">Capabilities</h2>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Feature</th>
-            <th>DirectoryIndex On</th>
-            <th>DirectoryIndex Off</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Source Code Recovery</td><td>Supported</td><td>Supported</td></tr>
-          <tr><td>Reflogs</td><td>Supported</td><td>Supported</td></tr>
-          <tr><td>Stashes</td><td>Supported</td><td>Supported</td></tr>
-          <tr><td>Commit History</td><td>Supported</td><td>Supported</td></tr>
-          <tr><td>Branches</td><td>Supported</td><td>Brute-force</td></tr>
-          <tr><td>Remotes</td><td>Supported</td><td>Supported</td></tr>
-          <tr><td>Tags</td><td>Supported</td><td>Brute-force</td></tr>
-        </tbody>
-      </table>
-      <p class="mt-4 text-sm text-gray-500">
-        See the <a href="/benchmark" class="underline hover:text-gray-900">full benchmark comparison</a> against other tools.
-      </p>
-    </div>
+    <!-- ── §2 Summary of Findings ──────────────────────────────── -->
+    <SectionHeading n={2} id="findings">
+      <span data-i18n="home.findingsHeading">{en.findingsHeading}</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="home.findingsLead">{en.findingsLead}</p>
+    <ol class="mt-3 ml-5 list-decimal text-[14.5px] leading-[1.7] space-y-2.5">
+      <li data-i18n="home.finding1" set:html={en.finding1} />
+      <li data-i18n="home.finding2" set:html={en.finding2} />
+      <li data-i18n="home.finding3" set:html={en.finding3} />
+    </ol>
 
-    <!-- Security -->
-    <div class="section">
-      <h2 class="text-xl font-semibold mb-4">Security Advisories</h2>
-      <p class="text-sm text-gray-600 mb-4">
-        The remote <code>.git</code> folder may be malicious. It is recommended to run this tool
-        in a disposable environment (e.g., Docker container).
-      </p>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th class="!text-left">Vulnerability</th>
-            <th>Reporter</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>2022-03-01</td>
-            <td class="!text-left">RCE via malicious <code>.git/config</code> and <code>.git/hooks/*</code></td>
-            <td><a href="https://twitter.com/justinsteven" class="underline" target="_blank" rel="noopener">Justin Steven</a></td>
-          </tr>
-          <tr>
-            <td>2022-03-01</td>
-            <td class="!text-left">Arbitrary file write via recursive file downloader</td>
-            <td><a href="https://twitter.com/justinsteven" class="underline" target="_blank" rel="noopener">Justin Steven</a></td>
-          </tr>
-          <tr>
-            <td>2021-08-01</td>
-            <td class="!text-left">Malicious .git folder harmful to tool user</td>
-            <td><a href="https://drivertom.blogspot.com" class="underline" target="_blank" rel="noopener">Driver Tom</a></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <Figure n={1} id="fig-leaderboard" caption={en.figure1Caption}>
+      <Fragment set:html={figure1} />
+    </Figure>
 
-    <!-- References -->
-    <div class="section">
-      <h2 class="text-xl font-semibold mb-4">References</h2>
-      <ul class="text-sm text-gray-600 space-y-1.5 list-disc pl-5">
-        <li><a href="https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html" class="underline hover:text-gray-900" target="_blank" rel="noopener">Git Repository Layout</a></li>
-        <li><a href="https://git-scm.com/docs" class="underline hover:text-gray-900" target="_blank" rel="noopener">Git Documentation</a></li>
-        <li><a href="https://www.youtube.com/watch?v=Bs3QpVGf2uk" class="underline hover:text-gray-900" target="_blank" rel="noopener">.git/ folder attack — Comparison of attack tools (Part I)</a></li>
-        <li><a href="https://www.youtube.com/watch?v=Xzg4kQt4qEo" class="underline hover:text-gray-900" target="_blank" rel="noopener">.git/ folder attack — Comparison of attack tools (Part II)</a></li>
-      </ul>
-    </div>
+    <!-- ── §3 Reproduce ────────────────────────────────────────── -->
+    <SectionHeading n={3} id="reproduce">
+      <span data-i18n="home.reproduceHeading">{en.reproduceHeading}</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="home.reproduce">{en.reproduce}</p>
+    <pre class="code-block mt-3 text-[12.5px]"><code>docker run wangyihang/githacker:benchmark python -m benchmark run</code></pre>
+    <p class="mt-2 text-[13.5px]">
+      <a href="/reproduce" class="underline" data-i18n="home.reproduceCta">{en.reproduceCta}</a>
+    </p>
 
-    <!-- Acknowledgements -->
-    <div class="section">
-      <h2 class="text-xl font-semibold mb-4">Acknowledgements</h2>
-      <ul class="text-sm text-gray-600 space-y-1 list-disc pl-5">
-        <li><a href="https://twitter.com/justinsteven" class="underline hover:text-gray-900" target="_blank" rel="noopener">Justin Steven</a></li>
-        <li><a href="https://drivertom.blogspot.com" class="underline hover:text-gray-900" target="_blank" rel="noopener">Driver Tom</a></li>
-        <li><a href="https://github.com/lesion1999" class="underline hover:text-gray-900" target="_blank" rel="noopener">lesion1999</a></li>
-        <li><a href="https://github.com/shashade250" class="underline hover:text-gray-900" target="_blank" rel="noopener">shashade250</a></li>
-      </ul>
-    </div>
+    <!-- ── §4 Related Work ─────────────────────────────────────── -->
+    <SectionHeading n={4} id="related">
+      <span data-i18n="home.relatedHeading">{en.relatedHeading}</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="home.relatedLead" set:html={en.relatedLead} />
+    <ol class="mt-3 ml-5 list-decimal text-[13.5px] leading-relaxed space-y-1.5 text-[var(--ink-soft)]">
+      <li>
+        justinsteven.
+        <em>Various abuses of <code>core.fsmonitor</code> in a directory's <code>.git/config</code></em>.
+        2022. <a href="https://github.com/justinsteven/advisories" target="_blank" rel="noopener" class="underline">github.com/justinsteven/advisories</a>
+      </li>
+      <li>
+        Driver Tom.
+        <em>别想偷我源码：通用的针对源码泄露利用程序的反制</em>.
+        2021. <a href="https://drivertom.blogspot.com/2021/08/git.html" target="_blank" rel="noopener" class="underline">drivertom.blogspot.com</a>
+      </li>
+      <li>
+        Git project. <em>Security advisories</em>.
+        <a href="https://github.com/git/git/security/advisories" target="_blank" rel="noopener" class="underline">github.com/git/git/security/advisories</a>
+      </li>
+    </ol>
 
-  </div>
+    <!-- ── Citation ────────────────────────────────────────────── -->
+    <h2 class="mt-9 mb-3 text-[20px]" data-i18n="home.citationHeading">{en.citationHeading}</h2>
+    <Citation>{`@misc{githacker${new Date().getFullYear()},
+  author       = {Wang, Yihang},
+  title        = {GitHacker: An Empirical Study of .git Leakage Exploitation},
+  year         = {${new Date().getFullYear()}},
+  howpublished = {\\url{https://githacker.pages.dev}},
+  note         = {Benchmark commit ${meta.git_commit}, seed ${meta.test_repo_seed}}
+}`}</Citation>
+
+  </article>
+
+  <script is:inline define:vars={{ I18N: strings.zh.home, KEYS: Object.keys(strings.en.home) }}>
+    // Swap text on language toggle.  Keys mirror strings.home.* paths.
+    window.addEventListener('langchange', (e) => {
+      const lang = e.detail;
+      if (lang === 'en') {
+        // We pre-rendered English, so on switching back, re-fetch the
+        // original innerHTML from a stash on the element.
+        document.querySelectorAll('[data-i18n^="home."]').forEach((el) => {
+          if (el.dataset.i18nOriginal) el.innerHTML = el.dataset.i18nOriginal;
+        });
+        return;
+      }
+      document.querySelectorAll('[data-i18n^="home."]').forEach((el) => {
+        const key = el.dataset.i18n.replace(/^home\./, '');
+        if (!(key in I18N)) return;
+        if (!el.dataset.i18nOriginal) el.dataset.i18nOriginal = el.innerHTML;
+        el.innerHTML = I18N[key];
+      });
+    });
+  </script>
 </Layout>
