@@ -1,0 +1,30 @@
+---
+/**
+ * Academic-style figure: numbered, captioned, with optional id anchor.
+ *
+ *   <Figure n={1} caption="Mean completeness per tool.">
+ *     <svg ...>...</svg>
+ *   </Figure>
+ *
+ * The caption block sits *below* the figure (figure convention; tables
+ * caption above).  Caption renders verbatim — pass HTML if you need
+ * italics or links, since academic captions often link.
+ */
+interface Props {
+  n: number;
+  caption: string;
+  id?: string;
+  /** Optional label override (default "FIGURE"). */
+  label?: string;
+}
+const { n, caption, id, label = 'Figure' } = Astro.props;
+---
+<figure id={id} class="my-7">
+  <div class="not-prose">
+    <slot />
+  </div>
+  <figcaption class="mt-2 text-[12.5px] leading-snug text-[var(--ink-soft)]">
+    <span class="smallcaps text-[var(--ink)]">{label}&nbsp;{n}.</span>
+    <span set:html={caption} />
+  </figcaption>
+</figure>

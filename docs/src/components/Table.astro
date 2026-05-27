@@ -1,0 +1,31 @@
+---
+/**
+ * Academic three-line table wrapper.
+ *
+ *   <Table n={2} caption="Quantitative results across scenarios.">
+ *     <table class="three-line-table">...</table>
+ *   </Table>
+ *
+ * Caption sits above the table (table convention; figures caption below).
+ * Slot "footnotes" renders below the table at small size.
+ */
+interface Props {
+  n: number;
+  caption: string;
+  id?: string;
+  label?: string;
+}
+const { n, caption, id, label = 'Table' } = Astro.props;
+---
+<div id={id} class="my-6">
+  <p class="text-[12.5px] leading-snug text-[var(--ink-soft)] mb-2">
+    <span class="smallcaps text-[var(--ink)]">{label}&nbsp;{n}.</span>
+    <span set:html={caption} />
+  </p>
+  <div class="overflow-x-auto">
+    <slot />
+  </div>
+  <div class="mt-2 text-[11.5px] leading-snug text-[var(--ink-mute)]">
+    <slot name="footnotes" />
+  </div>
+</div>

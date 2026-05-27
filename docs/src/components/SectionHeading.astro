@@ -1,0 +1,23 @@
+---
+/**
+ * Numbered section heading in academic style.
+ *
+ *   <SectionHeading n={2} id="completeness">Completeness</SectionHeading>
+ *
+ * `n` is supplied explicitly rather than auto-counted — multiple pages
+ * can each restart their own numbering, and inserting a section in the
+ * middle of a page is a localized edit.
+ */
+interface Props {
+  n: number;
+  id?: string;
+  /** Use h3 (sub-section) instead of h2. */
+  sub?: boolean;
+}
+const { n, id, sub = false } = Astro.props;
+const Tag = sub ? 'h3' : 'h2';
+---
+<Tag id={id} class:list={['mt-9 mb-3', sub ? 'text-[17px]' : 'text-[20px]']}>
+  <span class="opacity-60 mr-2 tabular-nums">§{n}.</span>
+  <slot />
+</Tag>

@@ -1,0 +1,13 @@
+---
+/**
+ * Body-side footnote marker.  Pair with <FootnoteRef /> at the bottom
+ * of the page (or simply enumerate footnotes manually in <ol>).
+ *
+ *   first observation<Footnote n={3} />, which we attribute to ...
+ */
+interface Props { n: number; }
+const { n } = Astro.props;
+---
+<sup class="ml-0.5 text-[10px] align-super">
+  <a href={`#fn-${n}`} id={`fnref-${n}`} class="no-underline opacity-70 hover:opacity-100">{n}</a>
+</sup>

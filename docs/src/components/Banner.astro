@@ -1,0 +1,27 @@
+---
+/**
+ * Editorial banner: info / warn / embargo.  Left bar, no background flood.
+ *
+ *   <Banner kind="embargo" title="Embargo notice.">
+ *     8 findings are withheld pending coordinated disclosure...
+ *   </Banner>
+ */
+interface Props {
+  kind?: 'info' | 'warn' | 'embargo';
+  title?: string;
+}
+const { kind = 'info', title } = Astro.props;
+
+const barColor: Record<string, string> = {
+  info:    'var(--rule)',
+  warn:    '#a16207',
+  embargo: '#a16207',
+};
+---
+<aside
+  class="my-5 pl-4 py-2 text-[13.5px] leading-relaxed"
+  style={`border-left: 2px solid ${barColor[kind]}`}
+>
+  {title && <span class="font-semibold mr-1">{title}</span>}
+  <slot />
+</aside>
