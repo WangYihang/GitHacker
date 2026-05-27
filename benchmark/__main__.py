@@ -97,6 +97,9 @@ def cmd_security(args: argparse.Namespace) -> None:
         category=args.category,
     )
     security.write_report(report)
+    # docs/public/data/security.json carries redacted tool names and an
+    # embedded disclosure tracker — see benchmark/disclosures.toml.
+    security.write_public_report(report)
     security.print_summary(report)
 
 

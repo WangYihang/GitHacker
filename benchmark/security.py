@@ -42,6 +42,8 @@ logger = logging.getLogger(__name__)
 
 SCENARIOS_DIR = BENCHMARK_DIR / "scenarios" / "security"
 RESULTS_PATH = BENCHMARK_DIR / "results" / "security.json"
+DISCLOSURES_PATH = BENCHMARK_DIR / "disclosures.toml"
+PUBLIC_DATA_PATH = PROJECT_ROOT / "docs" / "public" / "data" / "security.json"
 EVIL_SERVER_PORT = 8080
 EVIL_SERVER_HOST = "127.0.0.1"
 
@@ -451,6 +453,89 @@ def write_report(report: SecurityReport, path: Path = RESULTS_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         json.dump(report.to_dict(), f, indent=2, sort_keys=False)
+
+
+def _load_disclosures(path: Path = DISCLOSURES_PATH) -> dict:
+    """Read the disclosure tracker. Returns {} if the file is missing,
+    so the orchestrator works for fresh checkouts without one."""
+    import tomllib
+    if not path.exists():
+        return {"label": {}, "finding": []}
+    with open(path, "rb") as f:
+        return tomllib.load(f)
+
+
+def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> dict:
+    """Build the JSON that goes to docs/public/data/security.json.
+
+    The benchmark is also the disclosure pipeline for findings we
+    haven't reported upstream yet: any tool listed in disclosures'
+    [label] table is renamed to its opaque label and its URL / version
+    are stripped before publication. GitHacker (the project under test)
+    is never redacted.
+
+    The function also embeds a public-safe view of the disclosure
+    tracker so the /security page can render it without needing the
+    internal-id → label mapping client-side.
+    """
+    labels = disclosures.get("label", {}) or {}
+    findings = disclosures.get("finding", []) or []
+
+    out = report.to_dict() if isinstance(report, SecurityReport) else report
+
+    # Remap tool identifiers so the dashboard's per-tool columns and the
+    # results dicts inside each test agree.
+    id_map: dict[str, str] = {}
+    public_tools: dict[str, dict] = {}
+    for tid, tool in out["tools"].items():
+        if tid == "githacker":
+            id_map[tid] = tid
+            public_tools[tid] = tool
+            continue
+        label = labels.get(tid)
+        if label:
+            # "Tool A" -> "tool_a" as the public-side identifier.
+            new_id = label.lower().replace(" ", "_")
+            id_map[tid] = new_id
+            public_tools[new_id] = {"name": label, "url": "", "version": "—"}
+        else:
+            id_map[tid] = tid
+            public_tools[tid] = tool
+
+    out["tools"] = public_tools
+    for test in out["tests"]:
+        test["results"] = {
+            id_map.get(tid, tid): res for tid, res in test["results"].items()
+        }
+
+    # Embed a public-safe view of the disclosure tracker.
+    public_findings = []
+    for f in findings:
+        tid = f.get("tool", "")
+        public_label = "GitHacker" if tid == "githacker" else labels.get(tid, "Unknown")
+        public_findings.append({
+            "id": f.get("id", ""),
+            "test": f.get("test", ""),
+            "tool": public_label,
+            "severity": f.get("severity", ""),
+            "status": f.get("status", "confirmed"),
+            "first_observed": f.get("first_observed", ""),
+            "reported_at": f.get("reported_at", ""),
+            "patched_at": f.get("patched_at", ""),
+            "cve": f.get("cve", ""),
+            "notes": f.get("notes", ""),
+        })
+    out["disclosures"] = public_findings
+
+    return out
+
+
+def write_public_report(report: SecurityReport, path: Path = PUBLIC_DATA_PATH) -> None:
+    """Write the redacted JSON to docs/public/data/security.json."""
+    disclosures = _load_disclosures()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(redact_for_publication(report, disclosures), f, indent=2, sort_keys=False)
         f.write("\n")
     logger.info("Wrote %s", path)
 

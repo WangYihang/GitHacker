@@ -1,0 +1,146 @@
+# Security finding disclosure tracker.
+#
+# This file is the single source of truth for the redaction logic in
+# benchmark.security and for the public Disclosure Tracker table that
+# renders on /security. Every (test, tool) pair where the benchmark
+# observed a FAIL gets a finding entry below.
+#
+# Statuses progress in this order:
+#   confirmed     — we reproduced the FAIL locally on the benchmark image
+#   reported      — we contacted the upstream maintainer (GH issue or email)
+#   acknowledged  — maintainer confirmed they're aware
+#   patched       — a fix landed upstream (no advisory yet)
+#   cve_assigned  — a CVE id was issued
+#   disclosed     — public advisory is out; the tool can be named in the
+#                   published security.json (move tool out of [label] then)
+#
+# The [label] table maps internal tool IDs to opaque public labels. The
+# benchmark's publish step substitutes these into the redacted JSON that
+# goes to docs/public/data/security.json. GitHacker (us) is never
+# redacted. Labels are stable — once assigned, do not renumber, even if
+# a tool exits the redaction set, so external readers tracking advisories
+# can correlate across versions.
+
+[label]
+dumpall = "Tool A"
+dvcs-ripper = "Tool B"
+git-dumper = "Tool C"
+githack = "Tool D"
+gittools = "Tool E"
+rbozburun-git-hacker = "Tool F"
+
+# --- GitHacker self-found, self-fixed (kept for record / honesty) ---
+
+[[finding]]
+id = "DIS-2026-001"
+test = "C3_redirect_ssrf"
+tool = "githacker"
+severity = "L"
+status = "patched"
+first_observed = "2026-05-27"
+reported_at = "2026-05-27"
+patched_at = "2026-05-27"
+cve = ""
+notes = "Self-discovered by this benchmark; fixed in commit bdff7ee — `OriginRestrictedSession` refuses cross-origin 3xx redirects."
+
+# --- A1: RCE via core.fsmonitor in malicious .git/config ---
+
+[[finding]]
+id = "DIS-2026-002"
+test = "A1_fsmonitor"
+tool = "git-dumper"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+[[finding]]
+id = "DIS-2026-003"
+test = "A1_fsmonitor"
+tool = "rbozburun-git-hacker"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+# --- B1: arbitrary file write via .git/index path traversal ---
+
+[[finding]]
+id = "DIS-2026-004"
+test = "B1_index_traversal"
+tool = "dumpall"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+[[finding]]
+id = "DIS-2026-005"
+test = "B1_index_traversal"
+tool = "git-dumper"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+[[finding]]
+id = "DIS-2026-006"
+test = "B1_index_traversal"
+tool = "rbozburun-git-hacker"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+# --- C3: SSRF via 302 to internal IP ---
+
+[[finding]]
+id = "DIS-2026-007"
+test = "C3_redirect_ssrf"
+tool = "dumpall"
+severity = "L"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+[[finding]]
+id = "DIS-2026-008"
+test = "C3_redirect_ssrf"
+tool = "githack"
+severity = "L"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""
+
+[[finding]]
+id = "DIS-2026-009"
+test = "C3_redirect_ssrf"
+tool = "gittools"
+severity = "L"
+status = "confirmed"
+first_observed = "2026-05-27"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = ""

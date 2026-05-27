@@ -39,7 +39,10 @@ jobs:
 
       - name: Commit security results to repo
         run: |
-          cp benchmark/results/security.json docs/public/data/security.json
+          # `python -m benchmark security` already writes the redacted
+          # docs/public/data/security.json via write_public_report (uses
+          # benchmark/disclosures.toml). The raw, unredacted JSON in
+          # benchmark/results/ is .gitignored.
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/public/data/security.json
