@@ -481,6 +481,19 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
     labels = disclosures.get("label", {}) or {}
     findings = disclosures.get("finding", []) or []
 
+    # A finding is "embargoed" if we haven't even contacted the upstream
+    # maintainer yet (status == "confirmed"). Until we report, the public
+    # page should not reveal any per-tool detail about it: not in the
+    # per-test matrix, not in the disclosure tracker, not in the
+    # pass-rate totals. Once status moves to "reported" or beyond, the
+    # vendor already knows so we can publish.
+    EMBARGOED_STATUS = "confirmed"
+    embargoed_pairs: set[tuple[str, str]] = {
+        (f.get("test", ""), f.get("tool", ""))
+        for f in findings
+        if f.get("status") == EMBARGOED_STATUS
+    }
+
     out = report.to_dict() if isinstance(report, SecurityReport) else report
 
     # Remap tool identifiers so the dashboard's per-tool columns and the
@@ -503,14 +516,27 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
             public_tools[tid] = tool
 
     out["tools"] = public_tools
-    for test in out["tests"]:
-        test["results"] = {
-            id_map.get(tid, tid): res for tid, res in test["results"].items()
-        }
 
-    # Embed a public-safe view of the disclosure tracker.
+    # Rewrite each test's per-tool results: remap tool ids to public
+    # labels, and drop any (test, tool) cell that's still embargoed
+    # (status == "confirmed"). The renderer treats a missing entry as
+    # a neutral "—".
+    for test in out["tests"]:
+        new_results: dict = {}
+        for tid, res in test["results"].items():
+            if (test["id"], tid) in embargoed_pairs:
+                continue  # withheld pending coordinated disclosure
+            new_results[id_map.get(tid, tid)] = res
+        test["results"] = new_results
+
+    # Build the public disclosure list — drop embargoed entries entirely
+    # but keep an aggregate count so the page can show a banner.
     public_findings = []
+    embargo_count = 0
     for f in findings:
+        if f.get("status") == EMBARGOED_STATUS:
+            embargo_count += 1
+            continue
         tid = f.get("tool", "")
         public_label = "GitHacker" if tid == "githacker" else labels.get(tid, "Unknown")
         public_findings.append({
@@ -518,7 +544,7 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
             "test": f.get("test", ""),
             "tool": public_label,
             "severity": f.get("severity", ""),
-            "status": f.get("status", "confirmed"),
+            "status": f.get("status", ""),
             "first_observed": f.get("first_observed", ""),
             "reported_at": f.get("reported_at", ""),
             "patched_at": f.get("patched_at", ""),
@@ -526,6 +552,7 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
             "notes": f.get("notes", ""),
         })
     out["disclosures"] = public_findings
+    out["embargo_count"] = embargo_count
 
     return out
 

@@ -75,24 +75,10 @@
           "exit_code": 0,
           "stderr_tail": ""
         },
-        "tool_c": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_A1 created in canary dir",
-          "duration": 0.81,
-          "exit_code": 0,
-          "stderr_tail": "  File \"/usr/local/lib/python3.12/site-packages/git_dumper.py\", line 496, in fetch_git\n    subprocess.check_call([\"git\", \"checkout\", \".\"], env=environment)\n  File \"/usr/local/lib/python3.12/subprocess.py\", line 413, in check_call\n    raise CalledProcessError(retcode, cmd)\nsubprocess.CalledProcessError: Command '['git', 'checkout', '.']' returned non-zero exit status 1."
-        },
         "tool_a": {
           "verdict": "PASS",
           "evidence": "",
           "duration": 0.73,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "tool_f": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_A1 created in canary dir",
-          "duration": 0.64,
           "exit_code": 0,
           "stderr_tail": ""
         }
@@ -364,27 +350,6 @@
           "duration": 1.09,
           "exit_code": 0,
           "stderr_tail": ""
-        },
-        "tool_c": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 0.8,
-          "exit_code": 0,
-          "stderr_tail": "[-] http://127.0.0.1:8080/.gitignore responded with status code 404\nUpdated 1 path from the index"
-        },
-        "tool_a": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 1.12,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "tool_f": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_B1 created in canary dir",
-          "duration": 0.62,
-          "exit_code": 0,
-          "stderr_tail": ""
         }
       }
     },
@@ -518,24 +483,10 @@
           "exit_code": 0,
           "stderr_tail": "2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/logs/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 WARNING refusing cross-origin redirect from http://127.0.0.1:8080//.git/HEAD to http://127.0.0.1:12345/ssrf\n2026-05-27 10:36:31 ERROR The target url(http://127.0.0.1:8080//) is not a valid git repository, .git/HEAD not exists\n2026-05-27 10:36:31 INFO 0 / 1 were exploited successfully"
         },
-        "tool_e": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.62,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
         "tool_b": {
           "verdict": "PASS",
           "evidence": "",
           "duration": 0.34,
-          "exit_code": 0,
-          "stderr_tail": ""
-        },
-        "tool_d": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.65,
           "exit_code": 0,
           "stderr_tail": ""
         },
@@ -545,13 +496,6 @@
           "duration": 0.76,
           "exit_code": 0,
           "stderr_tail": "[-] http://127.0.0.1:8080//.git/HEAD responded with status code 302"
-        },
-        "tool_a": {
-          "verdict": "FAIL",
-          "evidence": "PWNED_C3 created in canary dir",
-          "duration": 0.76,
-          "exit_code": 0,
-          "stderr_tail": ""
         },
         "tool_f": {
           "verdict": "PASS",
@@ -923,102 +867,7 @@
       "patched_at": "2026-05-27",
       "cve": "",
       "notes": "Self-discovered by this benchmark; fixed in commit bdff7ee \u2014 `OriginRestrictedSession` refuses cross-origin 3xx redirects."
-    },
-    {
-      "id": "DIS-2026-002",
-      "test": "A1_fsmonitor",
-      "tool": "Tool C",
-      "severity": "H",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-003",
-      "test": "A1_fsmonitor",
-      "tool": "Tool F",
-      "severity": "H",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-004",
-      "test": "B1_index_traversal",
-      "tool": "Tool A",
-      "severity": "H",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-005",
-      "test": "B1_index_traversal",
-      "tool": "Tool C",
-      "severity": "H",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-006",
-      "test": "B1_index_traversal",
-      "tool": "Tool F",
-      "severity": "H",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-007",
-      "test": "C3_redirect_ssrf",
-      "tool": "Tool A",
-      "severity": "L",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-008",
-      "test": "C3_redirect_ssrf",
-      "tool": "Tool D",
-      "severity": "L",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
-    },
-    {
-      "id": "DIS-2026-009",
-      "test": "C3_redirect_ssrf",
-      "tool": "Tool E",
-      "severity": "L",
-      "status": "confirmed",
-      "first_observed": "2026-05-27",
-      "reported_at": "",
-      "patched_at": "",
-      "cve": "",
-      "notes": ""
     }
-  ]
+  ],
+  "embargo_count": 8
 }
