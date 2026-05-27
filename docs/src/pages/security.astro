@@ -78,11 +78,13 @@ function verdictClass(v: string): string {
     </header>
 
     {embargoCount > 0 && (
-      <Banner kind="embargo" title="Embargo notice.">
+      <Banner kind="embargo" title="Coordinated disclosure.">
         <span data-i18n="security.embargo">
-          {embargoCount} finding{embargoCount === 1 ? '' : 's'} are withheld pending coordinated disclosure.
-          Their per-tool verdicts in Table 2 render as "—", and they are absent from Table 3.
-          Entries appear here once we contact the upstream maintainer.
+          {embargoCount} finding{embargoCount === 1 ? ' has' : 's have'} not yet been reported upstream.
+          The verdicts below are public — the test corpus itself is published research, so a
+          FAIL leaks no new vulnerability detail.  The affected tool names render as
+          <em>Tool&nbsp;A…F</em> until each maintainer has been contacted; the internal mapping
+          is held until coordinated disclosure completes.
         </span>
       </Banner>
     )}
@@ -198,9 +200,9 @@ function verdictClass(v: string): string {
       <span data-i18n="security.s4Heading">Per-Test Matrix</span>
     </SectionHeading>
     <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s4Body">
-      PASS / FAIL grid per (test × tool).  "—" entries mean the result is
-      currently embargoed pending coordinated disclosure, not that the
-      tool was untested.
+      PASS / FAIL grid per (test × tool).  Every verdict is published;
+      anonymity is enforced only at the tool name (<em>Tool&nbsp;A…F</em>),
+      since the test corpus is already public research.
     </p>
 
     <Table n={6} caption="Per-test verdict matrix.  PASS = tool resisted the payload; FAIL = exploit succeeded.">
@@ -229,8 +231,7 @@ function verdictClass(v: string): string {
         </tbody>
       </table>
       <Fragment slot="footnotes">
-        "—" in a cell means a result is being withheld pending coordinated
-        disclosure, not that the tool was not tested.
+        "—" means the tool did not produce a verdict for that test (run error or skip), not that the result is withheld.
       </Fragment>
     </Table>
 
@@ -285,17 +286,18 @@ function verdictClass(v: string): string {
       </Table>
     )}
 
-    <!-- ── §6 Embargo Notice ───────────────────────────────────── -->
+    <!-- ── §6 Anonymity Policy ─────────────────────────────────── -->
     {embargoCount > 0 && (
       <>
-        <SectionHeading n={6} id="embargo">
-          <span data-i18n="security.s6Heading">Embargo Notice</span>
+        <SectionHeading n={6} id="anonymity">
+          <span data-i18n="security.s6Heading">Anonymity Policy</span>
         </SectionHeading>
         <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s6Body">
-          {embargoCount} finding{embargoCount === 1 ? ' is' : 's are'} currently held under embargo while we coordinate
-          with upstream maintainers.  They are excluded from the per-tool counts in §3 and from the matrix in §4 until
-          the upstream notification window closes.  This page will surface the redacted-name version of each entry
-          once we send first contact.
+          {embargoCount} finding{embargoCount === 1 ? ' is' : 's are'} currently pre-disclosure.  We publish the
+          full verdict matrix and the disclosure tracker, but the affected tool names render as
+          <em>Tool&nbsp;A…F</em> until each upstream maintainer is contacted.  The mapping is held in this
+          repository's private disclosure tracker and is rotated forward — never reused — once a finding
+          reaches <code>disclosed</code>.  GitHacker is never anonymized in either direction.
         </p>
       </>
     )}
@@ -336,7 +338,7 @@ function verdictClass(v: string): string {
       preTitle: '对抗性研究',
       title: '<code>.git/</code> 利用工具的对抗性基准测试',
       byline: '与 <a href="/benchmark" class="underline">Benchmark</a> 互为镜像。衡量 pillager 工具面对恶意 <code>.git/</code> 时的加固程度。',
-      embargo: '当前有发现仍处于协调披露禁运期：在表 6 中以 "—" 显示，并不出现在表 7 中。我们通知上游维护者之后才会公开。',
+      embargo: '当前仍有发现尚未上报上游。下方判定矩阵照常公开 —— 测试集本身已是公开研究，FAIL 并不会泄露新的漏洞细节。仅工具名按 <em>Tool A…F</em> 匿名化，直至我们联系完上游维护者；内部映射在协调披露完成前保留。',
       s1Heading: '威胁模型',
       s1Body: '我们让每个 pillager 工具针对一系列恶意 <code>.git/</code> 仓库进行恢复，攻击场景源自已发表研究（justinsteven 2022、Driver Tom 2021）及已公开的 Git CVE。若恶意服务器在恢复期间对工具容器达成代码执行、任意文件写入或 SSRF，则该测试记为 <strong>FAIL</strong>；若工具拒绝或限制 payload 则为 <strong>PASS</strong>。未披露的工具以 <em>Tool A…F</em> 匿名化；映射在协调披露完成前保留内部（见 §5）。',
       s2Heading: '测试集',
@@ -344,11 +346,11 @@ function verdictClass(v: string): string {
       s3Heading: '总体结果',
       s3Body: '每个工具在全部测试上的 PASS 通过率。越高越好 —— PASS 表示工具拒绝或限制了 payload。最优值加粗。',
       s4Heading: '逐项矩阵',
-      s4Body: '按（测试 × 工具）的 PASS / FAIL 网格。"—" 表示结果因协调披露禁运暂时不公开，并非未测试。',
+      s4Body: '按（测试 × 工具）的 PASS / FAIL 网格。所有判定都公开 —— 匿名化只作用在工具名（<em>Tool A…F</em>），因为测试集本身已是公开研究。',
       s5Heading: '披露时间线',
-      s5Body: '每条发现的协调披露状态 —— 从首次观察、上报上游到补丁落地。仍在禁运中的发现暂不出现，直至我们联系上游。',
-      s6Heading: '禁运说明',
-      s6Body: '当前有若干发现仍在协调披露禁运期：在 §3 的工具计数与 §4 的矩阵中暂不公开，直到上游通知窗口结束。一旦我们发出首次联系，本页面会以匿名形式呈现这些条目。',
+      s5Body: '每条发现的协调披露状态 —— 从首次观察、上报上游到补丁落地。仍处于联系前阶段的发现也照常显示，只是工具名匿名。',
+      s6Heading: '匿名化政策',
+      s6Body: '当前有若干发现仍处于披露前阶段。我们照常公开完整的判定矩阵与披露跟踪表，仅在被影响工具的名字上以 <em>Tool A…F</em> 匿名，直到我们联系完上游维护者。内部映射保存在本仓库的私有跟踪表中，且只会在每次状态推进到 <code>disclosed</code> 之后单向消除，绝不复用。GitHacker 自身在任何方向上均不匿名。',
     };
     window.addEventListener('langchange', (e) => {
       const lang = e.detail;

@@ -468,31 +468,29 @@ def _load_disclosures(path: Path = DISCLOSURES_PATH) -> dict:
 def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> dict:
     """Build the JSON that goes to docs/public/data/security.json.
 
-    The benchmark is also the disclosure pipeline for findings we
-    haven't reported upstream yet: any tool listed in disclosures'
-    [label] table is renamed to its opaque label and its URL / version
-    are stripped before publication. GitHacker (the project under test)
-    is never redacted.
+    The only redaction applied is *tool-name* anonymization: any tool
+    listed in disclosures' [label] table is renamed to its opaque label
+    (Tool A, Tool B, ...) and its URL / version are stripped before
+    publication. GitHacker (the project under test) is never redacted.
+
+    Per-test verdicts (PASS / FAIL) are published in full. The test
+    corpus itself is public information (justinsteven 2022, Driver Tom
+    2021, Git CVE feed), so hiding which test a tool failed leaks no
+    additional vulnerability detail — the tool-name anonymization is
+    the actual protection until coordinated disclosure completes.
 
     The function also embeds a public-safe view of the disclosure
     tracker so the /security page can render it without needing the
-    internal-id → label mapping client-side.
+    internal-id -> label mapping client-side.
     """
     labels = disclosures.get("label", {}) or {}
     findings = disclosures.get("finding", []) or []
 
-    # A finding is "embargoed" if we haven't even contacted the upstream
-    # maintainer yet (status == "confirmed"). Until we report, the public
-    # page should not reveal any per-tool detail about it: not in the
-    # per-test matrix, not in the disclosure tracker, not in the
-    # pass-rate totals. Once status moves to "reported" or beyond, the
-    # vendor already knows so we can publish.
-    EMBARGOED_STATUS = "confirmed"
-    embargoed_pairs: set[tuple[str, str]] = {
-        (f.get("test", ""), f.get("tool", ""))
-        for f in findings
-        if f.get("status") == EMBARGOED_STATUS
-    }
+    # A finding is still under coordinated disclosure if we haven't
+    # contacted the upstream maintainer yet (status == "confirmed").
+    # Until the vendor knows, the tool name on the public page stays
+    # anonymous; the verdict itself is published.
+    PRE_DISCLOSURE_STATUS = "confirmed"
 
     out = report.to_dict() if isinstance(report, SecurityReport) else report
 
@@ -518,25 +516,22 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
     out["tools"] = public_tools
 
     # Rewrite each test's per-tool results: remap tool ids to public
-    # labels, and drop any (test, tool) cell that's still embargoed
-    # (status == "confirmed"). The renderer treats a missing entry as
-    # a neutral "—".
+    # labels.  All verdicts ship — the matrix is public.
     for test in out["tests"]:
         new_results: dict = {}
         for tid, res in test["results"].items():
-            if (test["id"], tid) in embargoed_pairs:
-                continue  # withheld pending coordinated disclosure
             new_results[id_map.get(tid, tid)] = res
         test["results"] = new_results
 
-    # Build the public disclosure list — drop embargoed entries entirely
-    # but keep an aggregate count so the page can show a banner.
+    # Build the public disclosure list — every finding ships, with the
+    # tool name already mapped to its anonymous label until the status
+    # progresses to "disclosed".  pending_count tells the page how many
+    # findings still hide behind an anonymous label.
     public_findings = []
-    embargo_count = 0
+    pending_count = 0
     for f in findings:
-        if f.get("status") == EMBARGOED_STATUS:
-            embargo_count += 1
-            continue
+        if f.get("status") == PRE_DISCLOSURE_STATUS:
+            pending_count += 1
         tid = f.get("tool", "")
         public_label = "GitHacker" if tid == "githacker" else labels.get(tid, "Unknown")
         public_findings.append({
@@ -552,7 +547,9 @@ def redact_for_publication(report: SecurityReport | dict, disclosures: dict) -> 
             "notes": f.get("notes", ""),
         })
     out["disclosures"] = public_findings
-    out["embargo_count"] = embargo_count
+    # Kept under the same key for backward compatibility with the page;
+    # semantics is now "findings whose tool name is still anonymous".
+    out["embargo_count"] = pending_count
 
     return out
 
