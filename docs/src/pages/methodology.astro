@@ -1,0 +1,118 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+---
+
+<Layout title="Methodology — GitHacker" description="How the benchmark and security harnesses work.">
+  <article class="max-w-[680px] mx-auto px-6 pt-10 pb-16">
+
+    <header class="mb-6">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]">Methodology</p>
+      <h1 class="mt-1 text-[28px] leading-[1.2]">Benchmark and security harness design</h1>
+      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed">
+        The
+        <a href="/benchmark" class="underline">Benchmark</a>
+        and
+        <a href="/security" class="underline">Security</a>
+        pages report results.  This page documents how those numbers
+        are produced — the test corpus, the harness, the metrics, and
+        the threat model — so the figures can be read with the right
+        priors.
+      </p>
+    </header>
+
+    <SectionHeading n={1} id="principles">Design principles</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      The harness is designed around three principles. <strong>Fairness</strong>:
+      every tool receives the same target served by the same web-server
+      instance, with the same starting state. <strong>Completeness</strong>:
+      evaluation covers all recoverable Git artifacts (source code,
+      reflogs, stashes, commits, branches, remotes, tags), not just whether
+      a clone succeeds. <strong>Reproducibility</strong>: the test
+      repository is generated from a fixed random seed, and every
+      component — tool images, server containers, scoring code — is
+      version-controlled.
+    </p>
+
+    <SectionHeading n={2} id="test-repo">Test repository</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      A ground-truth Git repository is generated programmatically
+      (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline"><code>benchmark/generate.py</code></a>,
+      seed&nbsp;=&nbsp;0).  It contains 2–16 random commits, 2–8 random
+      branches, 15 well-known branches (<code>master</code>, <code>main</code>,
+      <code>dev</code>, <code>release</code>, …), up to 16 semantic-version
+      tags, 2–16 stashes, files in both the staging area and working
+      directory, and a PHP LFI script.  A <em>manifest</em> categorises
+      every file by feature, which is what makes the per-feature
+      accuracy column on the benchmark page meaningful.
+    </p>
+
+    <SectionHeading n={3} id="scenarios">Web-server scenarios</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      The repository is served over HTTP under five configurations,
+      each a Docker Compose service
+      (<a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline"><code>test/docker/</code></a>):
+    </p>
+    <ol class="mt-2 ml-5 list-decimal text-[14px] leading-relaxed space-y-1">
+      <li><strong>Apache httpd</strong> with <code>DirectoryIndex</code> enabled (directory listing on)</li>
+      <li><strong>Apache httpd</strong> with <code>Options -Indexes</code> (directory listing off)</li>
+      <li><strong>Nginx</strong> with <code>autoindex on</code></li>
+      <li><strong>Nginx</strong> with <code>autoindex off</code> (default)</li>
+      <li><strong>PHP 7.2 + Apache</strong> with a Local File Inclusion entry point</li>
+    </ol>
+
+    <SectionHeading n={4} id="tool-execution">Tool execution</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      Each tool runs in its own Docker container
+      (<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline"><code>benchmark/tools/</code></a>)
+      behind a unified interface (<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>).
+      A 300-second timeout is enforced.  The server is restarted before
+      each run so the access-log line count (one of the metrics) is
+      directly attributable to the tool under test.
+    </p>
+
+    <SectionHeading n={5} id="metrics">Scoring metrics</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      Recovered files are compared against the manifest via MD5
+      checksums (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline"><code>benchmark/compare.py</code></a>).
+      The four reported metrics are:
+    </p>
+    <ul class="mt-2 ml-5 list-disc text-[14px] leading-relaxed space-y-1">
+      <li><strong>Recovery Rate</strong> = correct files / total files (per feature, and aggregate)</li>
+      <li><strong>Feature Support</strong> = binary, per feature, per (tool, scenario)</li>
+      <li><strong>Duration</strong> = wall-clock seconds from container start to first idle</li>
+      <li><strong>HTTP Requests</strong> = server log line count attributable to the tool</li>
+    </ul>
+
+    <SectionHeading n={6} id="threat-model">Threat model (security suite)</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      The security suite inverts the benchmark assumption: the
+      pillager is the victim.  Each test is a malicious <code>.git/</code>
+      crafted to attack the tool during recovery — code execution
+      via <code>core.fsmonitor</code>, arbitrary file write via path
+      traversal, SSRF via redirect, and known Git CVEs delivered as
+      submodules or LFS objects.  A test is a <strong>FAIL</strong>
+      if the malicious server attains code execution, arbitrary file
+      write, or SSRF against the tool's container during recovery; a
+      <strong>PASS</strong> if the tool refused or contained the
+      payload.  Findings against unpatched tools are anonymized in
+      <a href="/security" class="underline">Security</a> as
+      <em>Tool&nbsp;A…F</em> until coordinated disclosure completes.
+    </p>
+
+    <SectionHeading n={7} id="environment">Environment</SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]">
+      Results on this site are produced by the harness running on
+      Linux + Docker.  Each run records its harness commit, generation
+      timestamp, and random seed into the JSON output, so any plot you
+      see can be traced to an exact reproducible configuration.  The
+      benchmark also runs weekly via
+      <a href="https://github.com/WangYihang/GitHacker/actions" target="_blank" rel="noopener" class="underline">GitHub Actions</a>.
+    </p>
+
+    <p class="mt-7 text-[13.5px]">
+      Reproduce instructions: <a href="/reproduce" class="underline">/reproduce</a>.
+    </p>
+
+  </article>
+</Layout>

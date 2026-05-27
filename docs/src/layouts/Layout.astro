@@ -13,9 +13,11 @@ const {
 const currentPath = Astro.url.pathname;
 
 const navLinks: Array<{ href: string; label: string; match: (p: string) => boolean }> = [
-  { href: '/',            label: 'Home',       match: (p) => p === '/' },
-  { href: '/benchmark',   label: 'Benchmark',  match: (p) => p.startsWith('/benchmark') },
-  { href: '/security',    label: 'Security',   match: (p) => p.startsWith('/security') },
+  { href: '/',             label: 'Home',         match: (p) => p === '/' },
+  { href: '/benchmark',    label: 'Benchmark',    match: (p) => p.startsWith('/benchmark') },
+  { href: '/security',     label: 'Security',     match: (p) => p.startsWith('/security') },
+  { href: '/methodology',  label: 'Methodology',  match: (p) => p.startsWith('/methodology') },
+  { href: '/reproduce',    label: 'Reproduce',    match: (p) => p.startsWith('/reproduce') },
 ];
 ---
 

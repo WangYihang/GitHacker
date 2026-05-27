@@ -1,553 +1,367 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Figure from '../components/Figure.astro';
+import Table from '../components/Table.astro';
+import Banner from '../components/Banner.astro';
+import { security, orderedToolIds, passCount, passByCategory } from '../lib/security';
+import { categoryBarsSvg } from '../lib/figures/categoryBars';
+import { timelineSvg } from '../lib/figures/timeline';
+
+const toolIds = orderedToolIds();
+const tests = security.tests;
+const disclosures = security.disclosures || [];
+const embargoCount = security.embargo_count || 0;
+const meta = {
+  generated_at: security.generated_at,
+  git_commit: security.git_commit,
+};
+const generatedDate = new Date(meta.generated_at).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'short', day: 'numeric',
+});
+
+// Category order — categories that appear in the data, fixed display
+// order so FIG. 5 stays comparable across runs.
+const CAT_ORDER = ['RCE', 'AFW', 'Info', 'CVE'];
+const presentCategories = CAT_ORDER.filter((c) => tests.some((t) => t.category === c));
+
+const summaryRows = toolIds.map((id) => {
+  const { pass, total } = passCount(id);
+  return { id, meta: security.tools[id], pass, total };
+});
+const bestPass = Math.max(...summaryRows.map((r) => r.pass));
+
+const fig5Rows = toolIds.map((id) => ({
+  id,
+  meta: security.tools[id],
+  perCategory: passByCategory(id),
+}));
+const fig5 = categoryBarsSvg(fig5Rows, presentCategories);
+const fig6 = timelineSvg(disclosures);
+
+function fmtTestId(id: string): string {
+  return id.toUpperCase().replace(/_/g, '-');
+}
+
+function severityClass(s: string): string {
+  return ({ H: 'sev-h', M: 'sev-m', L: 'sev-l' } as Record<string, string>)[s] || '';
+}
+
+function verdictClass(v: string): string {
+  return ({
+    PASS:    'v-pass',
+    FAIL:    'v-fail',
+    TIMEOUT: 'v-timeout',
+    ERROR:   'v-error',
+  } as Record<string, string>)[v] || '';
+}
 ---
 
 <Layout title="Security — GitHacker" description="Adversarial benchmark of .git folder exploitation tools.">
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap"
-    slot="head"
-  />
+  <article class="max-w-[820px] mx-auto px-6 pt-10 pb-16">
 
-  <div class="security-page max-w-[1200px] mx-auto px-6">
-
-    <!-- ── Header ─────────────────────────────────────────────────── -->
-    <header class="pt-6 pb-4">
-      <h1 class="font-bold text-[28px] tracking-tight leading-tight" data-i18n="title">Adversarial Benchmark of <code class="font-mono">.git/</code> Pillagers</h1>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" data-i18n="byline">
-        Companion to the recovery benchmark. Measures pillager hardening against a malicious server.
+    <header class="mb-6">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]" data-i18n="security.preTitle">Adversarial Study</p>
+      <h1 class="mt-1 text-[28px] leading-[1.2]" data-i18n="security.title">
+        Adversarial Benchmark of <code>.git/</code> Pillagers
+      </h1>
+      <p class="mt-2 text-[14px] text-[var(--ink-soft)] leading-relaxed" data-i18n="security.byline">
+        Companion to <a href="/benchmark" class="underline">Benchmark</a>.
+        Measures how each pillager holds up when the served
+        <code>.git/</code> is malicious.
       </p>
-      <p id="metadata" class="mt-3 text-xs italic text-gray-500 dark:text-gray-400"></p>
+      <p class="mt-3 text-[12px] text-[var(--ink-mute)]">
+        <span class="smallcaps">Wang Yihang</span>
+        &nbsp;·&nbsp; updated {generatedDate} &nbsp;·&nbsp; commit
+        <code class="text-[11.5px]">{meta.git_commit.slice(0, 7)}</code>
+      </p>
     </header>
 
-    <!-- ── Embargo banner ─────────────────────────────────────────── -->
-    <div id="embargo-banner" class="hidden mb-6 border-l-2 border-amber-600 dark:border-amber-500 bg-amber-50/40 dark:bg-amber-950/30 px-4 py-3 text-[13px] text-amber-900 dark:text-amber-200 leading-relaxed">
-      <span class="font-semibold">Embargo notice.</span>
-      <span id="embargo-text"></span>
-    </div>
+    {embargoCount > 0 && (
+      <Banner kind="embargo" title="Embargo notice.">
+        <span data-i18n="security.embargo">
+          {embargoCount} finding{embargoCount === 1 ? '' : 's'} are withheld pending coordinated disclosure.
+          Their per-tool verdicts in Table 2 render as "—", and they are absent from Table 3.
+          Entries appear here once we contact the upstream maintainer.
+        </span>
+      </Banner>
+    )}
 
-    <!-- ── Abstract ───────────────────────────────────────────────── -->
-    <section class="mb-7 leading-relaxed text-[15px]">
-      <p data-i18n="abstract">
-        We run each pillager against a series of maliciously-crafted
-        <code class="font-mono">.git/</code> directories, modeled after
-        published research (justinsteven 2022, Driver&nbsp;Tom 2021) and
-        well-known Git CVEs. A test is a <strong>FAIL</strong> if the
-        malicious server attains code execution, arbitrary file write,
-        or SSRF against the tool's container during recovery. Tools with
-        unreported findings are anonymized as <em>Tool&nbsp;A…F</em>;
-        the mapping is maintained internally until coordinated
-        disclosure completes (see §3).
-      </p>
-    </section>
+    <!-- ── §1 Threat Model ─────────────────────────────────────── -->
+    <SectionHeading n={1} id="threat-model">
+      <span data-i18n="security.s1Heading">Threat Model</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s1Body">
+      We run each pillager against a series of maliciously-crafted
+      <code>.git/</code> directories, modeled after published research
+      (justinsteven 2022, Driver&nbsp;Tom 2021) and well-known Git CVEs.
+      A test is a <strong>FAIL</strong> if the malicious server attains
+      code execution, arbitrary file write, or SSRF against the tool's
+      container during recovery; <strong>PASS</strong> if the tool
+      refused or contained the payload.  Tools with unreported findings
+      are anonymized as <em>Tool&nbsp;A…F</em>; the mapping is maintained
+      internally until coordinated disclosure completes (see §5).
+    </p>
 
-    <div id="loading" class="py-12 text-center text-sm text-gray-400">Loading…</div>
-    <div id="error" class="hidden py-12 text-center text-sm text-red-700">Failed to load data.</div>
+    <!-- ── §2 Test Corpus ──────────────────────────────────────── -->
+    <SectionHeading n={2} id="corpus">
+      <span data-i18n="security.s2Heading">Test Corpus</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s2Body">
+      {tests.length} tests, drawn from public advisories and the Git CVE feed.
+      Categories: RCE (remote code execution against the tool host),
+      AFW (arbitrary file write outside the output directory), Info
+      (information disclosure, e.g. SSRF), CVE (regression tests for
+      Git CVEs that fire on <code>git clone</code> / <code>checkout</code>).
+    </p>
 
-    <div id="content" class="hidden">
+    <Table n={4} caption="Adversarial test corpus.  CVE column lists upstream identifiers where available.">
+      <table class="three-line-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Category</th>
+            <th>Sev.</th>
+            <th>CVE</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tests.map((t) => (
+            <tr>
+              <td><code class="text-[11px]">{fmtTestId(t.id)}</code></td>
+              <td>{t.category}</td>
+              <td><span class={severityClass(t.severity)}>{t.severity}</span></td>
+              <td>
+                {t.cve ? (
+                  <a href={`https://nvd.nist.gov/vuln/detail/${t.cve}`} target="_blank" rel="noopener" class="underline text-[11.5px]">{t.cve}</a>
+                ) : (
+                  <span class="opacity-50">—</span>
+                )}
+              </td>
+              <td class="text-[12.5px] !text-left">{t.description}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Table>
 
-      <!-- ── §1. Summary ─────────────────────────────────────────── -->
-      <section class="mb-8">
-        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_summary">1. Aggregate Results</h2>
-        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
-          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;1.</span>
-          <span data-i18n="t1_caption">Pillager pass rate across all attack categories. Higher is better. Best in bold.</span>
+    <!-- ── §3 Results Summary ──────────────────────────────────── -->
+    <SectionHeading n={3} id="summary">
+      <span data-i18n="security.s3Heading">Results Summary</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s3Body">
+      PASS rate per tool over the {tests.length}-test corpus.  Higher is
+      better — a PASS means the tool refused or contained the payload.
+      Best in bold.
+    </p>
+
+    <Table n={5} caption="Per-tool PASS rate across the full adversarial corpus.  Best in bold.">
+      <table class="three-line-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Version</th>
+            <th>PASS / Total</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {summaryRows.map((r) => {
+            const isBest = r.pass === bestPass;
+            const pct = r.total > 0 ? ((r.pass / r.total) * 100).toFixed(1) : '0.0';
+            return (
+              <tr class:list={[isBest ? 'best' : '']}>
+                <td>
+                  {r.meta.url ? (
+                    <a href={r.meta.url} target="_blank" rel="noopener" class="underline">{r.meta.name}</a>
+                  ) : (
+                    <em>{r.meta.name}</em>
+                  )}
+                </td>
+                <td><code class="text-[11px]">{r.meta.version}</code></td>
+                <td>{r.pass} / {r.total}</td>
+                <td>{pct}%</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Table>
+
+    <Figure n={5} id="fig-category" caption="PASS counts per tool, segmented by attack category.  Darker segments encode higher-severity categories (RCE darkest, Info lightest) so the figure retains comparison under grayscale print.">
+      <Fragment set:html={fig5} />
+    </Figure>
+
+    <!-- ── §4 Per-Test Matrix ──────────────────────────────────── -->
+    <SectionHeading n={4} id="matrix">
+      <span data-i18n="security.s4Heading">Per-Test Matrix</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s4Body">
+      PASS / FAIL grid per (test × tool).  "—" entries mean the result is
+      currently embargoed pending coordinated disclosure, not that the
+      tool was untested.
+    </p>
+
+    <Table n={6} caption="Per-test verdict matrix.  PASS = tool resisted the payload; FAIL = exploit succeeded.">
+      <table class="three-line-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Cat.</th>
+            <th>Sev.</th>
+            {toolIds.map((id) => <th>{security.tools[id].name}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {tests.map((t) => (
+            <tr>
+              <td><code class="text-[11px]">{fmtTestId(t.id)}</code></td>
+              <td class="text-[12px]">{t.category}</td>
+              <td><span class={severityClass(t.severity)}>{t.severity}</span></td>
+              {toolIds.map((id) => {
+                const r = t.results[id];
+                if (!r) return <td class="opacity-50">—</td>;
+                return <td><span class={verdictClass(r.verdict)}>{r.verdict}</span></td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Fragment slot="footnotes">
+        "—" in a cell means a result is being withheld pending coordinated
+        disclosure, not that the tool was not tested.
+      </Fragment>
+    </Table>
+
+    <!-- ── §5 Disclosure Timeline ──────────────────────────────── -->
+    <SectionHeading n={5} id="timeline">
+      <span data-i18n="security.s5Heading">Disclosure Timeline</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s5Body">
+      Each finding's coordinated-disclosure state, plotted across
+      observation, vendor contact, and patch landing.  Findings still
+      under embargo do not appear here until we contact upstream.
+    </p>
+
+    <Figure n={6} id="fig-timeline" caption="Disclosure timeline.  Bar spans from first observation to most recent milestone.  Markers: ● observed · ▪ reported · ◆ patched.">
+      <Fragment set:html={fig6} />
+    </Figure>
+
+    {disclosures.length > 0 && (
+      <Table n={7} caption="Disclosure tracker.  Status terms follow standard coordinated-disclosure stages.">
+        <table class="three-line-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Test</th>
+              <th>Tool</th>
+              <th>Sev.</th>
+              <th>Status</th>
+              <th>First obs.</th>
+              <th>CVE</th>
+            </tr>
+          </thead>
+          <tbody>
+            {disclosures.map((d) => (
+              <tr>
+                <td><code class="text-[11px]">{d.id}</code></td>
+                <td><code class="text-[11px]">{fmtTestId(d.test)}</code></td>
+                <td>{d.tool}</td>
+                <td><span class={severityClass(d.severity)}>{d.severity}</span></td>
+                <td class="text-[12px]"><code>{d.status}</code></td>
+                <td class="text-[12px]">{d.first_observed || '—'}</td>
+                <td>
+                  {d.cve ? (
+                    <a href={`https://nvd.nist.gov/vuln/detail/${d.cve}`} target="_blank" rel="noopener" class="underline text-[11.5px]">{d.cve}</a>
+                  ) : (
+                    <span class="opacity-50">—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Table>
+    )}
+
+    <!-- ── §6 Embargo Notice ───────────────────────────────────── -->
+    {embargoCount > 0 && (
+      <>
+        <SectionHeading n={6} id="embargo">
+          <span data-i18n="security.s6Heading">Embargo Notice</span>
+        </SectionHeading>
+        <p class="text-[14.5px] leading-[1.7]" data-i18n="security.s6Body">
+          {embargoCount} finding{embargoCount === 1 ? ' is' : 's are'} currently held under embargo while we coordinate
+          with upstream maintainers.  They are excluded from the per-tool counts in §3 and from the matrix in §4 until
+          the upstream notification window closes.  This page will surface the redacted-name version of each entry
+          once we send first contact.
         </p>
-        <div id="table-summary" class="overflow-x-auto"></div>
-      </section>
+      </>
+    )}
 
-      <!-- ── §2. Per-Test Matrix ─────────────────────────────────── -->
-      <section class="mb-8">
-        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_detail">2. Per-Test Matrix</h2>
-        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
-          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;2.</span>
-          <span data-i18n="t2_caption">PASS / FAIL grid per (test × tool). Click a row for the attack description, CVE link, and captured evidence.</span>
-        </p>
-        <div id="table-detail" class="overflow-x-auto"></div>
-        <div id="detail-panel" class="mt-3 hidden">
-          <div class="border-t border-gray-300 dark:border-gray-700 pt-3 pl-2">
-            <p id="detail-title" class="font-mono text-[13px] font-semibold mb-1"></p>
-            <p id="detail-desc" class="text-[13px] text-gray-700 dark:text-gray-300 mb-1"></p>
-            <p id="detail-cve" class="text-[12px] text-gray-500 dark:text-gray-400 mb-2"></p>
-            <div id="detail-evidence" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12px]"></div>
-          </div>
-        </div>
-      </section>
+    <!-- ── References ──────────────────────────────────────────── -->
+    <h2 class="mt-9 mb-3 text-[20px]">References</h2>
+    <ol class="ml-5 list-decimal text-[13.5px] leading-relaxed space-y-1.5 text-[var(--ink-soft)]">
+      <li>
+        justinsteven.
+        <em>Various abuses of <code>core.fsmonitor</code> in a directory's <code>.git/config</code></em>.
+        2022. <a href="https://github.com/justinsteven/advisories" target="_blank" rel="noopener" class="underline">github.com/justinsteven/advisories</a>
+      </li>
+      <li>
+        Driver Tom.
+        <em>别想偷我源码：通用的针对源码泄露利用程序的反制</em>.
+        2021. <a href="https://drivertom.blogspot.com/2021/08/git.html" target="_blank" rel="noopener" class="underline">drivertom.blogspot.com</a>
+      </li>
+      <li>
+        Git project.  <em>Security advisories</em>.
+        <a href="https://github.com/git/git/security/advisories" target="_blank" rel="noopener" class="underline">github.com/git/git/security/advisories</a>
+      </li>
+    </ol>
 
-      <!-- ── §3. Disclosure Tracker ──────────────────────────────── -->
-      <section class="mb-8">
-        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_disc">3. Disclosure Tracker</h2>
-        <p class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400 mb-3" data-i18n="disc_intro">
-          Per finding, we track the coordinated-disclosure state. Until a
-          finding reaches <em>disclosed</em>, the upstream tool is shown
-          as <em>Tool&nbsp;A…F</em>. The legend below maps the status
-          terms.
-        </p>
-        <details class="mb-3 text-[12px] text-gray-600 dark:text-gray-400">
-          <summary class="cursor-pointer font-semibold" data-i18n="legend_title">Status legend</summary>
-          <ul class="mt-2 ml-4 space-y-1 list-disc">
-            <li><span class="font-mono">confirmed</span> — <span data-i18n="st_confirmed">reproduced locally on the benchmark image</span></li>
-            <li><span class="font-mono">reported</span> — <span data-i18n="st_reported">contacted upstream maintainer</span></li>
-            <li><span class="font-mono">acknowledged</span> — <span data-i18n="st_ack">maintainer confirmed they are aware</span></li>
-            <li><span class="font-mono">patched</span> — <span data-i18n="st_patched">fix landed upstream</span></li>
-            <li><span class="font-mono">cve_assigned</span> — <span data-i18n="st_cve">CVE id issued</span></li>
-            <li><span class="font-mono">disclosed</span> — <span data-i18n="st_disclosed">public advisory out; tool can be named</span></li>
-          </ul>
-        </details>
-        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
-          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;3.</span>
-          <span data-i18n="t3_caption">Findings and their disclosure status, newest IDs last.</span>
-        </p>
-        <div id="table-disc" class="overflow-x-auto"></div>
-      </section>
-
-      <!-- ── References ──────────────────────────────────────────── -->
-      <section class="mb-12">
-        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_refs">References</h2>
-        <ol class="text-[13px] text-gray-700 dark:text-gray-300 space-y-1 list-decimal pl-5">
-          <li>justinsteven. <em>Various abuses of <code class="font-mono">core.fsmonitor</code> in a directory's <code class="font-mono">.git/config</code></em>. 2022. <a href="https://github.com/justinsteven/advisories" target="_blank" rel="noopener" class="underline">github.com/justinsteven/advisories</a></li>
-          <li>Driver Tom. <em>别想偷我源码：通用的针对源码泄露利用程序的反制</em>. 2021. <a href="https://drivertom.blogspot.com/2021/08/git.html" target="_blank" rel="noopener" class="underline">drivertom.blogspot.com</a></li>
-          <li>Git CVE catalog. <a href="https://github.com/git/git/security/advisories" target="_blank" rel="noopener" class="underline">github.com/git/git/security/advisories</a></li>
-        </ol>
-      </section>
-
-    </div>
-
-    <footer class="border-t border-gray-300 dark:border-gray-700 pt-3 pb-12 text-center text-[12px] italic text-gray-500 dark:text-gray-400">
-      <span data-i18n="footer">Generated by the GitHacker benchmark suite. Body set in Source Serif&nbsp;4.</span>
-    </footer>
-  </div>
+  </article>
 
   <style is:global>
-    .security-page {
-      font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-      font-feature-settings: 'liga', 'kern', 'tnum';
-    }
-    .security-page table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-      font-variant-numeric: tabular-nums;
-    }
-    .security-page table thead tr {
-      border-top: 2px solid #111827;
-      border-bottom: 1px solid #111827;
-    }
-    .security-page table tbody tr:last-child {
-      border-bottom: 2px solid #111827;
-    }
-    .security-page table tbody tr {
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .security-page table th {
-      text-align: right;
-      padding: 8px 12px;
-      font-weight: 600;
-      font-style: normal;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .security-page table td {
-      padding: 7px 12px;
-      text-align: right;
-      vertical-align: top;
-    }
-    .security-page table th.left,
-    .security-page table td.left {
-      text-align: left;
-    }
-    .security-page table td.nowrap,
-    .security-page table th.nowrap {
-      white-space: nowrap;
-    }
-    .security-page .v-pass { color: #15803d; }            /* green-700 */
-    .security-page .v-fail { color: #b91c1c; font-weight: 700; }   /* red-700 */
-    .security-page .v-timeout { color: #a16207; }         /* yellow-700 */
-    .security-page .v-error { color: #6b7280; }
-    .security-page .sev-h { color: #b91c1c; font-weight: 600; }
-    .security-page .sev-m { color: #a16207; }
-    .security-page .sev-l { color: #6b7280; }
-    .security-page .status-confirmed { color: #6b7280; }
-    .security-page .status-reported { color: #c2410c; }
-    .security-page .status-acknowledged { color: #a16207; }
-    .security-page .status-patched { color: #15803d; }
-    .security-page .status-cve_assigned { color: #b91c1c; font-weight: 600; }
-    .security-page .status-disclosed { color: #111827; font-weight: 600; }
-    .dark .security-page .v-pass { color: #4ade80; }
-    .dark .security-page .v-fail { color: #f87171; }
-    .dark .security-page .v-timeout { color: #fbbf24; }
-    .dark .security-page table thead tr,
-    .dark .security-page table tbody tr:last-child {
-      border-color: #e5e7eb;
-    }
-    .dark .security-page table tbody tr {
-      border-color: #374151;
-    }
-    .dark .security-page .sev-h { color: #f87171; }
-    .dark .security-page .sev-m { color: #fbbf24; }
-    .dark .security-page .status-patched { color: #4ade80; }
-    .dark .security-page .status-cve_assigned { color: #f87171; }
-    .dark .security-page .status-disclosed { color: #f3f4f6; }
+    .v-pass    { color: var(--c-pass); }
+    .v-fail    { color: var(--c-fail); font-weight: 700; }
+    .v-timeout { color: var(--c-timeout); }
+    .v-error   { color: var(--c-error); }
+    .sev-h     { color: var(--sev-h); font-weight: 600; }
+    .sev-m     { color: var(--sev-m); }
+    .sev-l     { color: var(--sev-l); }
   </style>
 
-  <script>
-    type ToolMeta = { name: string; url: string; version: string };
-    type Verdict = 'PASS' | 'FAIL' | 'TIMEOUT' | 'ERROR';
-    type ToolRun = {
-      verdict: Verdict;
-      evidence?: string;
-      duration?: number;
-      exit_code?: number;
-      stderr_tail?: string;
+  <script is:inline>
+    const SEC_ZH = {
+      preTitle: '对抗性研究',
+      title: '<code>.git/</code> 利用工具的对抗性基准测试',
+      byline: '与 <a href="/benchmark" class="underline">Benchmark</a> 互为镜像。衡量 pillager 工具面对恶意 <code>.git/</code> 时的加固程度。',
+      embargo: '当前有发现仍处于协调披露禁运期：在表 6 中以 "—" 显示，并不出现在表 7 中。我们通知上游维护者之后才会公开。',
+      s1Heading: '威胁模型',
+      s1Body: '我们让每个 pillager 工具针对一系列恶意 <code>.git/</code> 仓库进行恢复，攻击场景源自已发表研究（justinsteven 2022、Driver Tom 2021）及已公开的 Git CVE。若恶意服务器在恢复期间对工具容器达成代码执行、任意文件写入或 SSRF，则该测试记为 <strong>FAIL</strong>；若工具拒绝或限制 payload 则为 <strong>PASS</strong>。未披露的工具以 <em>Tool A…F</em> 匿名化；映射在协调披露完成前保留内部（见 §5）。',
+      s2Heading: '测试集',
+      s2Body: '测试用例取自公开通告及 Git 官方 CVE 列表。类别：RCE（对工具主机的远程代码执行）、AFW（写出输出目录外的任意文件）、Info（信息泄露，如 SSRF）、CVE（针对 git clone / checkout 触发的 Git CVE 回归测试）。',
+      s3Heading: '总体结果',
+      s3Body: '每个工具在全部测试上的 PASS 通过率。越高越好 —— PASS 表示工具拒绝或限制了 payload。最优值加粗。',
+      s4Heading: '逐项矩阵',
+      s4Body: '按（测试 × 工具）的 PASS / FAIL 网格。"—" 表示结果因协调披露禁运暂时不公开，并非未测试。',
+      s5Heading: '披露时间线',
+      s5Body: '每条发现的协调披露状态 —— 从首次观察、上报上游到补丁落地。仍在禁运中的发现暂不出现，直至我们联系上游。',
+      s6Heading: '禁运说明',
+      s6Body: '当前有若干发现仍在协调披露禁运期：在 §3 的工具计数与 §4 的矩阵中暂不公开，直到上游通知窗口结束。一旦我们发出首次联系，本页面会以匿名形式呈现这些条目。',
     };
-    type TestData = {
-      id: string;
-      category: string;
-      severity: 'H' | 'M' | 'L';
-      description: string;
-      cve?: string | null;
-      results: Record<string, ToolRun>;
-    };
-    type Disclosure = {
-      id: string;
-      test: string;
-      tool: string;
-      severity: 'H' | 'M' | 'L';
-      status: string;
-      first_observed: string;
-      reported_at?: string;
-      patched_at?: string;
-      cve?: string;
-      notes?: string;
-    };
-    type Report = {
-      schema_version: number;
-      generated_at: string;
-      git_commit: string;
-      tools: Record<string, ToolMeta>;
-      tests: TestData[];
-      disclosures?: Disclosure[];
-      embargo_count?: number;
-    };
-
-    let data: Report | null = null;
-    let lang = localStorage.getItem('lang') || 'en';
-
-    const I18N: Record<string, Record<string, string>> = {
-      title: {
-        en: 'Adversarial Benchmark of <code class="font-mono">.git/</code> Pillagers',
-        zh: '<code class="font-mono">.git/</code> 利用工具的对抗性基准测试',
-      },
-      byline: {
-        en: 'Companion to the recovery benchmark. Measures pillager hardening against a malicious server.',
-        zh: '与恢复基准互为镜像。衡量 pillager 工具面对恶意服务器时的加固程度。',
-      },
-      abstract: {
-        en: 'We run each pillager against a series of maliciously-crafted <code class="font-mono">.git/</code> directories, modeled after published research (justinsteven 2022, Driver&nbsp;Tom 2021) and well-known Git CVEs. A test is a <strong>FAIL</strong> if the malicious server attains code execution, arbitrary file write, or SSRF against the tool\'s container during recovery. Tools with unreported findings are anonymized as <em>Tool&nbsp;A…F</em>; the mapping is maintained internally until coordinated disclosure completes (see §3).',
-        zh: '我们让每个 pillager 工具对一系列精心构造的恶意 <code class="font-mono">.git/</code> 仓库进行恢复，攻击场景源自已发表研究（justinsteven 2022、Driver&nbsp;Tom 2021）与公开的 Git CVE。当恶意服务器在恢复过程中对工具容器达成代码执行、任意文件写入或 SSRF 时，该测试记为 <strong>FAIL</strong>。尚未披露的工具以 <em>Tool&nbsp;A…F</em> 匿名化显示；具体映射在协调披露完成前保留内部（见 §3）。',
-      },
-      h_summary: { en: '1. Aggregate Results', zh: '1. 总体结果' },
-      h_detail: { en: '2. Per-Test Matrix', zh: '2. 逐项矩阵' },
-      h_disc: { en: '3. Disclosure Tracker', zh: '3. 披露状态' },
-      h_refs: { en: 'References', zh: '参考文献' },
-      t1_caption: {
-        en: 'Pillager pass rate across all attack categories. Higher is better. Best in bold.',
-        zh: 'pillager 在全部攻击类别下的通过率。越高越好，最优值加粗。',
-      },
-      t2_caption: {
-        en: 'PASS / FAIL grid per (test × tool). Click a row for the attack description, CVE link, and captured evidence.',
-        zh: '按（测试 × 工具）的 PASS / FAIL 网格。点击一行可查看攻击描述、CVE 链接以及运行时捕获的证据。',
-      },
-      t3_caption: {
-        en: 'Findings and their disclosure status, newest IDs last.',
-        zh: '所有发现及其披露状态，按 ID 升序排列。',
-      },
-      disc_intro: {
-        en: 'Per finding, we track the coordinated-disclosure state. Until a finding reaches <em>disclosed</em>, the upstream tool is shown as <em>Tool&nbsp;A…F</em>. The legend below maps the status terms.',
-        zh: '我们记录每条发现的协调披露进度。在状态推进到 <em>disclosed</em> 之前，对应的上游工具以 <em>Tool&nbsp;A…F</em> 形式展示。下方图例说明各状态的含义。',
-      },
-      legend_title: { en: 'Status legend', zh: '状态图例' },
-      st_confirmed: { en: 'reproduced locally on the benchmark image', zh: '在 benchmark 镜像上本地复现' },
-      st_reported: { en: 'contacted upstream maintainer', zh: '已通知上游维护者' },
-      st_ack: { en: 'maintainer confirmed they are aware', zh: '维护者已确认知悉' },
-      st_patched: { en: 'fix landed upstream', zh: '上游已修复' },
-      st_cve: { en: 'CVE id issued', zh: 'CVE 编号已分配' },
-      st_disclosed: { en: 'public advisory out; tool can be named', zh: '公告发布；工具可显示真实名称' },
-      footer: {
-        en: 'Generated by the GitHacker benchmark suite. Body set in Source Serif 4.',
-        zh: '由 GitHacker benchmark 自动生成。正文采用 Source Serif 4 字体。',
-      },
-      embargo: {
-        en: '{n} finding(s) are withheld pending coordinated disclosure: their per-tool verdicts in Table 2 render as &ldquo;&mdash;&rdquo;, and they are absent from Table 3. Entries appear here once we contact the upstream maintainer.',
-        zh: '当前有 {n} 项发现仍处于协调披露禁运期：在表 2 中以 &ldquo;&mdash;&rdquo; 显示，并不出现在表 3 中。我们通知上游维护者之后才会公开。',
-      },
-      withheld_footnote: {
-        en: '&ldquo;&mdash;&rdquo; in Table 2 means a result is being withheld pending coordinated disclosure, not that the tool was not tested.',
-        zh: '表 2 中的 &ldquo;&mdash;&rdquo; 表示结果因协调披露禁运暂时不公开，并非未测试。',
-      },
-    };
-
-    const SEV_LABELS: Record<string, Record<string, string>> = {
-      H: { en: 'High',   zh: '高' },
-      M: { en: 'Medium', zh: '中' },
-      L: { en: 'Low',    zh: '低' },
-    };
-    const CATEGORY_LABELS: Record<string, Record<string, string>> = {
-      RCE:  { en: 'RCE',                  zh: 'RCE' },
-      AFW:  { en: 'Arbitrary File Write', zh: '任意文件写入' },
-      Info: { en: 'Info Disclosure',      zh: '信息泄露' },
-      CVE:  { en: 'Git CVE',              zh: 'Git CVE' },
-    };
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const res = await fetch('/data/security.json');
-        if (!res.ok) throw new Error();
-        data = await res.json();
-        init();
-      } catch {
-        document.getElementById('loading')!.classList.add('hidden');
-        document.getElementById('error')!.classList.remove('hidden');
-      }
+    window.addEventListener('langchange', (e) => {
+      const lang = e.detail;
+      document.querySelectorAll('[data-i18n^="security."]').forEach((el) => {
+        const key = el.dataset.i18n.replace(/^security\./, '');
+        if (lang === 'en') {
+          if (el.dataset.i18nOriginal) el.innerHTML = el.dataset.i18nOriginal;
+          return;
+        }
+        if (!(key in SEC_ZH)) return;
+        if (!el.dataset.i18nOriginal) el.dataset.i18nOriginal = el.innerHTML;
+        el.innerHTML = SEC_ZH[key];
+      });
     });
-
-    window.addEventListener('langchange', (e: any) => {
-      lang = e.detail;
-      if (data) renderAll();
-    });
-
-    function init() {
-      document.getElementById('loading')!.classList.add('hidden');
-      document.getElementById('content')!.classList.remove('hidden');
-      renderAll();
-    }
-
-    function renderAll() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = (el as HTMLElement).dataset.i18n!;
-        if (I18N[key]?.[lang]) el.innerHTML = I18N[key][lang];
-      });
-
-      const date = new Date(data!.generated_at).toLocaleDateString(
-        lang === 'zh' ? 'zh-CN' : 'en-US',
-        { year: 'numeric', month: 'short', day: 'numeric' },
-      );
-      document.getElementById('metadata')!.innerHTML =
-        (lang === 'zh' ? '生成日期 ' : 'Generated ') + date +
-        '. <span>Commit ' + data!.git_commit.slice(0, 7) + '</span>.';
-
-      renderEmbargo();
-      renderSummary();
-      renderDetail();
-      renderDisclosures();
-    }
-
-    function renderEmbargo() {
-      const banner = document.getElementById('embargo-banner')!;
-      const n = data!.embargo_count || 0;
-      if (n > 0) {
-        const text = (I18N.embargo[lang] || I18N.embargo.en).replace('{n}', String(n));
-        document.getElementById('embargo-text')!.innerHTML = ' ' + text;
-        banner.classList.remove('hidden');
-      } else {
-        banner.classList.add('hidden');
-      }
-    }
-
-    function categoryFor(testId: string): string {
-      const t = data!.tests.find(x => x.id === testId);
-      if (!t) return '';
-      return CATEGORY_LABELS[t.category]?.[lang] || t.category;
-    }
-
-    function toolOrder(): string[] {
-      return Object.keys(data!.tools).sort((a, b) =>
-        a === 'githacker' ? -1 : b === 'githacker' ? 1 : a.localeCompare(b));
-    }
-
-    function esc(s: string): string {
-      const d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
-    }
-
-    function fmtTestId(id: string): string {
-      // C3_redirect_ssrf -> C3-REDIRECT-SSRF
-      return id.toUpperCase().replace(/_/g, '-');
-    }
-
-    function verdictBadge(v: Verdict | string): string {
-      const cls = ({
-        PASS: 'v-pass', FAIL: 'v-fail', TIMEOUT: 'v-timeout', ERROR: 'v-error',
-      } as Record<string, string>)[v] || '';
-      return `<span class="${cls}">${esc(v)}</span>`;
-    }
-
-    function sevBadge(s: 'H' | 'M' | 'L'): string {
-      const label = SEV_LABELS[s]?.[lang] || s;
-      return `<span class="sev-${s.toLowerCase()}">${label}</span>`;
-    }
-
-    function statusBadge(s: string): string {
-      return `<span class="status-${esc(s)}">${esc(s)}</span>`;
-    }
-
-    function passCount(tid: string): { pass: number; total: number } {
-      // "total" counts only tests whose verdict for this tool is public.
-      // Embargoed cells are stripped from results in the redacted JSON,
-      // so they're correctly excluded from both numerator and denominator.
-      let pass = 0;
-      let total = 0;
-      for (const t of data!.tests) {
-        const r = t.results[tid];
-        if (!r) continue;
-        total++;
-        if (r.verdict === 'PASS') pass++;
-      }
-      return { pass, total };
-    }
-
-    function toolNameHTML(tid: string): string {
-      const tool = data!.tools[tid];
-      if (tool.url) {
-        return `<a href="${esc(tool.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(tool.name)}</a>`;
-      }
-      return `<em>${esc(tool.name)}</em>`;
-    }
-
-    function renderSummary() {
-      const tools = toolOrder();
-      const totals = tools.map(t => passCount(t));
-      const best = Math.max(...totals.map(x => x.pass));
-
-      let html = '<table>';
-      html += '<thead><tr>';
-      html += `<th class="left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
-      html += `<th>${lang === 'zh' ? '版本' : 'Version'}</th>`;
-      html += `<th>${lang === 'zh' ? '通过 / 总数' : 'PASS / Total'}</th>`;
-      html += `<th>${lang === 'zh' ? '通过率' : 'Pass rate'}</th>`;
-      html += '</tr></thead><tbody>';
-      tools.forEach((tid, i) => {
-        const tool = data!.tools[tid];
-        const { pass, total } = totals[i];
-        const isBest = pass === best;
-        const cell = isBest ? `<strong>${pass} / ${total}</strong>` : `${pass} / ${total}`;
-        const pct = total > 0 ? ((pass / total) * 100).toFixed(1) : '0.0';
-        html += `<tr>
-          <td class="left">${toolNameHTML(tid)}</td>
-          <td><code class="font-mono text-[11px]">${esc(tool.version)}</code></td>
-          <td>${cell}</td>
-          <td>${pct}%</td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-      document.getElementById('table-summary')!.innerHTML = html;
-    }
-
-    function renderDetail() {
-      const tools = toolOrder();
-      let html = '<table>';
-      html += '<thead><tr>';
-      html += `<th class="left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
-      html += `<th class="left">${lang === 'zh' ? '类别' : 'Category'}</th>`;
-      html += `<th>${lang === 'zh' ? '严重度' : 'Sev.'}</th>`;
-      html += '<th class="left">CVE</th>';
-      tools.forEach(tid => {
-        html += `<th>${esc(data!.tools[tid].name)}</th>`;
-      });
-      html += '</tr></thead><tbody>';
-
-      data!.tests.forEach((test, ti) => {
-        html += `<tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900" data-test-idx="${ti}">`;
-        html += `<td class="left nowrap font-mono text-[12px]">${esc(fmtTestId(test.id))}</td>`;
-        html += `<td class="left text-[12px]">${esc(CATEGORY_LABELS[test.category]?.[lang] || test.category)}</td>`;
-        html += `<td>${sevBadge(test.severity)}</td>`;
-        const cveLink = test.cve
-          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline text-[12px]">${esc(test.cve)}</a>`
-          : '<span class="text-gray-400">—</span>';
-        html += `<td class="left nowrap">${cveLink}</td>`;
-        tools.forEach(tid => {
-          const r = test.results[tid];
-          html += `<td>${r ? verdictBadge(r.verdict) : '<span class="text-gray-400">—</span>'}</td>`;
-        });
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-      // Footnote about withheld cells.
-      const footnote = (I18N.withheld_footnote[lang] || I18N.withheld_footnote.en);
-      html += `<p class="text-[12px] italic text-gray-500 dark:text-gray-400 mt-2">${footnote}</p>`;
-      document.getElementById('table-detail')!.innerHTML = html;
-
-      document.querySelectorAll<HTMLElement>('[data-test-idx]').forEach(row => {
-        row.addEventListener('click', () => showDetail(parseInt(row.dataset.testIdx!, 10)));
-      });
-    }
-
-    function showDetail(idx: number) {
-      const test = data!.tests[idx];
-      document.getElementById('detail-title')!.textContent = fmtTestId(test.id);
-      document.getElementById('detail-desc')!.textContent = test.description;
-
-      const cveEl = document.getElementById('detail-cve')!;
-      if (test.cve) {
-        cveEl.innerHTML = `CVE: <a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline">${esc(test.cve)}</a>`;
-      } else {
-        cveEl.textContent = '';
-      }
-
-      const tools = toolOrder();
-      let html = '';
-      tools.forEach(tid => {
-        const r = test.results[tid];
-        const tool = data!.tools[tid];
-        html += `<div>
-          <p class="font-semibold mb-1">${esc(tool.name)} ${verdictBadge(r?.verdict || '—')}</p>
-          ${r?.evidence ? `<p class="text-gray-600 dark:text-gray-400">${esc(r.evidence)}</p>` : ''}
-          ${r?.duration ? `<p class="text-gray-400">${r.duration.toFixed(2)}s</p>` : ''}
-        </div>`;
-      });
-      document.getElementById('detail-evidence')!.innerHTML = html;
-      document.getElementById('detail-panel')!.classList.remove('hidden');
-    }
-
-    function renderDisclosures() {
-      const discs = data!.disclosures || [];
-      if (!discs.length) {
-        document.getElementById('table-disc')!.innerHTML =
-          `<p class="text-[13px] italic text-gray-500">${lang === 'zh' ? '尚无发现。' : 'No findings.'}</p>`;
-        return;
-      }
-      let html = '<table>';
-      html += '<thead><tr>';
-      html += `<th class="left">ID</th>`;
-      html += `<th class="left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
-      html += `<th class="left">${lang === 'zh' ? '危害' : 'Impact'}</th>`;
-      html += `<th class="left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
-      html += `<th>${lang === 'zh' ? '严重度' : 'Sev.'}</th>`;
-      html += `<th class="left">${lang === 'zh' ? '状态' : 'Status'}</th>`;
-      html += `<th class="left">${lang === 'zh' ? '首次观察' : 'First Obs.'}</th>`;
-      html += `<th class="left">CVE</th>`;
-      html += `<th class="left">${lang === 'zh' ? '备注' : 'Notes'}</th>`;
-      html += '</tr></thead><tbody>';
-      discs.forEach(d => {
-        const cveLink = d.cve
-          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(d.cve)}" target="_blank" rel="noopener" class="underline">${esc(d.cve)}</a>`
-          : '<span class="text-gray-400">—</span>';
-        html += `<tr>
-          <td class="left nowrap font-mono text-[12px]">${esc(d.id)}</td>
-          <td class="left nowrap font-mono text-[12px]">${esc(fmtTestId(d.test))}</td>
-          <td class="left nowrap text-[12px]">${esc(categoryFor(d.test))}</td>
-          <td class="left nowrap">${esc(d.tool)}</td>
-          <td>${sevBadge(d.severity)}</td>
-          <td class="left nowrap font-mono text-[12px]">${statusBadge(d.status)}</td>
-          <td class="left nowrap text-[12px]">${esc(d.first_observed || '—')}</td>
-          <td class="left nowrap text-[12px]">${cveLink}</td>
-          <td class="left text-[12px] text-gray-600 dark:text-gray-400">${esc(d.notes || '')}</td>
-        </tr>`;
-      });
-      html += '</tbody></table>';
-      document.getElementById('table-disc')!.innerHTML = html;
-    }
   </script>
 </Layout>
