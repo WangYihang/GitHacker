@@ -2,62 +2,190 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Security — GitHacker" description="Adversarial benchmark of .git folder exploitation tools: who gets pwned by a malicious server?">
-  <div class="max-w-[750px] mx-auto px-6">
+<Layout title="Security — GitHacker" description="Adversarial benchmark of .git folder exploitation tools.">
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+    slot="head"
+  />
 
-    <div class="section">
-      <h1 class="text-3xl font-bold mb-2" data-i18n="title">Security Benchmark</h1>
-      <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed max-w-3xl" data-i18n="intro">
-        The flip side of the performance benchmark: when a pillager downloads
-        a maliciously crafted <code>.git/</code>, does the tool get pwned?
-        Each row is a known attack primitive (justinsteven 2022,
-        Driver&nbsp;Tom 2021, plus assorted git CVEs). A cell is
-        <strong>FAIL</strong> if the canary fired — i.e., the malicious
-        server achieved code execution, arbitrary file write, or SSRF
-        against the tool.
+  <div class="security-page max-w-[820px] mx-auto px-6">
+
+    <!-- ── Header ─────────────────────────────────────────────────── -->
+    <header class="pt-6 pb-4">
+      <h1 class="font-bold text-[28px] tracking-tight leading-tight" data-i18n="title">Adversarial Benchmark of <code class="font-mono">.git/</code> Pillagers</h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400" data-i18n="byline">
+        Companion to the recovery benchmark. Measures pillager hardening against a malicious server.
       </p>
-      <p id="metadata" class="mt-3 text-xs text-gray-400"></p>
-    </div>
+      <p id="metadata" class="mt-3 text-xs italic text-gray-500 dark:text-gray-400"></p>
+    </header>
 
-    <div id="loading" class="py-16 text-center text-sm text-gray-400">Loading…</div>
-    <div id="error" class="hidden py-16 text-center text-sm text-red-600">Failed to load data.</div>
+    <!-- ── Abstract ───────────────────────────────────────────────── -->
+    <section class="mb-7 leading-relaxed text-[15px]">
+      <p data-i18n="abstract">
+        We run each pillager against a series of maliciously-crafted
+        <code class="font-mono">.git/</code> directories, modeled after
+        published research (justinsteven 2022, Driver&nbsp;Tom 2021) and
+        well-known Git CVEs. A test is a <strong>FAIL</strong> if the
+        malicious server attains code execution, arbitrary file write,
+        or SSRF against the tool's container during recovery. Tools with
+        unreported findings are anonymized as <em>Tool&nbsp;A…F</em>;
+        the mapping is maintained internally until coordinated
+        disclosure completes (see §3).
+      </p>
+    </section>
+
+    <div id="loading" class="py-12 text-center text-sm text-gray-400">Loading…</div>
+    <div id="error" class="hidden py-12 text-center text-sm text-red-700">Failed to load data.</div>
 
     <div id="content" class="hidden">
 
-      <!-- Summary -->
-      <div class="section">
-        <h2 class="text-lg font-semibold mb-1" data-i18n="t_summary_title">Summary</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t_summary_caption">
-          PASS / total. Higher is better. Best in bold.
+      <!-- ── §1. Summary ─────────────────────────────────────────── -->
+      <section class="mb-8">
+        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_summary">1. Aggregate Results</h2>
+        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
+          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;1.</span>
+          <span data-i18n="t1_caption">Pillager pass rate across all attack categories. Higher is better. Best in bold.</span>
         </p>
         <div id="table-summary" class="overflow-x-auto"></div>
-      </div>
+      </section>
 
-      <!-- Per-test breakdown -->
-      <div class="section">
-        <h2 class="text-lg font-semibold mb-1" data-i18n="t_detail_title">Per-Test Breakdown</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-500 mb-4" data-i18n="t_detail_caption">
-          Click a row for the attack description, CVE link, and evidence
-          captured during the run.
+      <!-- ── §2. Per-Test Matrix ─────────────────────────────────── -->
+      <section class="mb-8">
+        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_detail">2. Per-Test Matrix</h2>
+        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
+          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;2.</span>
+          <span data-i18n="t2_caption">PASS / FAIL grid per (test × tool). Click a row for the attack description, CVE link, and captured evidence.</span>
         </p>
         <div id="table-detail" class="overflow-x-auto"></div>
-        <div id="detail-panel" class="mt-4 hidden">
-          <div class="border-t-2 border-gray-900 dark:border-gray-300 pt-3">
-            <p id="detail-title" class="text-sm font-semibold mb-2"></p>
-            <p id="detail-desc" class="text-xs text-gray-600 dark:text-gray-400 mb-2"></p>
-            <p id="detail-cve" class="text-xs text-gray-600 dark:text-gray-400 mb-2"></p>
-            <div id="detail-evidence" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs"></div>
+        <div id="detail-panel" class="mt-3 hidden">
+          <div class="border-t border-gray-300 dark:border-gray-700 pt-3 pl-2">
+            <p id="detail-title" class="font-mono text-[13px] font-semibold mb-1"></p>
+            <p id="detail-desc" class="text-[13px] text-gray-700 dark:text-gray-300 mb-1"></p>
+            <p id="detail-cve" class="text-[12px] text-gray-500 dark:text-gray-400 mb-2"></p>
+            <div id="detail-evidence" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12px]"></div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- ── §3. Disclosure Tracker ──────────────────────────────── -->
+      <section class="mb-8">
+        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_disc">3. Disclosure Tracker</h2>
+        <p class="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400 mb-3" data-i18n="disc_intro">
+          Per finding, we track the coordinated-disclosure state. Until a
+          finding reaches <em>disclosed</em>, the upstream tool is shown
+          as <em>Tool&nbsp;A…F</em>. The legend below maps the status
+          terms.
+        </p>
+        <details class="mb-3 text-[12px] text-gray-600 dark:text-gray-400">
+          <summary class="cursor-pointer font-semibold" data-i18n="legend_title">Status legend</summary>
+          <ul class="mt-2 ml-4 space-y-1 list-disc">
+            <li><span class="font-mono">confirmed</span> — <span data-i18n="st_confirmed">reproduced locally on the benchmark image</span></li>
+            <li><span class="font-mono">reported</span> — <span data-i18n="st_reported">contacted upstream maintainer</span></li>
+            <li><span class="font-mono">acknowledged</span> — <span data-i18n="st_ack">maintainer confirmed they are aware</span></li>
+            <li><span class="font-mono">patched</span> — <span data-i18n="st_patched">fix landed upstream</span></li>
+            <li><span class="font-mono">cve_assigned</span> — <span data-i18n="st_cve">CVE id issued</span></li>
+            <li><span class="font-mono">disclosed</span> — <span data-i18n="st_disclosed">public advisory out; tool can be named</span></li>
+          </ul>
+        </details>
+        <p class="text-[13px] italic text-gray-500 dark:text-gray-400 mb-2">
+          <span class="uppercase tracking-wider not-italic font-semibold text-gray-700 dark:text-gray-300">Table&nbsp;3.</span>
+          <span data-i18n="t3_caption">Findings and their disclosure status, newest IDs last.</span>
+        </p>
+        <div id="table-disc" class="overflow-x-auto"></div>
+      </section>
+
+      <!-- ── References ──────────────────────────────────────────── -->
+      <section class="mb-12">
+        <h2 class="font-semibold text-[17px] mt-2 mb-3" data-i18n="h_refs">References</h2>
+        <ol class="text-[13px] text-gray-700 dark:text-gray-300 space-y-1 list-decimal pl-5">
+          <li>justinsteven. <em>Various abuses of <code class="font-mono">core.fsmonitor</code> in a directory's <code class="font-mono">.git/config</code></em>. 2022. <a href="https://github.com/justinsteven/advisories" target="_blank" rel="noopener" class="underline">github.com/justinsteven/advisories</a></li>
+          <li>Driver Tom. <em>别想偷我源码：通用的针对源码泄露利用程序的反制</em>. 2021. <a href="https://drivertom.blogspot.com/2021/08/git.html" target="_blank" rel="noopener" class="underline">drivertom.blogspot.com</a></li>
+          <li>Git CVE catalog. <a href="https://github.com/git/git/security/advisories" target="_blank" rel="noopener" class="underline">github.com/git/git/security/advisories</a></li>
+        </ol>
+      </section>
 
     </div>
+
+    <footer class="border-t border-gray-300 dark:border-gray-700 pt-3 pb-12 text-center text-[12px] italic text-gray-500 dark:text-gray-400">
+      <span data-i18n="footer">Generated by the GitHacker benchmark suite. Body set in Source Serif&nbsp;4.</span>
+    </footer>
   </div>
+
+  <style is:global>
+    .security-page {
+      font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+      font-feature-settings: 'liga', 'kern', 'tnum';
+    }
+    .security-page table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .security-page table thead tr {
+      border-top: 2px solid #111827;
+      border-bottom: 1px solid #111827;
+    }
+    .security-page table tbody tr:last-child {
+      border-bottom: 2px solid #111827;
+    }
+    .security-page table tbody tr {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .security-page table th {
+      text-align: right;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-style: normal;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .security-page table td {
+      padding: 7px 12px;
+      text-align: right;
+      vertical-align: top;
+    }
+    .security-page table th.left,
+    .security-page table td.left {
+      text-align: left;
+    }
+    .security-page .v-pass { color: #15803d; }            /* green-700 */
+    .security-page .v-fail { color: #b91c1c; font-weight: 700; }   /* red-700 */
+    .security-page .v-timeout { color: #a16207; }         /* yellow-700 */
+    .security-page .v-error { color: #6b7280; }
+    .security-page .sev-h { color: #b91c1c; font-weight: 600; }
+    .security-page .sev-m { color: #a16207; }
+    .security-page .sev-l { color: #6b7280; }
+    .security-page .status-confirmed { color: #6b7280; }
+    .security-page .status-reported { color: #c2410c; }
+    .security-page .status-acknowledged { color: #a16207; }
+    .security-page .status-patched { color: #15803d; }
+    .security-page .status-cve_assigned { color: #b91c1c; font-weight: 600; }
+    .security-page .status-disclosed { color: #111827; font-weight: 600; }
+    .dark .security-page .v-pass { color: #4ade80; }
+    .dark .security-page .v-fail { color: #f87171; }
+    .dark .security-page .v-timeout { color: #fbbf24; }
+    .dark .security-page table thead tr,
+    .dark .security-page table tbody tr:last-child {
+      border-color: #e5e7eb;
+    }
+    .dark .security-page table tbody tr {
+      border-color: #374151;
+    }
+    .dark .security-page .sev-h { color: #f87171; }
+    .dark .security-page .sev-m { color: #fbbf24; }
+    .dark .security-page .status-patched { color: #4ade80; }
+    .dark .security-page .status-cve_assigned { color: #f87171; }
+    .dark .security-page .status-disclosed { color: #f3f4f6; }
+  </style>
 
   <script>
     type ToolMeta = { name: string; url: string; version: string };
+    type Verdict = 'PASS' | 'FAIL' | 'TIMEOUT' | 'ERROR';
     type ToolRun = {
-      verdict: 'PASS' | 'FAIL' | 'TIMEOUT' | 'ERROR';
+      verdict: Verdict;
       evidence?: string;
       duration?: number;
       exit_code?: number;
@@ -65,38 +193,79 @@ import Layout from '../layouts/Layout.astro';
     };
     type TestData = {
       id: string;
-      category: 'RCE' | 'AFW' | 'Info' | 'CVE';
+      category: string;
       severity: 'H' | 'M' | 'L';
       description: string;
       cve?: string | null;
       results: Record<string, ToolRun>;
     };
-    type SecurityReport = {
+    type Disclosure = {
+      id: string;
+      test: string;
+      tool: string;
+      severity: 'H' | 'M' | 'L';
+      status: string;
+      first_observed: string;
+      reported_at?: string;
+      patched_at?: string;
+      cve?: string;
+      notes?: string;
+    };
+    type Report = {
       schema_version: number;
       generated_at: string;
       git_commit: string;
       tools: Record<string, ToolMeta>;
       tests: TestData[];
+      disclosures?: Disclosure[];
     };
 
-    let data: SecurityReport | null = null;
+    let data: Report | null = null;
     let lang = localStorage.getItem('lang') || 'en';
 
     const I18N: Record<string, Record<string, string>> = {
-      title: { en: 'Security Benchmark', zh: '安全性基准测试' },
-      intro: {
-        en: 'The flip side of the performance benchmark: when a pillager downloads a maliciously crafted <code>.git/</code>, does the tool get pwned? Each row is a known attack primitive (justinsteven 2022, Driver&nbsp;Tom 2021, plus assorted git CVEs). A cell is <strong>FAIL</strong> if the canary fired — i.e., the malicious server achieved code execution, arbitrary file write, or SSRF against the tool.',
-        zh: '与性能基准互为镜像：当 pillager 下载一个精心构造的恶意 <code>.git/</code> 时，工具会不会反被攻陷？每一行是一种已知的攻击原语（justinsteven 2022、Driver&nbsp;Tom 2021，以及若干 git CVE）。单元格为 <strong>FAIL</strong> 表示 canary 触发——即恶意服务器对工具实现了代码执行、任意文件写入、或 SSRF。',
+      title: {
+        en: 'Adversarial Benchmark of <code class="font-mono">.git/</code> Pillagers',
+        zh: '<code class="font-mono">.git/</code> 利用工具的对抗性基准测试',
       },
-      t_summary_title: { en: 'Summary', zh: '总览' },
-      t_summary_caption: {
-        en: 'PASS / total. Higher is better. Best in bold.',
-        zh: 'PASS / 总数。越高越好。最优值加粗。',
+      byline: {
+        en: 'Companion to the recovery benchmark. Measures pillager hardening against a malicious server.',
+        zh: '与恢复基准互为镜像。衡量 pillager 工具面对恶意服务器时的加固程度。',
       },
-      t_detail_title: { en: 'Per-Test Breakdown', zh: '逐项详情' },
-      t_detail_caption: {
-        en: 'Click a row for the attack description, CVE link, and evidence captured during the run.',
-        zh: '点击一行查看攻击描述、CVE 链接，以及运行时捕获的证据。',
+      abstract: {
+        en: 'We run each pillager against a series of maliciously-crafted <code class="font-mono">.git/</code> directories, modeled after published research (justinsteven 2022, Driver&nbsp;Tom 2021) and well-known Git CVEs. A test is a <strong>FAIL</strong> if the malicious server attains code execution, arbitrary file write, or SSRF against the tool\'s container during recovery. Tools with unreported findings are anonymized as <em>Tool&nbsp;A…F</em>; the mapping is maintained internally until coordinated disclosure completes (see §3).',
+        zh: '我们让每个 pillager 工具对一系列精心构造的恶意 <code class="font-mono">.git/</code> 仓库进行恢复，攻击场景源自已发表研究（justinsteven 2022、Driver&nbsp;Tom 2021）与公开的 Git CVE。当恶意服务器在恢复过程中对工具容器达成代码执行、任意文件写入或 SSRF 时，该测试记为 <strong>FAIL</strong>。尚未披露的工具以 <em>Tool&nbsp;A…F</em> 匿名化显示；具体映射在协调披露完成前保留内部（见 §3）。',
+      },
+      h_summary: { en: '1. Aggregate Results', zh: '1. 总体结果' },
+      h_detail: { en: '2. Per-Test Matrix', zh: '2. 逐项矩阵' },
+      h_disc: { en: '3. Disclosure Tracker', zh: '3. 披露状态' },
+      h_refs: { en: 'References', zh: '参考文献' },
+      t1_caption: {
+        en: 'Pillager pass rate across all attack categories. Higher is better. Best in bold.',
+        zh: 'pillager 在全部攻击类别下的通过率。越高越好，最优值加粗。',
+      },
+      t2_caption: {
+        en: 'PASS / FAIL grid per (test × tool). Click a row for the attack description, CVE link, and captured evidence.',
+        zh: '按（测试 × 工具）的 PASS / FAIL 网格。点击一行可查看攻击描述、CVE 链接以及运行时捕获的证据。',
+      },
+      t3_caption: {
+        en: 'Findings and their disclosure status, newest IDs last.',
+        zh: '所有发现及其披露状态，按 ID 升序排列。',
+      },
+      disc_intro: {
+        en: 'Per finding, we track the coordinated-disclosure state. Until a finding reaches <em>disclosed</em>, the upstream tool is shown as <em>Tool&nbsp;A…F</em>. The legend below maps the status terms.',
+        zh: '我们记录每条发现的协调披露进度。在状态推进到 <em>disclosed</em> 之前，对应的上游工具以 <em>Tool&nbsp;A…F</em> 形式展示。下方图例说明各状态的含义。',
+      },
+      legend_title: { en: 'Status legend', zh: '状态图例' },
+      st_confirmed: { en: 'reproduced locally on the benchmark image', zh: '在 benchmark 镜像上本地复现' },
+      st_reported: { en: 'contacted upstream maintainer', zh: '已通知上游维护者' },
+      st_ack: { en: 'maintainer confirmed they are aware', zh: '维护者已确认知悉' },
+      st_patched: { en: 'fix landed upstream', zh: '上游已修复' },
+      st_cve: { en: 'CVE id issued', zh: 'CVE 编号已分配' },
+      st_disclosed: { en: 'public advisory out; tool can be named', zh: '公告发布；工具可显示真实名称' },
+      footer: {
+        en: 'Generated by the GitHacker benchmark suite. Body set in Source Serif 4.',
+        zh: '由 GitHacker benchmark 自动生成。正文采用 Source Serif 4 字体。',
       },
     };
 
@@ -105,12 +274,11 @@ import Layout from '../layouts/Layout.astro';
       M: { en: 'Medium', zh: '中' },
       L: { en: 'Low',    zh: '低' },
     };
-
     const CATEGORY_LABELS: Record<string, Record<string, string>> = {
-      RCE:  { en: 'RCE',                       zh: '远程代码执行' },
-      AFW:  { en: 'Arbitrary File Write',      zh: '任意文件写入' },
-      Info: { en: 'Information Disclosure',    zh: '信息泄露' },
-      CVE:  { en: 'Git CVE',                   zh: 'Git 漏洞' },
+      RCE:  { en: 'RCE',                  zh: 'RCE' },
+      AFW:  { en: 'Arbitrary File Write', zh: '任意文件写入' },
+      Info: { en: 'Info Disclosure',      zh: '信息泄露' },
+      CVE:  { en: 'Git CVE',              zh: 'Git CVE' },
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -146,11 +314,13 @@ import Layout from '../layouts/Layout.astro';
         lang === 'zh' ? 'zh-CN' : 'en-US',
         { year: 'numeric', month: 'short', day: 'numeric' },
       );
-      document.getElementById('metadata')!.textContent =
-        `${lang === 'zh' ? '生成日期' : 'Generated'} ${date}. Commit ${data!.git_commit.slice(0, 7)}.`;
+      document.getElementById('metadata')!.innerHTML =
+        (lang === 'zh' ? '生成日期 ' : 'Generated ') + date +
+        '. <span>Commit ' + data!.git_commit.slice(0, 7) + '</span>.';
 
       renderSummary();
       renderDetail();
+      renderDisclosures();
     }
 
     function toolOrder(): string[] {
@@ -164,6 +334,22 @@ import Layout from '../layouts/Layout.astro';
       return d.innerHTML;
     }
 
+    function verdictBadge(v: Verdict | string): string {
+      const cls = ({
+        PASS: 'v-pass', FAIL: 'v-fail', TIMEOUT: 'v-timeout', ERROR: 'v-error',
+      } as Record<string, string>)[v] || '';
+      return `<span class="${cls}">${esc(v)}</span>`;
+    }
+
+    function sevBadge(s: 'H' | 'M' | 'L'): string {
+      const label = SEV_LABELS[s]?.[lang] || s;
+      return `<span class="sev-${s.toLowerCase()}">${label}</span>`;
+    }
+
+    function statusBadge(s: string): string {
+      return `<span class="status-${esc(s)}">${esc(s)}</span>`;
+    }
+
     function passCount(tid: string): { pass: number; total: number } {
       let pass = 0;
       for (const t of data!.tests) {
@@ -173,14 +359,22 @@ import Layout from '../layouts/Layout.astro';
       return { pass, total: data!.tests.length };
     }
 
+    function toolNameHTML(tid: string): string {
+      const tool = data!.tools[tid];
+      if (tool.url) {
+        return `<a href="${esc(tool.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(tool.name)}</a>`;
+      }
+      return `<em>${esc(tool.name)}</em>`;
+    }
+
     function renderSummary() {
       const tools = toolOrder();
       const totals = tools.map(t => passCount(t));
       const best = Math.max(...totals.map(x => x.pass));
 
-      let html = '<table class="data-table">';
+      let html = '<table>';
       html += '<thead><tr>';
-      html += `<th class="!text-left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
+      html += `<th class="left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
       html += `<th>${lang === 'zh' ? '版本' : 'Version'}</th>`;
       html += `<th>${lang === 'zh' ? '通过 / 总数' : 'PASS / Total'}</th>`;
       html += `<th>${lang === 'zh' ? '通过率' : 'Pass rate'}</th>`;
@@ -192,8 +386,8 @@ import Layout from '../layouts/Layout.astro';
         const cell = isBest ? `<strong>${pass} / ${total}</strong>` : `${pass} / ${total}`;
         const pct = total > 0 ? ((pass / total) * 100).toFixed(1) : '0.0';
         html += `<tr>
-          <td class="!text-left"><a href="${esc(tool.url)}" target="_blank" rel="noopener" class="underline decoration-gray-300 hover:decoration-gray-900 dark:hover:decoration-gray-200">${esc(tool.name)}</a></td>
-          <td><code class="text-xs">${esc(tool.version)}</code></td>
+          <td class="left">${toolNameHTML(tid)}</td>
+          <td><code class="font-mono text-[11px]">${esc(tool.version)}</code></td>
           <td>${cell}</td>
           <td>${pct}%</td>
         </tr>`;
@@ -202,37 +396,14 @@ import Layout from '../layouts/Layout.astro';
       document.getElementById('table-summary')!.innerHTML = html;
     }
 
-    function verdictBadge(v: string): string {
-      switch (v) {
-        case 'PASS':
-          return '<span class="text-green-700 dark:text-green-400 font-medium">PASS</span>';
-        case 'FAIL':
-          return '<span class="text-red-700 dark:text-red-400 font-bold">FAIL</span>';
-        case 'TIMEOUT':
-          return '<span class="text-yellow-700 dark:text-yellow-400">TIMEOUT</span>';
-        case 'ERROR':
-          return '<span class="text-gray-500">ERROR</span>';
-        default:
-          return esc(v);
-      }
-    }
-
-    function sevBadge(s: string): string {
-      const label = SEV_LABELS[s]?.[lang] || s;
-      const cls = s === 'H'
-        ? 'text-red-700 dark:text-red-400 font-medium'
-        : s === 'M' ? 'text-yellow-700 dark:text-yellow-400' : 'text-gray-500';
-      return `<span class="${cls}">${label}</span>`;
-    }
-
     function renderDetail() {
       const tools = toolOrder();
-      let html = '<table class="data-table">';
+      let html = '<table>';
       html += '<thead><tr>';
-      html += `<th class="!text-left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
-      html += `<th>${lang === 'zh' ? '类别' : 'Category'}</th>`;
-      html += `<th>${lang === 'zh' ? '严重度' : 'Severity'}</th>`;
-      html += '<th>CVE</th>';
+      html += `<th class="left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
+      html += `<th class="left">${lang === 'zh' ? '类别' : 'Category'}</th>`;
+      html += `<th>${lang === 'zh' ? '严重度' : 'Sev.'}</th>`;
+      html += '<th class="left">CVE</th>';
       tools.forEach(tid => {
         html += `<th>${esc(data!.tools[tid].name)}</th>`;
       });
@@ -240,13 +411,13 @@ import Layout from '../layouts/Layout.astro';
 
       data!.tests.forEach((test, ti) => {
         html += `<tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900" data-test-idx="${ti}">`;
-        html += `<td class="!text-left font-mono text-xs">${esc(test.id)}</td>`;
-        html += `<td class="text-xs">${esc(CATEGORY_LABELS[test.category]?.[lang] || test.category)}</td>`;
+        html += `<td class="left font-mono text-[12px]">${esc(test.id)}</td>`;
+        html += `<td class="left text-[12px]">${esc(CATEGORY_LABELS[test.category]?.[lang] || test.category)}</td>`;
         html += `<td>${sevBadge(test.severity)}</td>`;
         const cveLink = test.cve
-          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline text-xs">${esc(test.cve)}</a>`
-          : '<span class="text-gray-400 text-xs">—</span>';
-        html += `<td>${cveLink}</td>`;
+          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(test.cve)}" target="_blank" rel="noopener" class="underline text-[12px]">${esc(test.cve)}</a>`
+          : '<span class="text-gray-400">—</span>';
+        html += `<td class="left">${cveLink}</td>`;
         tools.forEach(tid => {
           const r = test.results[tid];
           html += `<td>${r ? verdictBadge(r.verdict) : '<span class="text-gray-400">—</span>'}</td>`;
@@ -279,13 +450,50 @@ import Layout from '../layouts/Layout.astro';
         const r = test.results[tid];
         const tool = data!.tools[tid];
         html += `<div>
-          <p class="font-medium mb-1">${esc(tool.name)} ${verdictBadge(r?.verdict || '—')}</p>
-          ${r?.evidence ? `<p class="text-xs text-gray-500 dark:text-gray-400">${esc(r.evidence)}</p>` : ''}
-          ${r?.duration ? `<p class="text-xs text-gray-400">${r.duration.toFixed(2)}s</p>` : ''}
+          <p class="font-semibold mb-1">${esc(tool.name)} ${verdictBadge(r?.verdict || '—')}</p>
+          ${r?.evidence ? `<p class="text-gray-600 dark:text-gray-400">${esc(r.evidence)}</p>` : ''}
+          ${r?.duration ? `<p class="text-gray-400">${r.duration.toFixed(2)}s</p>` : ''}
         </div>`;
       });
       document.getElementById('detail-evidence')!.innerHTML = html;
       document.getElementById('detail-panel')!.classList.remove('hidden');
+    }
+
+    function renderDisclosures() {
+      const discs = data!.disclosures || [];
+      if (!discs.length) {
+        document.getElementById('table-disc')!.innerHTML =
+          `<p class="text-[13px] italic text-gray-500">${lang === 'zh' ? '尚无发现。' : 'No findings.'}</p>`;
+        return;
+      }
+      let html = '<table>';
+      html += '<thead><tr>';
+      html += `<th class="left">ID</th>`;
+      html += `<th class="left">${lang === 'zh' ? '测试' : 'Test'}</th>`;
+      html += `<th class="left">${lang === 'zh' ? '工具' : 'Tool'}</th>`;
+      html += `<th>${lang === 'zh' ? '严重度' : 'Sev.'}</th>`;
+      html += `<th class="left">${lang === 'zh' ? '状态' : 'Status'}</th>`;
+      html += `<th class="left">${lang === 'zh' ? '首次观察' : 'First Obs.'}</th>`;
+      html += `<th class="left">CVE</th>`;
+      html += `<th class="left">${lang === 'zh' ? '备注' : 'Notes'}</th>`;
+      html += '</tr></thead><tbody>';
+      discs.forEach(d => {
+        const cveLink = d.cve
+          ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(d.cve)}" target="_blank" rel="noopener" class="underline">${esc(d.cve)}</a>`
+          : '<span class="text-gray-400">—</span>';
+        html += `<tr>
+          <td class="left font-mono text-[12px]">${esc(d.id)}</td>
+          <td class="left font-mono text-[12px]">${esc(d.test)}</td>
+          <td class="left">${esc(d.tool)}</td>
+          <td>${sevBadge(d.severity)}</td>
+          <td class="left font-mono text-[12px]">${statusBadge(d.status)}</td>
+          <td class="left text-[12px]">${esc(d.first_observed || '—')}</td>
+          <td class="left text-[12px]">${cveLink}</td>
+          <td class="left text-[12px] text-gray-600 dark:text-gray-400">${esc(d.notes || '')}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('table-disc')!.innerHTML = html;
     }
   </script>
 </Layout>
