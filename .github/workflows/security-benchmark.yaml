@@ -1,0 +1,68 @@
+name: Security Benchmark
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 0'  # Sundays at 06:00 UTC — runs ~6h after the perf
+                         # benchmark, so the resulting deploy carries both
+                         # data files into the docs site.
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      deployments: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        # Mirrors the perf workflow's pinning style.
+        run: pip install gitpython semver coloredlogs
+
+      - name: Run security benchmark
+        run: python -m benchmark security
+
+      - name: Upload security results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-results
+          path: benchmark/results/security.json
+
+      - name: Commit security results to repo
+        run: |
+          cp benchmark/results/security.json docs/public/data/security.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/public/data/security.json
+          git diff --cached --quiet || git commit -m "chore: update security benchmark results"
+          git push
+
+      # GITHUB_TOKEN commits don't trigger other workflows, so deploy here.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install site dependencies
+        working-directory: docs
+        run: npm ci
+
+      - name: Build site
+        working-directory: docs
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          command: pages deploy docs/dist --project-name=githacker --branch=main --commit-dirty=true
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
