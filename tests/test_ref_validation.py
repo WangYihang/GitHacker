@@ -364,7 +364,7 @@ def test_same_origin_descendant_blocks_spoofing(tmp_path, evil):
 
 
 # ---------------------------------------------------------------------------
-# _OriginRestrictedSession — blocks SSRF via 3xx redirects
+# OriginRestrictedSession — blocks SSRF via 3xx redirects
 # ---------------------------------------------------------------------------
 
 class _FakeResponse:
@@ -378,9 +378,9 @@ class _FakeResponse:
 
 
 def test_origin_restricted_session_allows_same_origin_redirect():
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.expected_origin = ("http", "victim.com")
     resp = _FakeResponse("http://victim.com/.git/HEAD", "/.git/refs/heads/main")
     # Same-origin redirect (relative path) is allowed — get_redirect_target
@@ -389,9 +389,9 @@ def test_origin_restricted_session_allows_same_origin_redirect():
 
 
 def test_origin_restricted_session_blocks_cross_host_redirect():
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.expected_origin = ("http", "victim.com")
     resp = _FakeResponse("http://victim.com/.git/HEAD", "http://attacker.com/x")
     assert s.get_redirect_target(resp) is None
@@ -400,9 +400,9 @@ def test_origin_restricted_session_blocks_cross_host_redirect():
 def test_origin_restricted_session_blocks_internal_ssrf():
     """C3 regression: a malicious server pointing at 127.0.0.1:<internal> is
     refused even though the scheme matches."""
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.expected_origin = ("http", "evil.example.com")
     resp = _FakeResponse(
         "http://evil.example.com/.git/HEAD",
@@ -413,9 +413,9 @@ def test_origin_restricted_session_blocks_internal_ssrf():
 
 def test_origin_restricted_session_blocks_scheme_upgrade():
     """Refusing scheme changes too — http→https can hide tracker/SSRF."""
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.expected_origin = ("http", "victim.com")
     resp = _FakeResponse(
         "http://victim.com/.git/HEAD",
@@ -426,18 +426,18 @@ def test_origin_restricted_session_blocks_scheme_upgrade():
 
 def test_origin_restricted_session_no_origin_set_passes_through():
     """Without expected_origin, the session behaves like a normal Session."""
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     assert s.expected_origin is None
     resp = _FakeResponse("http://x/", "http://y/")
     assert s.get_redirect_target(resp) == "http://y/"
 
 
 def test_origin_restricted_session_non_redirect_returns_none():
-    from githacker.__main__ import _OriginRestrictedSession
+    from githacker.__main__ import OriginRestrictedSession
 
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.expected_origin = ("http", "victim.com")
     resp = _FakeResponse("http://victim.com/x", None, status_code=200)
     resp.is_redirect = False

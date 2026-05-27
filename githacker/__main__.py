@@ -70,7 +70,7 @@ def _is_safe_path_segment(seg):
     return bool(_PATH_SEGMENT_RE.match(seg))
 
 
-class _OriginRestrictedSession(requests.Session):
+class OriginRestrictedSession(requests.Session):
     """A requests.Session that refuses to follow cross-origin redirects.
 
     The remote `.git/` server is untrusted; if it answers a request with
@@ -103,7 +103,7 @@ class _OriginRestrictedSession(requests.Session):
 
 
 def _build_session(verify, threads):
-    s = _OriginRestrictedSession()
+    s = OriginRestrictedSession()
     s.verify = verify
     retry = Retry(
         total=3,
