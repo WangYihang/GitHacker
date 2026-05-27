@@ -151,6 +151,10 @@ import Layout from '../layouts/Layout.astro';
     .security-page table td.left {
       text-align: left;
     }
+    .security-page table td.nowrap,
+    .security-page table th.nowrap {
+      white-space: nowrap;
+    }
     .security-page .v-pass { color: #15803d; }            /* green-700 */
     .security-page .v-fail { color: #b91c1c; font-weight: 700; }   /* red-700 */
     .security-page .v-timeout { color: #a16207; }         /* yellow-700 */
@@ -334,6 +338,11 @@ import Layout from '../layouts/Layout.astro';
       return d.innerHTML;
     }
 
+    function fmtTestId(id: string): string {
+      // C3_redirect_ssrf -> C3-REDIRECT-SSRF
+      return id.toUpperCase().replace(/_/g, '-');
+    }
+
     function verdictBadge(v: Verdict | string): string {
       const cls = ({
         PASS: 'v-pass', FAIL: 'v-fail', TIMEOUT: 'v-timeout', ERROR: 'v-error',
@@ -411,7 +420,7 @@ import Layout from '../layouts/Layout.astro';
 
       data!.tests.forEach((test, ti) => {
         html += `<tr class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900" data-test-idx="${ti}">`;
-        html += `<td class="left font-mono text-[12px]">${esc(test.id)}</td>`;
+        html += `<td class="left nowrap font-mono text-[12px]">${esc(fmtTestId(test.id))}</td>`;
         html += `<td class="left text-[12px]">${esc(CATEGORY_LABELS[test.category]?.[lang] || test.category)}</td>`;
         html += `<td>${sevBadge(test.severity)}</td>`;
         const cveLink = test.cve
@@ -434,7 +443,7 @@ import Layout from '../layouts/Layout.astro';
 
     function showDetail(idx: number) {
       const test = data!.tests[idx];
-      document.getElementById('detail-title')!.textContent = test.id;
+      document.getElementById('detail-title')!.textContent = fmtTestId(test.id);
       document.getElementById('detail-desc')!.textContent = test.description;
 
       const cveEl = document.getElementById('detail-cve')!;
@@ -482,13 +491,13 @@ import Layout from '../layouts/Layout.astro';
           ? `<a href="https://nvd.nist.gov/vuln/detail/${esc(d.cve)}" target="_blank" rel="noopener" class="underline">${esc(d.cve)}</a>`
           : '<span class="text-gray-400">—</span>';
         html += `<tr>
-          <td class="left font-mono text-[12px]">${esc(d.id)}</td>
-          <td class="left font-mono text-[12px]">${esc(d.test)}</td>
-          <td class="left">${esc(d.tool)}</td>
+          <td class="left nowrap font-mono text-[12px]">${esc(d.id)}</td>
+          <td class="left nowrap font-mono text-[12px]">${esc(fmtTestId(d.test))}</td>
+          <td class="left nowrap">${esc(d.tool)}</td>
           <td>${sevBadge(d.severity)}</td>
-          <td class="left font-mono text-[12px]">${statusBadge(d.status)}</td>
-          <td class="left text-[12px]">${esc(d.first_observed || '—')}</td>
-          <td class="left text-[12px]">${cveLink}</td>
+          <td class="left nowrap font-mono text-[12px]">${statusBadge(d.status)}</td>
+          <td class="left nowrap text-[12px]">${esc(d.first_observed || '—')}</td>
+          <td class="left nowrap text-[12px]">${cveLink}</td>
           <td class="left text-[12px] text-gray-600 dark:text-gray-400">${esc(d.notes || '')}</td>
         </tr>`;
       });
