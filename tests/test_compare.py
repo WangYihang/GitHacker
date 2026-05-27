@@ -3,7 +3,13 @@ without spinning up docker or generating a real repo."""
 
 from __future__ import annotations
 
-from benchmark.compare import _compare_file_list, _md5, compare_repos
+from benchmark.compare import (
+    _compare_file_list,
+    _md5,
+    _parse_packed_refs,
+    _resolve_ref,
+    compare_repos,
+)
 
 
 def test_md5_matches_known_vector():
@@ -86,3 +92,144 @@ def test_compare_repos_aggregates_per_feature(tmp_path):
     assert result.correct == 1
     assert result.total == 2
     assert result.ratio == 50.0
+
+
+# ---------------------------------------------------------------------------
+# packed-refs parser
+# ---------------------------------------------------------------------------
+
+def test_parse_packed_refs_skips_comments_blanks_and_peeled(tmp_path):
+    f = tmp_path / "packed-refs"
+    f.write_text(
+        "# pack-refs with: peeled fully-peeled sorted\n"
+        "\n"
+        f"{'a'*40} refs/heads/main\n"
+        f"{'b'*40} refs/tags/v1.0\n"
+        f"^{'c'*40}\n"                       # peeled tag — ignored
+        f"{'d'*40} refs/remotes/origin/dev\n"
+        "singletoken\n",                     # malformed (no space) — ignored
+        encoding="utf-8",
+    )
+    out = _parse_packed_refs(f)
+    assert out == {
+        "refs/heads/main": "a" * 40,
+        "refs/tags/v1.0": "b" * 40,
+        "refs/remotes/origin/dev": "d" * 40,
+    }
+
+
+def test_parse_packed_refs_missing_file_is_empty(tmp_path):
+    assert _parse_packed_refs(tmp_path / "nope") == {}
+
+
+# ---------------------------------------------------------------------------
+# _resolve_ref — branches/tags from any storage form count
+# ---------------------------------------------------------------------------
+
+def _make_recovered(tmp_path):
+    git_dir = tmp_path / ".git"
+    (git_dir / "refs" / "heads").mkdir(parents=True)
+    (git_dir / "refs" / "tags").mkdir(parents=True)
+    (git_dir / "refs" / "remotes" / "origin").mkdir(parents=True)
+    return tmp_path, git_dir
+
+
+def test_resolve_ref_loose_under_heads(tmp_path):
+    repo, git_dir = _make_recovered(tmp_path)
+    (git_dir / "refs" / "heads" / "main").write_text("a" * 40)
+    assert _resolve_ref(repo, "heads", "main", {}) == "a" * 40
+
+
+def test_resolve_ref_loose_under_remotes_origin(tmp_path):
+    """git clone re-homes refs/heads/* as refs/remotes/origin/* — that
+    should still count as a recovered branch."""
+    repo, git_dir = _make_recovered(tmp_path)
+    (git_dir / "refs" / "remotes" / "origin" / "main").write_text("b" * 40)
+    assert _resolve_ref(repo, "heads", "main", {}) == "b" * 40
+
+
+def test_resolve_ref_from_packed_refs(tmp_path):
+    repo, _ = _make_recovered(tmp_path)
+    packed = {
+        "refs/heads/main": "c" * 40,
+        "refs/tags/v1": "d" * 40,
+    }
+    assert _resolve_ref(repo, "heads", "main", packed) == "c" * 40
+    assert _resolve_ref(repo, "tags", "v1", packed) == "d" * 40
+
+
+def test_resolve_ref_packed_remote_tracking_counts_as_branch(tmp_path):
+    repo, _ = _make_recovered(tmp_path)
+    # `git clone temp local` typically writes branches into packed-refs
+    # under refs/remotes/origin/* — the comparator should still find them
+    # when asked for the branch by short name.
+    packed = {"refs/remotes/origin/feature": "e" * 40}
+    assert _resolve_ref(repo, "heads", "feature", packed) == "e" * 40
+
+
+def test_resolve_ref_missing_returns_none(tmp_path):
+    repo, _ = _make_recovered(tmp_path)
+    assert _resolve_ref(repo, "heads", "nope", {}) is None
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: branches recovered via packed-refs score 100%
+# ---------------------------------------------------------------------------
+
+def test_compare_file_list_credits_branches_packed_into_remotes(tmp_path):
+    origin = tmp_path / "origin"
+    recovered = tmp_path / "recovered"
+    (origin / ".git" / "refs" / "heads").mkdir(parents=True)
+    (recovered / ".git").mkdir(parents=True)
+
+    sha = "0" * 40
+    (origin / ".git" / "refs" / "heads" / "feature").write_text(sha)
+    # Recovered side has no loose `refs/heads/feature` — only a packed
+    # entry under refs/remotes/origin/feature, mirroring what `git clone`
+    # actually produces.
+    (recovered / ".git" / "packed-refs").write_text(
+        "# pack-refs with: peeled fully-peeled sorted\n"
+        f"{sha} refs/remotes/origin/feature\n",
+        encoding="utf-8",
+    )
+
+    correct, total, diff, absent = _compare_file_list(
+        origin, recovered, [".git/refs/heads/feature"],
+    )
+    assert (correct, total) == (1, 1)
+    assert diff == [] and absent == []
+
+
+def test_compare_file_list_credits_tags_from_packed_refs(tmp_path):
+    origin = tmp_path / "origin"
+    recovered = tmp_path / "recovered"
+    (origin / ".git" / "refs" / "tags").mkdir(parents=True)
+    (recovered / ".git").mkdir(parents=True)
+
+    sha = "f" * 40
+    (origin / ".git" / "refs" / "tags" / "v1.2.3").write_text(sha)
+    (recovered / ".git" / "packed-refs").write_text(
+        f"{sha} refs/tags/v1.2.3\n",
+        encoding="utf-8",
+    )
+
+    correct, total, _, absent = _compare_file_list(
+        origin, recovered, [".git/refs/tags/v1.2.3"],
+    )
+    assert (correct, total) == (1, 1)
+    assert absent == []
+
+
+def test_compare_file_list_flags_ref_sha_mismatch_as_different(tmp_path):
+    origin = tmp_path / "origin"
+    recovered = tmp_path / "recovered"
+    (origin / ".git" / "refs" / "heads").mkdir(parents=True)
+    (recovered / ".git" / "refs" / "remotes" / "origin").mkdir(parents=True)
+    (origin / ".git" / "refs" / "heads" / "main").write_text("1" * 40)
+    (recovered / ".git" / "refs" / "remotes" / "origin" / "main").write_text("2" * 40)
+
+    correct, total, diff, absent = _compare_file_list(
+        origin, recovered, [".git/refs/heads/main"],
+    )
+    assert (correct, total) == (0, 1)
+    assert diff == [".git/refs/heads/main"] and absent == []

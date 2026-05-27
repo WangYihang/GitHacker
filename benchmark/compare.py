@@ -17,6 +17,69 @@ def _md5(data: bytes) -> str:
     return hashlib.md5(data).hexdigest()
 
 
+def _parse_packed_refs(path: Path) -> dict[str, str]:
+    """Parse a `.git/packed-refs` file into a {refname: sha} mapping.
+
+    Skips comments, blank lines, and the `^<peeled-sha>` continuation
+    lines (we want the annotated-tag object SHA, which is what the
+    original loose ref file would contain — not the peeled commit).
+    """
+    if not path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or line.startswith("^"):
+            continue
+        parts = line.split(" ", 1)
+        if len(parts) != 2:
+            continue
+        sha, ref = parts
+        out[ref] = sha
+    return out
+
+
+def _resolve_ref(recovered: Path, ref_kind: str, ref_name: str,
+                 packed: dict[str, str]) -> str | None:
+    """Return the SHA the recovered repo has for `refs/<ref_kind>/<ref_name>`.
+
+    Tools differ in how they leave the ref store after recovery:
+      • git-dumper writes loose refs verbatim → look in `.git/refs/<kind>/<name>`.
+      • GitHacker finishes with `git clone temp final`, which moves all
+        branches into `refs/remotes/origin/<name>` and packs them into
+        `packed-refs` → check both alternative locations as well.
+
+    Returns the first SHA found, or None if the ref is missing entirely.
+    """
+    git_dir = recovered / ".git"
+    candidates = [
+        git_dir / "refs" / ref_kind / ref_name,
+    ]
+    if ref_kind == "heads":
+        # `git clone` rewrites local branches as remote-tracking branches.
+        candidates.append(git_dir / "refs" / "remotes" / "origin" / ref_name)
+    for c in candidates:
+        if c.is_file():
+            sha = c.read_text(encoding="utf-8", errors="replace").strip()
+            if sha:
+                return sha
+    # Packed-refs fall-throughs: both the original prefix and the rewritten
+    # remote-tracking form qualify.
+    keys = [f"refs/{ref_kind}/{ref_name}"]
+    if ref_kind == "heads":
+        keys.append(f"refs/remotes/origin/{ref_name}")
+    for k in keys:
+        if k in packed:
+            return packed[k]
+    return None
+
+
+_REF_PREFIXES = {
+    ".git/refs/heads/": "heads",
+    ".git/refs/tags/": "tags",
+}
+
+
 def _compare_file_list(
     origin: Path,
     recovered: Path,
@@ -24,12 +87,20 @@ def _compare_file_list(
 ) -> tuple[int, int, list[str], list[str]]:
     """Compare files between origin and recovered repos.
 
+    For branch/tag ref files we resolve by ref name instead of by file
+    path so a recovered ref counts whether it landed as a loose file,
+    under `refs/remotes/origin/*`, or inside `packed-refs`. Other files
+    (source code, hooks, objects, …) still go through the byte-for-byte
+    MD5 path.
+
     Returns (correct, total, different_files, absent_files).
     """
     correct = 0
     total = 0
     different: list[str] = []
     absent: list[str] = []
+
+    packed = _parse_packed_refs(recovered / ".git" / "packed-refs")
 
     for rel_path in file_list:
         origin_file = origin / rel_path
@@ -43,6 +114,25 @@ def _compare_file_list(
         # .git/index always differs after checkout — treat as correct
         if ".git/index" in rel_path:
             correct += 1
+            continue
+
+        # Ref-by-name resolution for branches and tags.
+        ref_kind = next(
+            (k for prefix, k in _REF_PREFIXES.items() if rel_path.startswith(prefix)),
+            None,
+        )
+        if ref_kind is not None:
+            ref_name = rel_path[len(f".git/refs/{ref_kind}/"):]
+            origin_sha = origin_file.read_text(
+                encoding="utf-8", errors="replace",
+            ).strip()
+            recovered_sha = _resolve_ref(recovered, ref_kind, ref_name, packed)
+            if recovered_sha is None:
+                absent.append(rel_path)
+            elif recovered_sha == origin_sha:
+                correct += 1
+            else:
+                different.append(rel_path)
             continue
 
         if not recovered_file.exists():

@@ -331,6 +331,11 @@ class GitHacker:
         final = Path(self.final_dst)
         for rel in (
             ('.git', 'COMMIT_EDITMSG'),
+            # `git clone` writes a fresh .git/index from HEAD's tree,
+            # dropping any blob that was staged but never committed.
+            # Restore the original index so checkout-index --all can
+            # re-materialize those blobs into the working tree below.
+            ('.git', 'index'),
             ('.git', 'ORIG_HEAD'),
             ('.git', 'objects', 'pack'),
             ('.git', 'refs', 'stash'),
@@ -371,6 +376,20 @@ class GitHacker:
         self.copy_useful_files()
 
         if result.returncode == 0:
+            # `git clone` checks out HEAD's tree, so any blob that was only
+            # staged in the index (added but never committed) ends up
+            # downloaded into .git/objects but absent from the working
+            # tree. Re-materialize the index so those staged-only files
+            # land on disk where the user expects them.
+            subprocess.run(
+                [
+                    'git', '-C', self.final_dst,
+                    'checkout-index', '--all', '--force',
+                ],
+                capture_output=True,
+                check=False,
+            )
+
             # return True only when git clone successfully executed
             logging.info(f"Check it out: {self.final_dst}")
             # remove temp repo folder
