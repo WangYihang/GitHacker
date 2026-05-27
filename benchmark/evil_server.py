@@ -1,6 +1,6 @@
 """Minimal malicious HTTP server for security benchmark tests.
 
-Two modes, selected by ``--mode``:
+Three modes, selected by ``--mode``:
 
 * ``static`` — serves files from ``--payload``. Used by tests where the
   malicious content lives in ``.git/`` files (e.g. a crafted ``config``
@@ -9,6 +9,9 @@ Two modes, selected by ``--mode``:
 * ``redirect`` — responds to every request with a 302 redirect to
   ``--redirect-to``. Used by C2/C3 (redirect to ``file:///etc/passwd``
   or to an internal SSRF target).
+* ``callback`` — touches ``--canary-file`` on the first HTTP request
+  received and returns 200. Used as the SSRF target for C3 — if the
+  pillager follows the redirect, the canary fires.
 
 Apache-style directory listings are emitted for ``static`` mode so
 recursive pillagers behave the same as they do against the existing
@@ -87,6 +90,29 @@ def _make_redirect_handler(target: str) -> type[http.server.BaseHTTPRequestHandl
     return _RedirectHandler
 
 
+def _make_callback_handler(canary_path: Path) -> type[http.server.BaseHTTPRequestHandler]:
+    class _CallbackHandler(http.server.BaseHTTPRequestHandler):
+        server_version = "EvilServer/0.1"
+
+        def do_GET(self):  # noqa: N802
+            try:
+                canary_path.parent.mkdir(parents=True, exist_ok=True)
+                canary_path.write_text(f"hit from {self.client_address[0]} {self.path}\n")
+            except OSError as exc:
+                sys.stderr.write(f"callback failed to write canary: {exc}\n")
+            self.send_response(200)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        do_HEAD = do_GET
+        do_POST = do_GET
+
+        def log_message(self, fmt, *args):
+            sys.stderr.write(f"{self.address_string()} - - {fmt % args}\n")
+
+    return _CallbackHandler
+
+
 class _ReusableServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
@@ -94,9 +120,10 @@ class _ReusableServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Evil HTTP server for security benchmarks")
-    p.add_argument("--mode", choices=("static", "redirect"), default="static")
+    p.add_argument("--mode", choices=("static", "redirect", "callback"), default="static")
     p.add_argument("--payload", type=Path, help="Directory served in static mode")
     p.add_argument("--redirect-to", help="Target URL for redirect mode")
+    p.add_argument("--canary-file", type=Path, help="File to touch in callback mode")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8080)
     args = p.parse_args()
@@ -106,10 +133,14 @@ def main() -> int:
             p.error("--payload <dir> is required in static mode")
         os.chdir(args.payload)
         handler: type[http.server.BaseHTTPRequestHandler] = _StaticHandler
-    else:
+    elif args.mode == "redirect":
         if not args.redirect_to:
             p.error("--redirect-to <url> is required in redirect mode")
         handler = _make_redirect_handler(args.redirect_to)
+    else:  # callback
+        if not args.canary_file:
+            p.error("--canary-file <path> is required in callback mode")
+        handler = _make_callback_handler(args.canary_file)
 
     with _ReusableServer((args.host, args.port), handler) as httpd:
         sys.stderr.write(f"evil-server listening on {args.host}:{args.port} ({args.mode})\n")

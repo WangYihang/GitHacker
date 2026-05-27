@@ -1,0 +1,8 @@
+category = "Info"
+severity = "L"
+cve = ""
+description = "Server redirects every request to http://127.0.0.1:12345/, an internal SSRF target; a sidecar listener on that port writes the canary if hit"
+server_mode = "redirect"
+redirect_to = "http://127.0.0.1:12345/ssrf"
+callback_port = 12345
+callback_canary = "PWNED_C3"

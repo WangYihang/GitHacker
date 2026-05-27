@@ -1,0 +1,5 @@
+category = "CVE"
+severity = "M"
+cve = "CVE-2021-21300"
+description = "Git LFS smudge filter with case-insensitive name + symlink writes a shell script the git wrapper executes on clone (vulnerable git-lfs versions on case-insensitive filesystems)"
+server_mode = "static"

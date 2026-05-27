@@ -64,6 +64,12 @@ class TestMeta:
     cve: str | None = None
     server_mode: str = "static"  # "static" | "redirect"
     redirect_to: str | None = None
+    # When set, a second evil_server runs in callback mode on this port
+    # for the duration of the test. Used by C3 (SSRF): the primary
+    # server redirects to http://127.0.0.1:<callback_port>/, and a hit
+    # on the callback port writes the canary.
+    callback_port: int | None = None
+    callback_canary: str | None = None  # filename under canary_dir
 
 
 @dataclass
@@ -139,6 +145,8 @@ def discover_tests(filter_ids: list[str] | None = None,
             cve=raw.get("cve"),
             server_mode=raw.get("server_mode", "static"),
             redirect_to=raw.get("redirect_to"),
+            callback_port=raw.get("callback_port"),
+            callback_canary=raw.get("callback_canary"),
         )
         if filter_ids and meta.id not in filter_ids:
             continue
@@ -219,7 +227,7 @@ def start_evil_server(meta: TestMeta, payload: Path) -> subprocess.Popen:
     return proc
 
 
-def stop_evil_server(proc: subprocess.Popen) -> None:
+def stop_evil_server(proc: subprocess.Popen, port: int = EVIL_SERVER_PORT) -> None:
     if proc.poll() is None:
         proc.terminate()
         try:
@@ -227,7 +235,29 @@ def stop_evil_server(proc: subprocess.Popen) -> None:
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.wait(timeout=2)
-    _wait_port_release(EVIL_SERVER_PORT)
+    _wait_port_release(port)
+
+
+def start_callback_server(port: int, canary_file: Path) -> subprocess.Popen:
+    """Start a sidecar callback listener. Used by SSRF-style tests."""
+    cmd = [
+        sys.executable,
+        str(BENCHMARK_DIR / "evil_server.py"),
+        "--mode", "callback",
+        "--host", EVIL_SERVER_HOST,
+        "--port", str(port),
+        "--canary-file", str(canary_file.resolve()),
+    ]
+    proc = subprocess.Popen(  # noqa: S603
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+    )
+    if not _wait_port(port):
+        proc.terminate()
+        proc.wait(timeout=2)
+        raise RuntimeError(f"callback server failed to bind {EVIL_SERVER_HOST}:{port}")
+    return proc
 
 
 # ---------------------------------------------------------------------------
@@ -371,13 +401,24 @@ def run_security_suite(
             for tid in tools:
                 output_dir = playground / meta.id / tid / "output"
                 canary_dir = playground / meta.id / tid / "canary"
+                canary_dir.mkdir(parents=True, exist_ok=True)
                 logger.info("  %s ...", tid)
-                run = run_tool_on_test(
-                    tid, meta,
-                    url=f"http://{EVIL_SERVER_HOST}:{EVIL_SERVER_PORT}/",
-                    output_dir=output_dir,
-                    canary_dir=canary_dir,
-                )
+                # Per-tool callback sidecar (for SSRF tests like C3).
+                callback = None
+                if meta.callback_port and meta.callback_canary:
+                    callback = start_callback_server(
+                        meta.callback_port, canary_dir / meta.callback_canary,
+                    )
+                try:
+                    run = run_tool_on_test(
+                        tid, meta,
+                        url=f"http://{EVIL_SERVER_HOST}:{EVIL_SERVER_PORT}/",
+                        output_dir=output_dir,
+                        canary_dir=canary_dir,
+                    )
+                finally:
+                    if callback:
+                        stop_evil_server(callback, port=meta.callback_port)
                 logger.info("    -> %s (%s)", run.verdict.value, run.evidence or run.duration)
                 runs[tid] = run
         finally:
