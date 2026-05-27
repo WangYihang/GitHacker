@@ -74,13 +74,29 @@ def compose_cmd() -> list[str]:
 # ---------------------------------------------------------------------------
 
 def build_image(tool_id: str) -> None:
-    """Build the Docker image for a benchmark tool."""
+    """Build the Docker image for a benchmark tool.
+
+    Most tools have a self-contained build context (their own directory).
+    GitHacker is special: it's the project under test, so we want the
+    benchmark to measure the local working tree, not whatever PyPI is
+    serving. For githacker the context is the project root and the
+    Dockerfile is passed via ``-f``.
+    """
     tool_dir = TOOLS_DIR / tool_id
     if not (tool_dir / "Dockerfile").exists():
         raise FileNotFoundError(f"No Dockerfile for {tool_id}")
     image = f"benchmark-{tool_id}"
     logger.info("Building image %s", image)
-    subprocess.run(["docker", "build", "-t", image, str(tool_dir)], check=True)
+    if tool_id == "githacker":
+        from benchmark.config import PROJECT_ROOT
+        cmd = [
+            "docker", "build", "-t", image,
+            "-f", str(tool_dir / "Dockerfile"),
+            str(PROJECT_ROOT),
+        ]
+    else:
+        cmd = ["docker", "build", "-t", image, str(tool_dir)]
+    subprocess.run(cmd, check=True)
 
 
 def get_tool_version(tool_id: str) -> str:
