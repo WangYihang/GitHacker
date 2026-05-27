@@ -1,0 +1,125 @@
+"""Minimal malicious HTTP server for security benchmark tests.
+
+Two modes, selected by ``--mode``:
+
+* ``static`` — serves files from ``--payload``. Used by tests where the
+  malicious content lives in ``.git/`` files (e.g. a crafted ``config``
+  with ``core.fsmonitor``, a poisoned ``index``, an HTML index with
+  path-traversal anchors).
+* ``redirect`` — responds to every request with a 302 redirect to
+  ``--redirect-to``. Used by C2/C3 (redirect to ``file:///etc/passwd``
+  or to an internal SSRF target).
+
+Apache-style directory listings are emitted for ``static`` mode so
+recursive pillagers behave the same as they do against the existing
+``apache-index-enabled`` perf scenario.
+
+This script is intentionally dependency-free so it can be launched as a
+subprocess on the host (or inside a tiny container) without dragging in
+the benchmark package.
+"""
+
+from __future__ import annotations
+
+import argparse
+import html
+import http.server
+import os
+import socketserver
+import sys
+import urllib.parse
+from pathlib import Path
+
+
+class _StaticHandler(http.server.SimpleHTTPRequestHandler):
+    """SimpleHTTPRequestHandler with an Apache-flavored autoindex.
+
+    Pillagers detect a directory listing by scanning the body for
+    ``<title>Index of`` (justinsteven 2022, GitHacker source) — the
+    stdlib's default index uses a different title, so we override it.
+    """
+
+    server_version = "EvilServer/0.1"
+
+    def list_directory(self, path):  # type: ignore[override]
+        try:
+            entries = sorted(os.listdir(path))
+        except OSError:
+            self.send_error(404, "No permission to list directory")
+            return None
+        rel = urllib.parse.unquote(self.path)
+        body = [
+            "<!DOCTYPE html>",
+            f"<html><head><title>Index of {html.escape(rel)}</title></head>",
+            f"<body><h1>Index of {html.escape(rel)}</h1><hr><pre>",
+            '<a href="../">../</a>',
+        ]
+        for name in entries:
+            full = os.path.join(path, name)
+            display = name + ("/" if os.path.isdir(full) else "")
+            link = urllib.parse.quote(name) + ("/" if os.path.isdir(full) else "")
+            body.append(f'<a href="{link}">{html.escape(display)}</a>')
+        body.append("</pre><hr></body></html>")
+        encoded = "\n".join(body).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        from io import BytesIO
+        return BytesIO(encoded)
+
+
+def _make_redirect_handler(target: str) -> type[http.server.BaseHTTPRequestHandler]:
+    class _RedirectHandler(http.server.BaseHTTPRequestHandler):
+        server_version = "EvilServer/0.1"
+
+        def do_GET(self):  # noqa: N802
+            self.send_response(302)
+            self.send_header("Location", target)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        do_HEAD = do_GET
+
+        def log_message(self, fmt, *args):
+            sys.stderr.write(f"{self.address_string()} - - {fmt % args}\n")
+
+    return _RedirectHandler
+
+
+class _ReusableServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="Evil HTTP server for security benchmarks")
+    p.add_argument("--mode", choices=("static", "redirect"), default="static")
+    p.add_argument("--payload", type=Path, help="Directory served in static mode")
+    p.add_argument("--redirect-to", help="Target URL for redirect mode")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8080)
+    args = p.parse_args()
+
+    if args.mode == "static":
+        if not args.payload or not args.payload.is_dir():
+            p.error("--payload <dir> is required in static mode")
+        os.chdir(args.payload)
+        handler: type[http.server.BaseHTTPRequestHandler] = _StaticHandler
+    else:
+        if not args.redirect_to:
+            p.error("--redirect-to <url> is required in redirect mode")
+        handler = _make_redirect_handler(args.redirect_to)
+
+    with _ReusableServer((args.host, args.port), handler) as httpd:
+        sys.stderr.write(f"evil-server listening on {args.host}:{args.port} ({args.mode})\n")
+        sys.stderr.flush()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            pass
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

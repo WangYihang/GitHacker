@@ -1,0 +1,5 @@
+category = "AFW"
+severity = "H"
+cve = ""
+description = "Crafted .git/index has entries with ../../ paths; git checkout / checkout-index writes blobs outside the repo (Driver Tom 2021)"
+server_mode = "static"

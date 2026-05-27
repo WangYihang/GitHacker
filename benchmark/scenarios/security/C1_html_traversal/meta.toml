@@ -1,0 +1,5 @@
+category = "AFW"
+severity = "H"
+cve = ""
+description = "HTML directory listing with traversal anchor (<a href=\"../../canary/...\">) lets a recursive pillager write outside its output directory (justinsteven 2022 second PoC)"
+server_mode = "static"

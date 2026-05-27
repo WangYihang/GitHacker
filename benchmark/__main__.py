@@ -85,6 +85,21 @@ def cmd_generate(args: argparse.Namespace) -> None:
     logging.info("Generated test repo at %s (%d features)", REPO_PATH, len(manifest))
 
 
+def cmd_security(args: argparse.Namespace) -> None:
+    """Run the security benchmark suite."""
+    from benchmark import security
+
+    tool_ids = [s.strip() for s in args.tools.split(",")] if args.tools else None
+    test_ids = [s.strip() for s in args.tests.split(",")] if args.tests else None
+    report = security.run_security_suite(
+        tool_ids=tool_ids,
+        test_ids=test_ids,
+        category=args.category,
+    )
+    security.write_report(report)
+    security.print_summary(report)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="benchmark",
@@ -106,6 +121,14 @@ def main() -> None:
     sub.add_parser("run", help="Run the full benchmark suite (default)")
     sub.add_parser("generate", help="Only generate the test repository")
 
+    sec = sub.add_parser(
+        "security",
+        help="Run the security benchmark suite (malicious .git/ payloads)",
+    )
+    sec.add_argument("--tools", help="Comma-separated tool IDs to test (default: all)")
+    sec.add_argument("--tests", help="Comma-separated test IDs to run (default: all)")
+    sec.add_argument("--category", help="Filter by category (RCE, AFW, Info, CVE)")
+
     args = parser.parse_args()
     setup_logging(verbose=args.verbose)
 
@@ -116,6 +139,8 @@ def main() -> None:
 
     if args.command == "generate":
         cmd_generate(args)
+    elif args.command == "security":
+        cmd_security(args)
     else:
         cmd_run(args)
 

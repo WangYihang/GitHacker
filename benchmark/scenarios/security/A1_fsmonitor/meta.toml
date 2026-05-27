@@ -1,0 +1,5 @@
+category = "RCE"
+severity = "H"
+cve = ""
+description = "core.fsmonitor in .git/config executes attacker command on any git operation (justinsteven 2022)"
+server_mode = "static"
