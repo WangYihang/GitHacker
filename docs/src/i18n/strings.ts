@@ -10,6 +10,40 @@
 
 export type Lang = 'en' | 'zh';
 
+export interface BenchmarkStrings {
+  preTitle: string;
+  title: string;
+  byline: string;
+  s1Heading: string;
+  s1Body: string;
+  s2Heading: string;
+  t1Caption: string;
+  t1HeaderTool: string;
+  t1HeaderVersion: string;
+  t1HeaderTotal: string;
+  t1NoteEnabled: string;
+  t1NoteDisabled: string;
+  s3Heading: string;
+  s3Body: string;
+  t2Caption: string;
+  t2HeaderTool: string;
+  t2HeaderRatio: string;
+  t2HeaderDuration: string;
+  t2HeaderRequests: string;
+  fig2Caption: string;
+  s4Heading: string;
+  s4Body: string;
+  t3Caption: string;
+  fig3Caption: string;
+  s5Heading: string;
+  s5Body: string;
+  fig4Caption: string;
+  s6Heading: string;
+  s6Body: string;
+  scen: Record<string, string>;
+  feat: Record<string, string>;
+}
+
 export interface Strings {
   common: {
     generated: string;
@@ -42,6 +76,7 @@ export interface Strings {
     relatedLead: string;
     citationHeading: string;
   };
+  benchmark: BenchmarkStrings;
 }
 
 export const strings: Record<Lang, Strings> = {
@@ -86,6 +121,53 @@ export const strings: Record<Lang, Strings> = {
         'Justin Steven\'s 2022 advisory documents the original <code>core.fsmonitor</code> RCE in <code>.git/config</code>; Driver Tom\'s 2021 blog post catalogued generic counter-attacks against source-code pillagers; Git\'s own security advisory feed lists more than a dozen CVEs reachable via <code>git clone</code> of a hostile repository.',
       citationHeading: 'Citation',
     },
+    benchmark: {
+      preTitle: 'Empirical Study',
+      title: 'A Benchmark of <code>.git/</code> Pillagers',
+      byline: 'Seven open-source tools, five web-server scenarios, deterministic test repository.',
+      s1Heading: 'Setup',
+      s1Body: 'A ground-truth Git repository (random seed 0) is served over HTTP under five configurations: Apache and Nginx with directory listing on / off, plus a PHP-LFI entry point. Each tool runs in its own Docker container against the same target, with a 300-second timeout. Full methodology: see <a href="/methodology" class="underline">/methodology</a>.',
+      s2Heading: 'Feature Support',
+      t1Caption: '✓ = supported by the tool in at least one scenario, ✗ = absent. Tools sorted by total feature count.',
+      t1HeaderTool: 'Tool',
+      t1HeaderVersion: 'Version',
+      t1HeaderTotal: 'Total',
+      t1NoteEnabled: 'directory listing enabled',
+      t1NoteDisabled: 'directory listing disabled',
+      s3Heading: 'Completeness',
+      s3Body: 'Mean recovery ratio (% of ground-truth files reconstructed correctly), averaged across all five scenarios. Higher is better. Best in bold.',
+      t2Caption: 'Aggregate per-tool metrics, averaged across five scenarios. Best value in each column is bold.',
+      t2HeaderTool: 'Tool',
+      t2HeaderRatio: 'Recovery (%)',
+      t2HeaderDuration: 'Duration (s)',
+      t2HeaderRequests: 'HTTP requests',
+      fig2Caption: 'Mean recovery per tool with per-scenario min–max whiskers. Tight whiskers around a high mean indicate consistent behavior across deployments.',
+      s4Heading: 'Per-Scenario Breakdown',
+      s4Body: 'Recovery rate (%) for every (tool, scenario) cell. Empty cells (—) mean the tool did not complete the run.',
+      t3Caption: 'Per-scenario recovery rate. Rows in descending mean order, GitHacker highlighted.',
+      fig3Caption: 'Monochrome heatmap of the same data as Table 3. Cell darkness encodes recovery rate. Mono ramp chosen so the figure prints to grayscale without losing comparison.',
+      s5Heading: 'Cost vs. Completeness',
+      s5Body: 'Recovery rate plotted against HTTP requests issued (log scale). One point per (tool, scenario). The Pareto frontier reveals which tools recover the most while issuing the fewest requests.',
+      fig4Caption: 'HTTP requests vs. recovery rate, one point per (tool, scenario). Lower-left dots cost less for less return; upper-left is the Pareto sweet spot.',
+      s6Heading: 'Discussion',
+      s6Body: 'The largest spread is on directory-listing-disabled scenarios where some tools refuse to brute-force tag and branch names — a defensible default but one that costs 30+ percentage points in completeness. The cost-completeness scatter (FIG. 4) shows that high request counts do not buy recovery: the most aggressive tool issues 10× the requests of GitHacker on the same scenario without improving the ratio.',
+      scen: {
+        'apache-index-enabled':  'Apache (index on)',
+        'apache-index-disabled': 'Apache (index off)',
+        'nginx-index-enabled':   'Nginx (index on)',
+        'nginx-index-disabled':  'Nginx (index off)',
+        'php-lfi':               'PHP-LFI',
+      },
+      feat: {
+        source_code: 'Source code',
+        reflogs:     'Reflogs',
+        stashes:     'Stashes',
+        commits:     'Commits',
+        branches:    'Branches',
+        remotes:     'Remotes',
+        tags:        'Tags',
+      },
+    },
   },
   zh: {
     common: {
@@ -125,6 +207,53 @@ export const strings: Record<Lang, Strings> = {
       relatedLead:
         'Justin Steven 在 2022 年的安全通告中记录了恶意 <code>.git/config</code> 的 <code>core.fsmonitor</code> RCE；Driver Tom 在 2021 年的博文中梳理了针对源码偷盗者的通用反制；Git 官方安全通告列出了十余个可通过 <code>git clone</code> 恶意仓库触发的 CVE。',
       citationHeading: '引用',
+    },
+    benchmark: {
+      preTitle: '实证研究',
+      title: '<code>.git/</code> 利用工具基准测试',
+      byline: '七款开源工具、五种 Web 服务器场景、确定性测试仓库。',
+      s1Heading: '实验设置',
+      s1Body: '在固定随机种子（seed=0）下生成 ground-truth Git 仓库，在五种 HTTP 配置下提供服务：Apache / Nginx 各配目录列表开/关，以及一个 PHP-LFI 入口。每个工具在独立 Docker 容器中针对同一目标运行，每次超时 300 秒。完整方法论参见 <a href="/methodology" class="underline">/methodology</a>。',
+      s2Heading: '功能支持',
+      t1Caption: '✓ = 工具在至少一个场景下支持该功能，✗ = 不支持。按功能总数排序。',
+      t1HeaderTool: '工具',
+      t1HeaderVersion: '版本',
+      t1HeaderTotal: '合计',
+      t1NoteEnabled: '目录列表启用',
+      t1NoteDisabled: '目录列表禁用',
+      s3Heading: '完整率',
+      s3Body: '在五种场景下取均值的恢复率（正确重建的 ground-truth 文件比例）。越高越好，最优值加粗。',
+      t2Caption: '按工具汇总的指标，在五种场景下取均值。每列最优值加粗。',
+      t2HeaderTool: '工具',
+      t2HeaderRatio: '恢复率 (%)',
+      t2HeaderDuration: '耗时 (s)',
+      t2HeaderRequests: 'HTTP 请求数',
+      fig2Caption: '各工具的平均恢复率，配以场景间最小–最大值的须线。须线越紧、均值越高，说明跨部署越稳定。',
+      s4Heading: '分场景详情',
+      s4Body: '每个 (工具, 场景) 单元的恢复率 (%)。空白单元 (—) 表示工具未完成运行。',
+      t3Caption: '分场景恢复率。行按平均值降序，GitHacker 高亮。',
+      fig3Caption: '与表 3 相同数据的单色热力图。单元颜色深度即恢复率。采用单色梯度是为了灰度打印时也能保留对比。',
+      s5Heading: '代价 vs. 完整率',
+      s5Body: '恢复率 vs. 发出的 HTTP 请求数（对数刻度），每个 (工具, 场景) 一点。Pareto 前沿揭示了哪些工具用最少的请求换来了最高的恢复。',
+      fig4Caption: 'HTTP 请求数 vs. 恢复率，每个 (工具, 场景) 一点。左下方点代价小、收益小；左上方为 Pareto 最优。',
+      s6Heading: '讨论',
+      s6Body: '差距最大的是目录列表禁用场景：部分工具拒绝暴力枚举分支与 tag 名 —— 这是合理的默认，但代价是 30 个百分点以上的完整率。代价-完整率散点（FIG. 4）显示高请求数并不能换来更高恢复：最激进的工具在同一场景下发出 10× 于 GitHacker 的请求，恢复率却没有提升。',
+      scen: {
+        'apache-index-enabled':  'Apache (索引开)',
+        'apache-index-disabled': 'Apache (索引关)',
+        'nginx-index-enabled':   'Nginx (索引开)',
+        'nginx-index-disabled':  'Nginx (索引关)',
+        'php-lfi':               'PHP-LFI',
+      },
+      feat: {
+        source_code: '源代码',
+        reflogs:     'Reflogs',
+        stashes:     'Stashes',
+        commits:     'Commits',
+        branches:    'Branches',
+        remotes:     'Remotes',
+        tags:        'Tags',
+      },
     },
   },
 };
