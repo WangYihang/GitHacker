@@ -4,12 +4,12 @@ import SectionHeading from '../components/SectionHeading.astro';
 ---
 
 <Layout title="Reproduce — GitHacker" description="Install GitHacker and re-run the benchmarks.">
-  <article class="max-w-[680px] mx-auto px-6 pt-8 pb-16">
+  <article class="max-w-[820px] mx-auto px-6 pt-10 pb-16">
 
     <header>
-      <p class="smallcaps text-[12px] text-[var(--ink-mute)]">Reproducibility</p>
-      <h1 class="mt-1 text-[28px] leading-tight">How to reproduce these results</h1>
-      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]" data-i18n="r.preTitle">Reproducibility</p>
+      <h1 class="mt-1 text-[28px] leading-tight" data-i18n="r.title">How to reproduce these results</h1>
+      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed" data-i18n="r.intro">
         Every page on this site is generated from a deterministic harness.
         The same Docker invocation that we run weekly in CI will reproduce
         the numbers in <a href="/benchmark" class="underline">Benchmark</a>
@@ -18,14 +18,14 @@ import SectionHeading from '../components/SectionHeading.astro';
       </p>
     </header>
 
-    <SectionHeading n={1} id="install">Install GitHacker itself</SectionHeading>
-    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+    <SectionHeading n={1} id="install"><span data-i18n="r.s1H">Install GitHacker itself</span></SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]" data-i18n="r.s1B">
       To <em>use</em> GitHacker against a remote target — separate from
       the benchmark harness — either run the Docker image or install from PyPI:
     </p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
       <div>
-        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1">Docker</p>
+        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1" data-i18n="r.s1Docker">Docker</p>
         <pre class="code-block text-[12.5px]"><code>docker run \
   -v $(pwd)/results:/tmp/githacker/results \
   wangyihang/githacker \
@@ -33,7 +33,7 @@ import SectionHeading from '../components/SectionHeading.astro';
   --url http://target/.git/</code></pre>
       </div>
       <div>
-        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1">pip</p>
+        <p class="smallcaps text-[11px] text-[var(--ink-mute)] mb-1" data-i18n="r.s1Pip">pip</p>
         <pre class="code-block text-[12.5px]"><code>pip install GitHacker
 
 githacker \
@@ -41,50 +41,85 @@ githacker \
   --output-folder result</code></pre>
       </div>
     </div>
-    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]" data-i18n="r.s1Brute">
       Add <code>--brute</code> to brute-force branch and tag names when
       directory listing is disabled on the target.
     </p>
 
-    <SectionHeading n={2} id="benchmark">Re-run the benchmark</SectionHeading>
-    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+    <SectionHeading n={2} id="benchmark"><span data-i18n="r.s2H">Re-run the benchmark</span></SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]" data-i18n="r.s2B">
       The full performance suite (7 tools × 5 web-server scenarios) runs from this repo:
     </p>
     <pre class="code-block mt-3 text-[12.5px]"><code>git clone https://github.com/WangYihang/GitHacker
 cd GitHacker
 pip install gitpython semver coloredlogs
 python -m benchmark run</code></pre>
-    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]" data-i18n="r.s2Note">
       Output writes to <code>docs/public/data/benchmark.json</code>; rebuild this site to view.
       The test repository is generated from a fixed random seed
       (<code>seed=0</code>), so all numbers are deterministic.
       Full configuration: <a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark" target="_blank" rel="noopener" class="underline">benchmark/</a>.
     </p>
 
-    <SectionHeading n={3} id="security">Re-run the security suite</SectionHeading>
-    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]">
+    <SectionHeading n={3} id="security"><span data-i18n="r.s3H">Re-run the security suite</span></SectionHeading>
+    <p class="text-[14.5px] leading-relaxed text-[var(--ink-soft)]" data-i18n="r.s3B">
       The adversarial scenarios (15 tests × 7 tools, malicious server vs.
       pillager) ship as a sibling command:
     </p>
     <pre class="code-block mt-3 text-[12.5px]"><code>python -m benchmark security</code></pre>
-    <p class="mt-2 text-[13px] text-[var(--ink-mute)]">
+    <p class="mt-2 text-[13px] text-[var(--ink-mute)]" data-i18n="r.s3Note">
       Results land in <code>docs/public/data/security.json</code>.  The
       runner enforces a 90-second per-tool timeout and tears down each
       Docker container between cases.
     </p>
 
-    <SectionHeading n={4} id="env">Pinned environment</SectionHeading>
-    <ul class="mt-2 ml-5 list-disc text-[13.5px] text-[var(--ink-soft)] leading-relaxed">
+    <SectionHeading n={4} id="env"><span data-i18n="r.s4H">Pinned environment</span></SectionHeading>
+    <ul class="mt-2 ml-5 list-disc text-[13.5px] text-[var(--ink-soft)] leading-relaxed" data-i18n="r.s4L">
       <li>Docker 24+ (BuildKit enabled)</li>
       <li>Python 3.10+ for the runner</li>
       <li>~4 GB RAM and one CPU core per concurrent tool slot</li>
       <li>Internet access for the initial tool-image builds (none required afterwards)</li>
     </ul>
-    <p class="mt-3 text-[13px] text-[var(--ink-mute)]">
+    <p class="mt-3 text-[13px] text-[var(--ink-mute)]" data-i18n="r.s4Footer">
       Tool versions and the harness commit are recorded in the
       <code>metadata</code> block of each JSON output, so any plot you
       see on this site can be traced back to an exact reproducible
       configuration.
     </p>
   </article>
+
+  <script is:inline>
+    const R_ZH = {
+      'r.preTitle': '可复现性',
+      'r.title':    '如何复现这些结果',
+      'r.intro':    '本站每个页面都由确定性 harness 生成。我们每周在 CI 中跑的同一条 Docker 命令，可以在任何装有 Docker 且约有 4 GB RAM 的机器上复现 <a href="/benchmark" class="underline">Benchmark</a> 与 <a href="/security" class="underline">Security</a> 中的数字。',
+      'r.s1H': '安装 GitHacker 本身',
+      'r.s1B': '若要 <em>使用</em> GitHacker 攻击远程目标（与 benchmark harness 无关）—— 运行 Docker 镜像或从 PyPI 安装：',
+      'r.s1Docker': 'Docker',
+      'r.s1Pip':    'pip',
+      'r.s1Brute':  '当目标禁用目录列表时，加 <code>--brute</code> 暴力枚举分支与 tag 名。',
+      'r.s2H': '重跑 benchmark',
+      'r.s2B': '完整的性能套件（7 个工具 × 5 个 Web 服务器场景）从本仓库直接运行：',
+      'r.s2Note': '输出写入 <code>docs/public/data/benchmark.json</code>；重新构建本站即可查看。测试仓库由固定随机种子（<code>seed=0</code>）生成，所有数字都是确定的。完整配置：<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark" target="_blank" rel="noopener" class="underline">benchmark/</a>。',
+      'r.s3H': '重跑 security 套件',
+      'r.s3B': '对抗场景（15 个测试 × 7 个工具，恶意服务器 vs. pillager）以同级命令的方式提供：',
+      'r.s3Note': '结果落到 <code>docs/public/data/security.json</code>。runner 对每个工具强制 90 秒超时，并在用例之间销毁 Docker 容器。',
+      'r.s4H': '固定环境',
+      'r.s4L': '<li>Docker 24+（启用 BuildKit）</li><li>Python 3.10+（用于 runner）</li><li>~4 GB RAM，每个并发工具槽 1 个 CPU 核心</li><li>初次构建工具镜像时需要网络（之后无需）</li>',
+      'r.s4Footer': '工具版本号与 harness commit 记录在每份 JSON 输出的 <code>metadata</code> 块中 —— 本站任何一张图都能追溯回一个确切的可复现配置。',
+    };
+    window.addEventListener('langchange', (e) => {
+      const lang = e.detail;
+      document.querySelectorAll('[data-i18n^="r."]').forEach((el) => {
+        const key = el.dataset.i18n;
+        if (lang === 'en') {
+          if (el.dataset.i18nOriginal) el.innerHTML = el.dataset.i18nOriginal;
+          return;
+        }
+        if (!(key in R_ZH)) return;
+        if (!el.dataset.i18nOriginal) el.dataset.i18nOriginal = el.innerHTML;
+        el.innerHTML = R_ZH[key];
+      });
+    });
+  </script>
 </Layout>

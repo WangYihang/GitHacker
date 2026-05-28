@@ -4,12 +4,12 @@ import SectionHeading from '../components/SectionHeading.astro';
 ---
 
 <Layout title="Methodology — GitHacker" description="How the benchmark and security harnesses work.">
-  <article class="max-w-[680px] mx-auto px-6 pt-10 pb-16">
+  <article class="max-w-[820px] mx-auto px-6 pt-10 pb-16">
 
     <header class="mb-6">
-      <p class="smallcaps text-[12px] text-[var(--ink-mute)]">Methodology</p>
-      <h1 class="mt-1 text-[28px] leading-[1.2]">Benchmark and security harness design</h1>
-      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed">
+      <p class="smallcaps text-[12px] text-[var(--ink-mute)]" data-i18n="m.preTitle">Methodology</p>
+      <h1 class="mt-1 text-[28px] leading-[1.2]" data-i18n="m.title">Benchmark and security harness design</h1>
+      <p class="mt-3 text-[14.5px] text-[var(--ink-soft)] leading-relaxed" data-i18n="m.intro">
         The
         <a href="/benchmark" class="underline">Benchmark</a>
         and
@@ -21,8 +21,8 @@ import SectionHeading from '../components/SectionHeading.astro';
       </p>
     </header>
 
-    <SectionHeading n={1} id="principles">Design principles</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={1} id="principles"><span data-i18n="m.s1H">Design principles</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s1B">
       The harness is designed around three principles. <strong>Fairness</strong>:
       every tool receives the same target served by the same web-server
       instance, with the same starting state. <strong>Completeness</strong>:
@@ -34,8 +34,8 @@ import SectionHeading from '../components/SectionHeading.astro';
       version-controlled.
     </p>
 
-    <SectionHeading n={2} id="test-repo">Test repository</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={2} id="test-repo"><span data-i18n="m.s2H">Test repository</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s2B">
       A ground-truth Git repository is generated programmatically
       (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline"><code>benchmark/generate.py</code></a>,
       seed&nbsp;=&nbsp;0).  It contains 2–16 random commits, 2–8 random
@@ -47,13 +47,13 @@ import SectionHeading from '../components/SectionHeading.astro';
       accuracy column on the benchmark page meaningful.
     </p>
 
-    <SectionHeading n={3} id="scenarios">Web-server scenarios</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={3} id="scenarios"><span data-i18n="m.s3H">Web-server scenarios</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s3B">
       The repository is served over HTTP under five configurations,
       each a Docker Compose service
       (<a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline"><code>test/docker/</code></a>):
     </p>
-    <ol class="mt-2 ml-5 list-decimal text-[14px] leading-relaxed space-y-1">
+    <ol class="mt-2 ml-5 list-decimal text-[14px] leading-relaxed space-y-1" data-i18n="m.s3L">
       <li><strong>Apache httpd</strong> with <code>DirectoryIndex</code> enabled (directory listing on)</li>
       <li><strong>Apache httpd</strong> with <code>Options -Indexes</code> (directory listing off)</li>
       <li><strong>Nginx</strong> with <code>autoindex on</code></li>
@@ -61,8 +61,8 @@ import SectionHeading from '../components/SectionHeading.astro';
       <li><strong>PHP 7.2 + Apache</strong> with a Local File Inclusion entry point</li>
     </ol>
 
-    <SectionHeading n={4} id="tool-execution">Tool execution</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={4} id="tool-execution"><span data-i18n="m.s4H">Tool execution</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s4B">
       Each tool runs in its own Docker container
       (<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline"><code>benchmark/tools/</code></a>)
       behind a unified interface (<code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>).
@@ -71,21 +71,21 @@ import SectionHeading from '../components/SectionHeading.astro';
       directly attributable to the tool under test.
     </p>
 
-    <SectionHeading n={5} id="metrics">Scoring metrics</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={5} id="metrics"><span data-i18n="m.s5H">Scoring metrics</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s5B">
       Recovered files are compared against the manifest via MD5
       checksums (<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline"><code>benchmark/compare.py</code></a>).
       The four reported metrics are:
     </p>
-    <ul class="mt-2 ml-5 list-disc text-[14px] leading-relaxed space-y-1">
+    <ul class="mt-2 ml-5 list-disc text-[14px] leading-relaxed space-y-1" data-i18n="m.s5L">
       <li><strong>Recovery Rate</strong> = correct files / total files (per feature, and aggregate)</li>
       <li><strong>Feature Support</strong> = binary, per feature, per (tool, scenario)</li>
       <li><strong>Duration</strong> = wall-clock seconds from container start to first idle</li>
       <li><strong>HTTP Requests</strong> = server log line count attributable to the tool</li>
     </ul>
 
-    <SectionHeading n={6} id="threat-model">Threat model (security suite)</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={6} id="threat-model"><span data-i18n="m.s6H">Threat model (security suite)</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s6B">
       The security suite inverts the benchmark assumption: the
       pillager is the victim.  Each test is a malicious <code>.git/</code>
       crafted to attack the tool during recovery — code execution
@@ -100,8 +100,8 @@ import SectionHeading from '../components/SectionHeading.astro';
       <em>Tool&nbsp;A…F</em> until coordinated disclosure completes.
     </p>
 
-    <SectionHeading n={7} id="environment">Environment</SectionHeading>
-    <p class="text-[14.5px] leading-[1.7]">
+    <SectionHeading n={7} id="environment"><span data-i18n="m.s7H">Environment</span></SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="m.s7B">
       Results on this site are produced by the harness running on
       Linux + Docker.  Each run records its harness commit, generation
       timestamp, and random seed into the JSON output, so any plot you
@@ -110,9 +110,47 @@ import SectionHeading from '../components/SectionHeading.astro';
       <a href="https://github.com/WangYihang/GitHacker/actions" target="_blank" rel="noopener" class="underline">GitHub Actions</a>.
     </p>
 
-    <p class="mt-7 text-[13.5px]">
+    <p class="mt-7 text-[13.5px]" data-i18n="m.footer">
       Reproduce instructions: <a href="/reproduce" class="underline">/reproduce</a>.
     </p>
 
   </article>
+
+  <script is:inline>
+    const M_ZH = {
+      'm.preTitle': '方法论',
+      'm.title':    '基准与安全测试框架的设计',
+      'm.intro':    '<a href="/benchmark" class="underline">Benchmark</a> 与 <a href="/security" class="underline">Security</a> 两页呈现结果。本页说明这些数字是如何产生的 —— 测试集、harness、指标、威胁模型 —— 让读者以正确的先验解读图表。',
+      'm.s1H': '设计原则',
+      'm.s1B': 'harness 围绕三条原则构建：<strong>公平性</strong>—— 所有工具收到同一个目标，由同一台 Web 服务器实例提供，起始状态完全相同；<strong>完整性</strong>—— 评估覆盖全部可恢复的 Git 制品（源代码、reflogs、stashes、commits、branches、remotes、tags），不仅是 clone 是否成功；<strong>可复现性</strong>—— 测试仓库由固定随机种子生成，所有组件（工具镜像、服务器容器、评分代码）都进入版本控制。',
+      'm.s2H': '测试仓库',
+      'm.s2B': '通过程序化方式生成 ground-truth Git 仓库（<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/generate.py" target="_blank" rel="noopener" class="underline"><code>benchmark/generate.py</code></a>，seed&nbsp;=&nbsp;0）。仓库包含 2–16 个随机 commit、2–8 个随机分支、15 个常见分支名（<code>master</code>、<code>main</code>、<code>dev</code>、<code>release</code>、…）、最多 16 个语义化版本 tag、2–16 个 stash、暂存区与工作目录文件、以及一个 PHP LFI 脚本。生成的 <em>manifest</em> 按 feature 分类所有文件 —— 这是 benchmark 页面"按 feature 准确率"列得以有意义的根本原因。',
+      'm.s3H': 'Web 服务器场景',
+      'm.s3B': '仓库在五种 HTTP 配置下提供服务，每个场景是一个 Docker Compose 服务（<a href="https://github.com/WangYihang/GitHacker/tree/main/test/docker" target="_blank" rel="noopener" class="underline"><code>test/docker/</code></a>）：',
+      'm.s3L': '<li><strong>Apache httpd</strong>，<code>DirectoryIndex</code> 启用（目录列表开）</li><li><strong>Apache httpd</strong>，<code>Options -Indexes</code>（目录列表关）</li><li><strong>Nginx</strong>，<code>autoindex on</code></li><li><strong>Nginx</strong>，<code>autoindex off</code>（默认）</li><li><strong>PHP 7.2 + Apache</strong>，本地文件包含（LFI）入口</li>',
+      'm.s4H': '工具执行',
+      'm.s4B': '每个工具在独立的 Docker 容器中运行（<a href="https://github.com/WangYihang/GitHacker/tree/main/benchmark/tools" target="_blank" rel="noopener" class="underline"><code>benchmark/tools/</code></a>），统一接口 <code>run.sh &lt;url&gt; &lt;output-dir&gt;</code>。超时 300 秒。每次运行前重启服务器，以便访问日志行数（其中一项指标）可直接归因于被测工具。',
+      'm.s5H': '评分指标',
+      'm.s5B': '通过 MD5 校验和对比恢复的文件（<a href="https://github.com/WangYihang/GitHacker/blob/main/benchmark/compare.py" target="_blank" rel="noopener" class="underline"><code>benchmark/compare.py</code></a>）。四项指标：',
+      'm.s5L': '<li><strong>恢复率</strong> = 正确文件 / 总文件（按 feature 和汇总两种粒度）</li><li><strong>功能支持</strong> = 按 feature 二值判定，按 (工具, 场景) 划分</li><li><strong>耗时</strong> = 容器启动到首次空闲的墙钟秒数</li><li><strong>HTTP 请求数</strong> = 归属于该工具的服务器日志行数</li>',
+      'm.s6H': '威胁模型（安全套件）',
+      'm.s6B': '安全套件反转 benchmark 的假设：pillager 是受害者。每个测试是一个精心构造的恶意 <code>.git/</code>，在恢复过程中攻击工具 —— 通过 <code>core.fsmonitor</code> 触发代码执行、通过路径穿越实现任意文件写入、通过重定向引发 SSRF、以及作为子模块或 LFS 对象投递的已知 Git CVE。若恶意服务器在恢复期间对工具容器达成代码执行、任意文件写入或 SSRF，则该测试记为 <strong>FAIL</strong>；若工具拒绝或限制 payload，则为 <strong>PASS</strong>。针对尚未修复工具的发现，在 <a href="/security" class="underline">Security</a> 中以 <em>Tool&nbsp;A…F</em> 匿名化，直至协调披露完成。',
+      'm.s7H': '运行环境',
+      'm.s7B': '本站结果由 Linux + Docker 下运行的 harness 产出。每次运行将其 harness commit、生成时间戳、随机种子写入 JSON 输出，使你看到的任一图表都能追溯至确切的可复现配置。Benchmark 也通过 <a href="https://github.com/WangYihang/GitHacker/actions" target="_blank" rel="noopener" class="underline">GitHub Actions</a> 每周自动运行。',
+      'm.footer': '复现说明见 <a href="/reproduce" class="underline">/reproduce</a>。',
+    };
+    window.addEventListener('langchange', (e) => {
+      const lang = e.detail;
+      document.querySelectorAll('[data-i18n^="m."]').forEach((el) => {
+        const key = el.dataset.i18n;
+        if (lang === 'en') {
+          if (el.dataset.i18nOriginal) el.innerHTML = el.dataset.i18nOriginal;
+          return;
+        }
+        if (!(key in M_ZH)) return;
+        if (!el.dataset.i18nOriginal) el.dataset.i18nOriginal = el.innerHTML;
+        el.innerHTML = M_ZH[key];
+      });
+    });
+  </script>
 </Layout>
