@@ -1,187 +1,150 @@
 # GitHacker
 
 [![PyPI version](https://badge.fury.io/py/GitHacker.svg)](https://badge.fury.io/py/GitHacker)
-[![PyPI download](https://img.shields.io/pypi/dm/githacker.svg)](https://pypistats.org/packages/githacker)
+[![PyPI downloads](https://img.shields.io/pypi/dm/githacker.svg)](https://pypistats.org/packages/githacker)
+[![Site](https://img.shields.io/badge/site-githacker.pages.dev-1c1b18)](https://githacker.pages.dev)
 
-## Desciption
+A multi-threaded `.git` folder exploitation tool. Reconstructs the
+target repository in full — source code, commit history, branches,
+stashes, remotes, tags — even when `DirectoryListings` is disabled, by
+brute-forcing well-known refs.
 
-This is a multiple threads tool to exploit the `.git` folder leakage vulnerability. It is able to download the target `.git` folder almost completely. This tool also works when the `DirectoryListings` feature is disabled by brute forcing common `.git` folder files.
+The accompanying research site at **<https://githacker.pages.dev>**
+publishes:
 
-With GitHacker's help, you can view the developer's commit history, branches, ..., stashes, which makes a better understanding of the target repo, even to find security vulnerabilities.
+- A reproducible **[Benchmark](https://githacker.pages.dev/benchmark)** against six other pillagers (GitTools, dvcs-ripper, GitHack, git-dumper, dumpall, rbozburun/git-hacker) across five web-server scenarios.
+- An adversarial **[Security suite](https://githacker.pages.dev/security)** that runs every tool against malicious `.git/` directories and tracks coordinated disclosure of findings.
+- **[Methodology](https://githacker.pages.dev/methodology)** and **[Reproduce](https://githacker.pages.dev/reproduce)** pages with every detail needed to re-run the harness locally.
 
-## PROCLAMATION (IMPORTANT)
+## Safety
 
-> Several VULNERABILITIES have been reported recently, if you are using
-> GitHacker <= 1.1.0, please update your tool as soon as possible.
-
-The remote `.git` folder maybe malicious, so to prevent you from being attacked.
-It's highly recommended that you SHOULD run this tool under a disposable jailed environment
-(eg: Docker container).
-
-## Requirments
-
-* git >= 2.11.0
-* Python 3
-
-## Usage in Docker (Recommended)
+The remote `.git` you are downloading **may be malicious**. Published
+research demonstrates code execution, arbitrary file write, and SSRF
+against pillagers via crafted `.git/config`, hooks, submodules, LFS
+objects, and HTTP redirects. Run GitHacker **in a disposable
+container**:
 
 ```bash
-# print help info
-docker run wangyihang/githacker --help
-# quick start
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --output-folder /tmp/githacker/results --url http://127.0.0.1/.git/
-# brute for the name of branchs / tags
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url http://127.0.0.1/.git/
-# exploit multiple websites, one site per line
-docker run -v $(pwd)/results:/tmp/githacker/results wangyihang/githacker --brute --output-folder /tmp/githacker/results --url-file websites.txt
+docker run -v $(pwd)/results:/tmp/githacker/results \
+  wangyihang/githacker \
+  --url http://target/.git/ \
+  --output-folder /tmp/githacker/results
 ```
 
-## Usage
+The [Security page](https://githacker.pages.dev/security) tracks both
+GitHacker's own hardening history and pre-disclosure findings against
+other pillagers.
+
+## Quick start
+
+### Docker (recommended)
 
 ```bash
-# install
-python3 -m pip install -i https://pypi.org/simple/ GitHacker
-# print help info
+# Help
+docker run wangyihang/githacker --help
+
+# Single target
+docker run -v $(pwd)/results:/tmp/githacker/results \
+  wangyihang/githacker \
+  --url http://target/.git/ \
+  --output-folder /tmp/githacker/results
+
+# Brute-force branch and tag names (use when directory listing is off)
+docker run -v $(pwd)/results:/tmp/githacker/results \
+  wangyihang/githacker --brute \
+  --url http://target/.git/ \
+  --output-folder /tmp/githacker/results
+
+# Multiple targets, one URL per line
+docker run -v $(pwd)/results:/tmp/githacker/results \
+  -v $(pwd)/websites.txt:/websites.txt \
+  wangyihang/githacker --brute \
+  --url-file /websites.txt \
+  --output-folder /tmp/githacker/results
+```
+
+### pip
+
+```bash
+pip install GitHacker
+
 githacker --help
-# quick start
-githacker --url http://127.0.0.1/.git/ --output-folder result
-# brute for the name of branchs / tags
-githacker --brute --url http://127.0.0.1/.git/ --output-folder result
-# exploit multiple websites, one site per line
+githacker --url http://target/.git/ --output-folder result
+githacker --brute --url http://target/.git/ --output-folder result
 githacker --brute --url-file websites.txt --output-folder result
 ```
 
-## Comparison of other tools
+Requirements: `git >= 2.11.0`, Python 3.10+.
 
-> 2021-05-25
+## Comparison
 
-### [`DirectoryIndex`](https://httpd.apache.org/docs/2.4/mod/mod_dir.html#directoryindex) enabled in Web Server
+Side-by-side results live on the dashboard so the table doesn't drift
+out of sync with reality:
+**<https://githacker.pages.dev/benchmark>**.
 
-|     Tools     |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
-| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-|   GitTools    | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|    GitHack    | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+The benchmark regenerates on every benchmark run (weekly via GitHub
+Actions, and on demand). At the time of writing, GitHacker is the only
+tool that recovers 100% of artifacts across all five web-server
+scenarios and 100% PASS on the published adversarial corpus.
 
-### [`DirectoryIndex`](https://httpd.apache.org/docs/2.4/mod/mod_dir.html#directoryindex) disabled in Web Server
+## Development
 
-> :muscle: means brute-forcing.
+Set up:
 
-|     Tools     |    Source Code     |      Reflogs       |      Stashes       |      Commits       |      Branches      |      Remotes       |        Tags        |
-| :-----------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-|   GitTools    | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-|  dvcs-ripper  |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|    GitHack    | :heavy_check_mark: |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |        :x:         |
-|  git-dumper   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |        :x:         | :heavy_check_mark: |        :x:         |
-| **GitHacker** | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |      :muscle:      | :heavy_check_mark: |      :muscle:      |
-
-## Example
-
-![Demo](./figure/demo.gif)
-
-## TODO
-
-- [x] ~~Download packed files firstly~~ (Unsolvable via [StackOverflow](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files))
-- [x] Fix infinit downloading 404 files, #25
-- [x] Fix error when `master` branch not exists, #18
-- [x] Extract branch names from `.git/logs/HEAD`, #18
-- [x] Publish Docker image to hub.docker.com
-- [x] Add Dockerfile
-- [x] Fix stash files missing due to the fix of #21, #23, #24 (`git clone` can't download stash files)
-- [x] Use python f'string in `test.py`
-- [x] Download tags and branches when Index enabled
-- [x] Try common tags and branches when Index disabled
-- [x] [find packed refs](https://github.com/WangYihang/GitHacker/issues/1#issuecomment-487135667)
-
-## Test
-
-### Setup Development Environment
-
-```
-# Install docker and docker-compose
-apt install docker-desktop
-apt install docker-compose
-
-# Download GitHacker
+```bash
 git clone https://github.com/WangYihang/GitHacker
 cd GitHacker
-
-# Install with the dev group (pulls pytest plus the verboselogs/jinja2
-# helpers used by utils/diff.py).
 uv sync --group dev
 ```
 
-### Run unit tests
+Run unit tests:
 
-```
+```bash
 uv run pytest
 ```
 
-### Run end-to-end docker scenarios
+Run the full benchmark / security harnesses (needs Docker):
 
-The `utils/` folder holds developer-only scripts (not part of the published
-CLI) used to generate scenario repos, drive the docker test harness, and
-diff results into HTML reports.
-
-```
-# Generate testing repo
-uv run python utils/gen.py
-
-# Run testcases (needs docker)
-sudo -E uv run python utils/test.py
-
-# Diff results
-uv run python utils/diff.py
+```bash
+python -m benchmark run        # 7 tools × 5 web-server scenarios
+python -m benchmark security   # adversarial corpus
 ```
 
-## Check report
+Both write JSON into `docs/public/data/`; the docs site picks them up
+on its next build. Full harness design:
+**<https://githacker.pages.dev/methodology>**.
 
-See `test/report/YYYY-MM-DD/index.html`
+## Demo
 
-## Videos
-### asciinema
+![Demo](./figure/demo.gif)
 
-[![asciicast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj.png)](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
-
-### YouTube
-* [【.git/ folder attack】Comparison of attack tools (Part I)](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
-* [【.git/ folder attack】Comparison of attack tools (Part II)](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
-
-## Security Issues
-
-#### 2021-08-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/e105b5c04329e9c4b8080029976bc73d12b1f23f): Malicious .git folder maybe harmful to the user of this tool (Reported by [Driver Tom](https://drivertom.blogspot.com))
-
-* [别想偷我源码：通用的针对源码泄露利用程序的反制（常见工具集体沦陷）](https://drivertom.blogspot.com/2021/08/git.html)
-
-#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/806095e807d20e06d5f192928f1f525510a34688): Arbitrary file write via recursive file downloader (Reported by [Justin Steven](https://twitter.com/justinsteven))
-
-* To be released
-
-#### 2022-03-01 [Fixed](https://github.com/WangYihang/GitHacker/commit/f97710c2cf0351308fc81666448e00004b7d14f9): Remote Code Execution via malicious `.git/config` and `.git/hooks/*` files (Reported by [Justin Steven](https://twitter.com/justinsteven))
-
-* To be released
+* [.git/ folder attack — comparison of attack tools, Part I](https://www.youtube.com/watch?v=Bs3QpVGf2uk)
+* [.git/ folder attack — comparison of attack tools, Part II](https://www.youtube.com/watch?v=Xzg4kQt4qEo)
+* [asciinema cast](https://asciinema.org/a/xgRmZ9dNvzhe3T2XRYDJe15Rj)
 
 ## References
 
 * [Git Repository Layout](https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrepository-layout.html)
-* [Git Documents](https://git-scm.com/docs)
-* [Git Pack filename](https://stackoverflow.com/questions/27789484/how-does-git-know-the-sha1-name-of-the-pack-files)
+* [Git Documentation](https://git-scm.com/docs)
+* Justin Steven, *Various abuses of `core.fsmonitor` in a directory's `.git/config`*, 2022 — <https://github.com/justinsteven/advisories>
+* Driver Tom, *别想偷我源码：通用的针对源码泄露利用程序的反制*, 2021 — <https://drivertom.blogspot.com/2021/08/git.html>
+* [Git project security advisories](https://github.com/git/git/security/advisories)
 
-## Acknowledgement
+## Acknowledgements
 
-- [@Justin Steven](https://twitter.com/justinsteven)
-- [@Driver Tom](https://drivertom.blogspot.com)
-- [@lesion1999](https://github.com/lesion1999)
-- [@shashade250](https://github.com/shashade250)
+- [Justin Steven](https://twitter.com/justinsteven) — original `core.fsmonitor` / recursive-downloader advisories (2022).
+- [Driver Tom](https://drivertom.blogspot.com) — generic counter-attacks against source-code pillagers (2021).
+- [7a6163](https://github.com/7a6163) — path-traversal in `add_head_file_tasks` / `add_hashes_parsed` (CVE pending; folded into the single-trust-gate fix at [`5f2a8ba`](https://github.com/WangYihang/GitHacker/commit/5f2a8ba)).
+- [lesion1999](https://github.com/lesion1999) — contributor.
+- [shashade250](https://github.com/shashade250) — contributor.
 
-## Licsence
+## License
+
 ```
 THE DRINKWARE LICENSE
 
 <wangyihanger@gmail.com> wrote this file. As long as
-you retain this :x:tice you can do whatever you want
+you retain this notice you can do whatever you want
 with this stuff. If we meet some day, and you think
 this stuff is worth it, you can buy me the following
 drink(s) in return.
