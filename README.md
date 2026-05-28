@@ -134,7 +134,7 @@ on its next build. Full harness design:
 
 - [Justin Steven](https://twitter.com/justinsteven) — original `core.fsmonitor` / recursive-downloader advisories (2022).
 - [Driver Tom](https://drivertom.blogspot.com) — generic counter-attacks against source-code pillagers (2021).
-- [7a6163](https://github.com/7a6163) — path-traversal in `add_head_file_tasks` / `add_hashes_parsed` (CVE pending; folded into the single-trust-gate fix at [`5f2a8ba`](https://github.com/WangYihang/GitHacker/commit/5f2a8ba)).
+- [Zac Wang (@7a6163)](https://github.com/7a6163) — path-traversal in `add_head_file_tasks` / `add_hashes_parsed` (CVE pending; folded into the single-trust-gate fix at [`5f2a8ba`](https://github.com/WangYihang/GitHacker/commit/5f2a8ba)).
 - [lesion1999](https://github.com/lesion1999) — contributor.
 - [shashade250](https://github.com/shashade250) — contributor.
 
