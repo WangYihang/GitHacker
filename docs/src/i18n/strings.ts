@@ -74,6 +74,8 @@ export interface Strings {
     reproduceCta: string;
     relatedHeading: string;
     relatedLead: string;
+    acksHeading: string;
+    acksLead: string;
     citationHeading: string;
   };
   benchmark: BenchmarkStrings;
@@ -119,6 +121,9 @@ export const strings: Record<Lang, Strings> = {
       relatedHeading: 'Related Work',
       relatedLead:
         'Justin Steven\'s 2022 advisory documents the original <code>core.fsmonitor</code> RCE in <code>.git/config</code>; Driver Tom\'s 2021 blog post catalogued generic counter-attacks against source-code pillagers; Git\'s own security advisory feed lists more than a dozen CVEs reachable via <code>git clone</code> of a hostile repository.',
+      acksHeading: 'Acknowledgements',
+      acksLead:
+        'GitHacker exists because of the security researchers and contributors who reported issues, sent patches, and reviewed work in progress:',
       citationHeading: 'Citation',
     },
     benchmark: {
@@ -206,6 +211,9 @@ export const strings: Record<Lang, Strings> = {
       relatedHeading: '相关工作',
       relatedLead:
         'Justin Steven 在 2022 年的安全通告中记录了恶意 <code>.git/config</code> 的 <code>core.fsmonitor</code> RCE；Driver Tom 在 2021 年的博文中梳理了针对源码偷盗者的通用反制；Git 官方安全通告列出了十余个可通过 <code>git clone</code> 恶意仓库触发的 CVE。',
+      acksHeading: '致谢',
+      acksLead:
+        'GitHacker 的存在离不开报告问题、提交补丁、审阅在制工作的安全研究者与贡献者：',
       citationHeading: '引用',
     },
     benchmark: {

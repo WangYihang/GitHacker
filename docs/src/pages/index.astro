@@ -90,6 +90,33 @@ const generatedDate = new Date(meta.generated_at).toLocaleDateString('en-US', {
       </li>
     </ol>
 
+    <!-- ── §5 Acknowledgements ─────────────────────────────────── -->
+    <SectionHeading n={5} id="acks">
+      <span data-i18n="home.acksHeading">{en.acksHeading}</span>
+    </SectionHeading>
+    <p class="text-[14.5px] leading-[1.7]" data-i18n="home.acksLead">{en.acksLead}</p>
+    <ul class="mt-3 ml-5 list-disc text-[13.5px] leading-relaxed space-y-1 text-[var(--ink-soft)]">
+      <li>
+        <a href="https://twitter.com/justinsteven" target="_blank" rel="noopener" class="underline">Justin Steven</a> —
+        original <code>core.fsmonitor</code> / recursive-downloader advisories (2022).
+      </li>
+      <li>
+        <a href="https://drivertom.blogspot.com" target="_blank" rel="noopener" class="underline">Driver Tom</a> —
+        generic counter-attacks against source-code pillagers (2021).
+      </li>
+      <li>
+        <a href="https://github.com/7a6163" target="_blank" rel="noopener" class="underline">7a6163</a> —
+        path-traversal in <code>add_head_file_tasks</code> / <code>add_hashes_parsed</code>
+        (CVE pending; folded into the single-trust-gate fix at <code>5f2a8ba</code>).
+      </li>
+      <li>
+        <a href="https://github.com/lesion1999" target="_blank" rel="noopener" class="underline">lesion1999</a> — contributor.
+      </li>
+      <li>
+        <a href="https://github.com/shashade250" target="_blank" rel="noopener" class="underline">shashade250</a> — contributor.
+      </li>
+    </ul>
+
     <!-- ── Citation ────────────────────────────────────────────── -->
     <h2 class="mt-9 mb-3 text-[20px]" data-i18n="home.citationHeading">{en.citationHeading}</h2>
     <Citation>{`@misc{githacker${new Date().getFullYear()},
