@@ -73,6 +73,22 @@ class TestMeta:
     callback_port: int | None = None
     callback_canary: str | None = None  # filename under canary_dir
 
+    # Files to plant in canary_dir before each tool run.  Used by tests
+    # whose primitive is "read-side": the malicious server can coerce
+    # the pillager into reading these files (via path traversal etc.),
+    # so we plant the bait beforehand.  Keys are filenames under
+    # canary_dir; values are the bait content.
+    seed_files: dict = field(default_factory=dict)
+
+    # When set, the primary static evil_server gets ``--watch-regex`` and
+    # ``--watch-canary`` flags so any incoming request whose URL path
+    # matches the regex creates ``canary_dir/<watch_canary>`` — turning
+    # a side-channel HTTP request into a canary the default oracle can
+    # detect.  Used by D1: pillager reads bait, extracts hex, emits a
+    # GET for that hex's object path, regex matches, canary appears.
+    watch_regex: str | None = None
+    watch_canary: str | None = None
+
 
 @dataclass
 class ToolRunResult:
@@ -149,6 +165,9 @@ def discover_tests(filter_ids: list[str] | None = None,
             redirect_to=raw.get("redirect_to"),
             callback_port=raw.get("callback_port"),
             callback_canary=raw.get("callback_canary"),
+            seed_files=raw.get("seed_files", {}) or {},
+            watch_regex=raw.get("watch_regex"),
+            watch_canary=raw.get("watch_canary"),
         )
         if filter_ids and meta.id not in filter_ids:
             continue
@@ -202,7 +221,13 @@ def _wait_port_release(port: int, host: str = EVIL_SERVER_HOST, timeout: float =
             return
 
 
-def start_evil_server(meta: TestMeta, payload: Path) -> subprocess.Popen:
+def start_evil_server(
+    meta: TestMeta,
+    payload: Path,
+    *,
+    access_log: Path | None = None,
+    watch_canary: Path | None = None,
+) -> subprocess.Popen:
     cmd = [
         sys.executable,
         str(BENCHMARK_DIR / "evil_server.py"),
@@ -212,6 +237,13 @@ def start_evil_server(meta: TestMeta, payload: Path) -> subprocess.Popen:
     ]
     if meta.server_mode == "static":
         cmd.extend(["--payload", str(payload.resolve())])
+        if access_log:
+            cmd.extend(["--access-log", str(access_log.resolve())])
+        if meta.watch_regex and watch_canary:
+            cmd.extend([
+                "--watch-regex", meta.watch_regex,
+                "--watch-canary", str(watch_canary.resolve()),
+            ])
     elif meta.server_mode == "redirect":
         if not meta.redirect_to:
             raise ValueError(f"{meta.id}: redirect mode requires redirect_to")
@@ -227,6 +259,19 @@ def start_evil_server(meta: TestMeta, payload: Path) -> subprocess.Popen:
         proc.wait(timeout=2)
         raise RuntimeError(f"evil-server failed to bind {EVIL_SERVER_HOST}:{EVIL_SERVER_PORT}")
     return proc
+
+
+def seed_canary_dir(meta: TestMeta, canary_dir: Path) -> None:
+    """Plant bait files for read-side tests into canary_dir.
+
+    Each ``seed_files[name] = text`` entry creates ``canary_dir/<name>``
+    with that text content before the pillager runs.  Existing files
+    are overwritten so every tool gets identical bait.
+    """
+    for name, content in meta.seed_files.items():
+        path = canary_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
 
 
 def stop_evil_server(proc: subprocess.Popen, port: int = EVIL_SERVER_PORT) -> None:
@@ -397,14 +442,27 @@ def run_security_suite(
             results.append(TestResult(meta=meta, runs=runs))
             continue
 
-        server = start_evil_server(meta, payload)
-        try:
-            runs: dict[str, ToolRunResult] = {}
-            for tid in tools:
-                output_dir = playground / meta.id / tid / "output"
-                canary_dir = playground / meta.id / tid / "canary"
-                canary_dir.mkdir(parents=True, exist_ok=True)
-                logger.info("  %s ...", tid)
+        # evil_server is restarted per tool so that per-tool state
+        # (watch canary, access log) lives under each tool's canary_dir.
+        # Cost is ~100ms per tool — negligible vs the per-tool runtime.
+        runs: dict[str, ToolRunResult] = {}
+        for tid in tools:
+            output_dir = playground / meta.id / tid / "output"
+            canary_dir = playground / meta.id / tid / "canary"
+            canary_dir.mkdir(parents=True, exist_ok=True)
+            seed_canary_dir(meta, canary_dir)
+            logger.info("  %s ...", tid)
+            watch_canary_path = (
+                canary_dir / meta.watch_canary if meta.watch_canary else None
+            )
+            access_log_path = canary_dir / "access.log"
+            access_log_path.write_text("")
+            server = start_evil_server(
+                meta, payload,
+                access_log=access_log_path,
+                watch_canary=watch_canary_path,
+            )
+            try:
                 # Per-tool callback sidecar (for SSRF tests like C3).
                 callback = None
                 if meta.callback_port and meta.callback_canary:
@@ -423,8 +481,8 @@ def run_security_suite(
                         stop_evil_server(callback, port=meta.callback_port)
                 logger.info("    -> %s (%s)", run.verdict.value, run.evidence or run.duration)
                 runs[tid] = run
-        finally:
-            stop_evil_server(server)
+            finally:
+                stop_evil_server(server)
 
         results.append(TestResult(meta=meta, runs=runs))
 

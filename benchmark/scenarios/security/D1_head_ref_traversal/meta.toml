@@ -1,0 +1,20 @@
+category = "Info"
+severity = "M"
+cve = "GHSA-hr3m-4qwq-3mgc"
+description = "Crafted .git/HEAD with `ref: ../../canary/<bait>` coerces the pillager into reading a file outside its output directory; the 40-char hex inside that bait file then leaks back to the attacker as object-path GETs (existence oracle + hex-fragment exfiltration, GitHacker <= 1.1.7, Zac Wang 2026)"
+server_mode = "static"
+
+# When the pillager extracts the bait hex and tries to fetch the
+# matching object, evil_server sees the path and touches the canary.
+# The default canary oracle then flags FAIL.
+watch_regex = "/\\.git/objects/de/adbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+watch_canary = "PWNED_D1"
+
+# Plant a bait file in canary_dir BEFORE the pillager runs.  The
+# pillager's container mounts canary_dir as /canary, so a malicious
+# `.git/HEAD` pointing at `../../canary/<name>` from inside
+# /output/.git/logs/ reaches it.  The bait's 40-char hex value is
+# the marker the oracle looks for in subsequent object GETs.
+# Must come last — TOML tables capture every key that follows.
+[seed_files]
+"D1_bait.txt" = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef\n"

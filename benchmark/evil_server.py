@@ -28,6 +28,7 @@ import argparse
 import html
 import http.server
 import os
+import re
 import socketserver
 import sys
 import urllib.parse
@@ -40,9 +41,43 @@ class _StaticHandler(http.server.SimpleHTTPRequestHandler):
     Pillagers detect a directory listing by scanning the body for
     ``<title>Index of`` (justinsteven 2022, GitHacker source) — the
     stdlib's default index uses a different title, so we override it.
+
+    Class-level hooks ``access_log_path`` and ``watch_regex`` /
+    ``watch_canary_path`` are wired up by ``main()`` from CLI flags.
+    Any request whose path matches ``watch_regex`` causes
+    ``watch_canary_path`` to be created — that is the trigger D1-style
+    "observable side-effect" oracles read.
     """
 
     server_version = "EvilServer/0.1"
+    access_log_path: Path | None = None
+    watch_regex = None
+    watch_canary_path: Path | None = None
+
+    def _record(self) -> None:
+        cls = self.__class__
+        if cls.access_log_path:
+            try:
+                with open(cls.access_log_path, "a") as f:
+                    f.write(self.requestline + "\n")
+            except OSError as exc:
+                sys.stderr.write(f"access-log write failed: {exc}\n")
+        if cls.watch_regex and cls.watch_canary_path and cls.watch_regex.search(self.path):
+            try:
+                cls.watch_canary_path.parent.mkdir(parents=True, exist_ok=True)
+                cls.watch_canary_path.write_text(
+                    f"watch matched: {self.path}\n",
+                )
+            except OSError as exc:
+                sys.stderr.write(f"watch canary write failed: {exc}\n")
+
+    def do_GET(self):  # noqa: N802
+        self._record()
+        super().do_GET()
+
+    def do_HEAD(self):  # noqa: N802
+        self._record()
+        super().do_HEAD()
 
     def list_directory(self, path):  # type: ignore[override]
         try:
@@ -126,12 +161,24 @@ def main() -> int:
     p.add_argument("--canary-file", type=Path, help="File to touch in callback mode")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8080)
+    p.add_argument("--access-log", type=Path,
+                   help="Append every requestline to this file (static mode)")
+    p.add_argument("--watch-regex",
+                   help="Touch --watch-canary on any static request whose path matches this regex")
+    p.add_argument("--watch-canary", type=Path,
+                   help="File to touch when --watch-regex matches")
     args = p.parse_args()
 
     if args.mode == "static":
         if not args.payload or not args.payload.is_dir():
             p.error("--payload <dir> is required in static mode")
         os.chdir(args.payload)
+        _StaticHandler.access_log_path = args.access_log
+        if args.watch_regex:
+            if not args.watch_canary:
+                p.error("--watch-canary <path> is required when --watch-regex is set")
+            _StaticHandler.watch_regex = re.compile(args.watch_regex)
+            _StaticHandler.watch_canary_path = args.watch_canary
         handler: type[http.server.BaseHTTPRequestHandler] = _StaticHandler
     elif args.mode == "redirect":
         if not args.redirect_to:
