@@ -21,9 +21,9 @@ def md5(data):
 
 
 def diff(left, right):
-    visible_files = glob.glob(f"{left}/**/*", recursive=True)
-    invisiable_files = glob.glob(f"{left}/**/.*", recursive=True)
-    git_files = glob.glob(f"{left}/.git/**/*", recursive=True)
+    visible_files = glob.glob(f'{left}/**/*', recursive=True)
+    invisiable_files = glob.glob(f'{left}/**/.*', recursive=True)
+    git_files = glob.glob(f'{left}/.git/**/*', recursive=True)
     files = visible_files + invisiable_files + git_files
     total = 0
     correct = 0
@@ -59,7 +59,7 @@ def diffall(display_difference=False, display_abscences=False):
     for folder in glob.glob('./test/docker/*'):
         basename = os.path.basename(folder)
         origin_path = os.path.join('test', 'repo')
-        current_paths = glob.glob(f"{os.path.join('playground', basename)}/*")
+        current_paths = glob.glob(f'{os.path.join("playground", basename)}/*')
         if len(current_paths) == 0:
             continue
         current_path = current_paths[0]
@@ -78,7 +78,7 @@ def diffall(display_difference=False, display_abscences=False):
         }
 
         ratio_str = format(ratio, '.2f')
-        ratio_log = f"[{correct} / {total}] = {ratio_str}%, {origin_path}, {current_path}"
+        ratio_log = f'[{correct} / {total}] = {ratio_str}%, {origin_path}, {current_path}'
         if ratio == 100.0:
             logger.info(ratio_log)
         else:
@@ -88,13 +88,13 @@ def diffall(display_difference=False, display_abscences=False):
         if len(difference) > 0 and display_difference:
             logger.info('  Different files:')
             for filename in difference:
-                logger.error(f"    {filename}")
+                logger.error(f'    {filename}')
 
         # Display absent files
         if len(abscence) > 0 and display_abscences:
             logger.info('  Files absent:')
             for filename in abscence:
-                logger.error(f"    {filename}")
+                logger.error(f'    {filename}')
 
         # Render report
         template = env.get_template('result.html')
@@ -110,7 +110,7 @@ def diffall(display_difference=False, display_abscences=False):
             },
         )
         today = datetime.datetime.now().strftime('%Y-%m-%d')
-        report_filepath = f"test/report/{today}/{basename}.html"
+        report_filepath = f'test/report/{today}/{basename}.html'
         try:
             os.makedirs(os.path.dirname(report_filepath))
         except Exception as e:
@@ -120,7 +120,7 @@ def diffall(display_difference=False, display_abscences=False):
 
     template = env.get_template('index.html')
     html = template.render({'results': results})
-    report_filepath = f"test/report/{today}/index.html"
+    report_filepath = f'test/report/{today}/index.html'
     try:
         os.makedirs(os.path.dirname(report_filepath))
     except Exception as e:

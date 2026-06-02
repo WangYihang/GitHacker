@@ -23,14 +23,14 @@ GITMODULES = (
 
 def main() -> None:
     build_minimal_repo(
-        HERE / "payload",
-        config=config_with(""),
+        HERE / 'payload',
+        config=config_with(''),
         tree_entries=[
-            (0o100644, ".gitmodules", GITMODULES),
+            (0o100644, '.gitmodules', GITMODULES),
         ],
     )
-    print(f"Built E5 payload at {HERE / 'payload'}")
+    print(f'Built E5 payload at {HERE / "payload"}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -16,13 +16,11 @@ from _payload_lib import build_minimal_repo, config_with  # noqa: E402
 
 def main() -> None:
     build_minimal_repo(
-        HERE / "payload",
-        config=config_with(
-            '\teditor = "touch /canary/PWNED_A5; true"\n'
-        ),
+        HERE / 'payload',
+        config=config_with('\teditor = "touch /canary/PWNED_A5; true"\n'),
     )
-    print(f"Built A5 payload at {HERE / 'payload'}")
+    print(f'Built A5 payload at {HERE / "payload"}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

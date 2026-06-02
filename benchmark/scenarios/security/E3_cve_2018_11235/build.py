@@ -14,22 +14,20 @@ sys.path.insert(0, str(HERE.parent))
 from _payload_lib import build_minimal_repo, config_with  # noqa: E402
 
 GITMODULES = (
-    b'[submodule "../../canary/PWNED_E3"]\n'
-    b'\tpath = sub\n'
-    b'\turl = https://example.invalid/sub.git\n'
+    b'[submodule "../../canary/PWNED_E3"]\n\tpath = sub\n\turl = https://example.invalid/sub.git\n'
 )
 
 
 def main() -> None:
     build_minimal_repo(
-        HERE / "payload",
-        config=config_with(""),
+        HERE / 'payload',
+        config=config_with(''),
         tree_entries=[
-            (0o100644, ".gitmodules", GITMODULES),
+            (0o100644, '.gitmodules', GITMODULES),
         ],
     )
-    print(f"Built E3 payload at {HERE / 'payload'}")
+    print(f'Built E3 payload at {HERE / "payload"}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

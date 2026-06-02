@@ -11,7 +11,7 @@ class Tool:
     id: str
     name: str
     url: str
-    version: str = "unknown"
+    version: str = 'unknown'
 
 
 @dataclass
@@ -37,20 +37,18 @@ class ScenarioResult:
 
     def to_dict(self) -> dict:
         d: dict = {
-            "correct": self.correct,
-            "total": self.total,
-            "ratio": self.ratio,
-            "different_files": self.different_files,
-            "absent_files": self.absent_files,
-            "features": {
-                k: dataclasses.asdict(v) for k, v in self.features.items()
-            },
-            "duration": self.duration,
-            "exit_code": self.exit_code,
-            "http_requests": self.http_requests,
+            'correct': self.correct,
+            'total': self.total,
+            'ratio': self.ratio,
+            'different_files': self.different_files,
+            'absent_files': self.absent_files,
+            'features': {k: dataclasses.asdict(v) for k, v in self.features.items()},
+            'duration': self.duration,
+            'exit_code': self.exit_code,
+            'http_requests': self.http_requests,
         }
         if self.error:
-            d["error"] = self.error
+            d['error'] = self.error
         return d
 
 
@@ -71,14 +69,14 @@ class BenchmarkReport:
 
     def to_dict(self) -> dict:
         return {
-            "metadata": dataclasses.asdict(self.metadata),
-            "tools": {
-                tid: {"name": t.name, "url": t.url, "version": t.version}
+            'metadata': dataclasses.asdict(self.metadata),
+            'tools': {
+                tid: {'name': t.name, 'url': t.url, 'version': t.version}
                 for tid, t in self.tools.items()
             },
-            "scenarios": self.scenarios,
-            "features": self.features,
-            "results": {
+            'scenarios': self.scenarios,
+            'features': self.features,
+            'results': {
                 tid: {sc: sr.to_dict() for sc, sr in scenarios.items()}
                 for tid, scenarios in self.results.items()
             },

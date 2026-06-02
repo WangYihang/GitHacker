@@ -20,13 +20,13 @@ import shutil
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-PAYLOAD = HERE / "payload"
+PAYLOAD = HERE / 'payload'
 
 # Same 40-char hex that ``seed_files`` plants in canary_dir/D1_bait.txt.
 # The pillager will extract this from the bait file's contents and
 # attempt to GET .git/objects/de/adbeef... — that GET is what the
 # evil server's watch_regex hooks.
-BAIT_HEX = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+BAIT_HEX = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
 
 CONFIG = """[core]
 \trepositoryformatversion = 0
@@ -39,20 +39,20 @@ CONFIG = """[core]
 # /canary/D1_bait.txt inside the pillager's container.  Pre-fix
 # add_head_file_tasks reads it; post-fix _is_safe_ref_segment rejects
 # the `..` segments and skips the ref.
-HEAD = "ref: ../../canary/D1_bait.txt\n"
+HEAD = 'ref: ../../canary/D1_bait.txt\n'
 
 
 def main() -> None:
     if PAYLOAD.exists():
         shutil.rmtree(PAYLOAD)
-    git_dir = PAYLOAD / ".git"
+    git_dir = PAYLOAD / '.git'
     git_dir.mkdir(parents=True)
-    (git_dir / "HEAD").write_text(HEAD)
-    (git_dir / "config").write_text(CONFIG)
+    (git_dir / 'HEAD').write_text(HEAD)
+    (git_dir / 'config').write_text(CONFIG)
     # Minimal autoindex content so pillagers that scrape directory
     # listings still find HEAD/config without needing index.html.
-    print(f"Built D1 payload at {PAYLOAD} (bait hex: {BAIT_HEX})")
+    print(f'Built D1 payload at {PAYLOAD} (bait hex: {BAIT_HEX})')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

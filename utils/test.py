@@ -26,7 +26,7 @@ def test_githacker(folder, url):
             '--url',
             url,
             '--output-folder',
-            f"playground/{os.path.basename(folder)}",
+            f'playground/{os.path.basename(folder)}',
         ],
     )
     stop_docker(folder)

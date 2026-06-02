@@ -20,6 +20,7 @@ Two things are pinned, both at unit speed:
   to catch) lands the absolute payloads *outside* the output dir.  So the
   GREEN result above is GitHacker defending, not the corpus being inert.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -31,13 +32,12 @@ import pytest
 
 from githacker.__main__ import GitHacker
 
-SCENARIOS = Path(__file__).resolve(
-).parents[1] / 'benchmark' / 'scenarios' / 'security'
+SCENARIOS = Path(__file__).resolve().parents[1] / 'benchmark' / 'scenarios' / 'security'
 
 
 def _load_build(scenario: str):
     path = SCENARIOS / scenario / 'build.py'
-    spec = importlib.util.spec_from_file_location(f"build_{scenario}", path)
+    spec = importlib.util.spec_from_file_location(f'build_{scenario}', path)
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -52,6 +52,7 @@ CORPUS = [('C1', h) for h in _C1.HREFS] + [('C4', h) for h in _C4.HREFS]
 
 
 # --- minimal add_folder harness (mirrors test_add_folder_traversal) -------
+
 
 class _FakeResponse:
     def __init__(self, text: str) -> None:
@@ -99,6 +100,7 @@ def _resolves_inside(temp_dst: str, components: list[str]) -> bool:
 
 # --- the corpus is real signal -------------------------------------------
 
+
 def test_corpus_is_non_empty():
     # Guard against an import that silently yields [] (which would make
     # every parametrized assertion below vacuously pass).
@@ -106,7 +108,7 @@ def test_corpus_is_non_empty():
     assert len(_C4.HREFS) >= 10
 
 
-@pytest.mark.parametrize('scenario,href', CORPUS, ids=[f"{s}:{h}" for s, h in CORPUS])
+@pytest.mark.parametrize('scenario,href', CORPUS, ids=[f'{s}:{h}' for s, h in CORPUS])
 def test_real_add_folder_neutralizes_benchmark_corpus(tmp_path, scenario, href):
     """Every benchmark href, fed through the real add_folder, must keep
     every queued path inside temp_dst with no `..` component."""
@@ -119,10 +121,10 @@ def test_real_add_folder_neutralizes_benchmark_corpus(tmp_path, scenario, href):
 
     for components in g._pending:
         assert '..' not in components, (
-            f"{scenario} href {href!r} queued a traversal component: {components!r}"
+            f'{scenario} href {href!r} queued a traversal component: {components!r}'
         )
         assert _resolves_inside(g.temp_dst, components), (
-            f"{scenario} href {href!r} queued {components!r} escaping temp_dst"
+            f'{scenario} href {href!r} queued {components!r} escaping temp_dst'
         )
 
 
@@ -149,7 +151,7 @@ def test_benchmark_scenarios_serve_their_canary():
     for mod, prefix in ((_C1, 'C1'), (_C4, 'C4')):
         mod.main()
         payload = mod.PAYLOAD
-        assert (payload / 'canary' / f"PWNED_{prefix}").is_file()
+        assert (payload / 'canary' / f'PWNED_{prefix}').is_file()
         index = (payload / '.git' / 'index.html').read_text()
         assert '<title>Index of' in index
-        assert f"PWNED_{prefix}" in index
+        assert f'PWNED_{prefix}' in index

@@ -42,6 +42,7 @@ expected PASS.  Encoded / protocol-relative / backslash variants are
 included for corpus coverage the same way C1 carries documentary
 patterns; whichever a given vulnerable tool honours fires the canary.
 """
+
 from __future__ import annotations
 
 import shutil
@@ -55,37 +56,31 @@ PAYLOAD = HERE / 'payload'
 HREFS = [
     # 1. Plain absolute path — the base case.
     '/canary/PWNED_C4',
-
     # 2. Absolute with dot-noise that canonicalises back to /canary.
     '/./canary/PWNED_C4',
     '/canary/./PWNED_C4',
     '/canary/../canary/PWNED_C4',
-
     # 3. Absolute with a leading climb — "can't go above root" pins these
     #    back to /canary, but a tool that resolves them on the filesystem
     #    side (joined onto a deeper cwd) still escapes.
     '/../canary/PWNED_C4',
     '/../../../../../../canary/PWNED_C4',
     '/.git/../canary/PWNED_C4',
-
     # 4. Protocol-relative // and backslash-root — host/segment confusion;
     #    a parser that treats the leading // or \ as "absolute on this
     #    host" writes to /canary.
     '//canary/PWNED_C4',
     '/\\canary\\PWNED_C4',
-
     # 5. Encoded leading separator — the absolute-path counterpart of
     #    C1's encoded-relative class; honoured by tools that decode before
     #    deciding "is this absolute?".
     '%2fcanary%2fPWNED_C4',
     '/%2e/canary/PWNED_C4',
     '/%2e%2e/canary/PWNED_C4',
-
     # 6. Backslash root (Windows-style absolute) — a tool that folds "\"
     #    -> "/" sees \canary\... as an absolute root.
     '\\canary\\PWNED_C4',
     '\\\\canary\\\\PWNED_C4',
-
     # 7. NUL truncation on an absolute path — terminate at the NUL and the
     #    surviving prefix is still an absolute /canary write.
     '/canary/PWNED_C4%00.git',
@@ -125,7 +120,7 @@ def main() -> None:
     canary_dir.mkdir()
     (canary_dir / 'PWNED_C4').write_text('PWNED via absolute-path anchor\n')
 
-    print(f"Built C4 payload at {PAYLOAD} ({len(HREFS)} href variants)")
+    print(f'Built C4 payload at {PAYLOAD} ({len(HREFS)} href variants)')
 
 
 if __name__ == '__main__':

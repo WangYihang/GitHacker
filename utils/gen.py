@@ -12,15 +12,17 @@ coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 random.seed(0)
 
 
-def random_string(length=0x10, charset=__import__('string').ascii_letters + __import__('string').digits):
+def random_string(
+    length=0x10, charset=__import__('string').ascii_letters + __import__('string').digits
+):
     return ''.join([random.choice(charset) for i in range(length)])
 
 
 def generate_random_files(repo, root, n, prefix='normal'):
     files = []
     for i in range(n):
-        logging.debug(f"Creating the {i + 1} th of {n} random files")
-        filename = f"{prefix}_{random_string()}.php"
+        logging.debug(f'Creating the {i + 1} th of {n} random files')
+        filename = f'{prefix}_{random_string()}.php'
         filepath = os.path.join(os.path.abspath(root), filename)
         with open(filepath, 'w') as f:
             f.write(random_string())
@@ -30,19 +32,25 @@ def generate_random_files(repo, root, n, prefix='normal'):
 
 def generate_random_commits(repo, root, n, prefix):
     for i in range(n):
-        logging.debug(f"Creating the {i + 1} th of {n} random commits")
+        logging.debug(f'Creating the {i + 1} th of {n} random commits')
         files = generate_random_files(
-            repo, root, random.randint(2, 16), prefix=f"{prefix}_commit",
+            repo,
+            root,
+            random.randint(2, 16),
+            prefix=f'{prefix}_commit',
         )
         repo.index.add(files)
-        repo.index.commit(f"create {files}")
+        repo.index.commit(f'create {files}')
 
 
 def generate_random_stashes(repo, root, n):
     for i in range(n):
-        logging.debug(f"Creating the {i + 1} th of {n} random commits")
+        logging.debug(f'Creating the {i + 1} th of {n} random commits')
         files = generate_random_files(
-            repo, root, random.randint(2, 16), prefix='stash',
+            repo,
+            root,
+            random.randint(2, 16),
+            prefix='stash',
         )
         repo.index.add(files)
         repo.git.stash()
@@ -58,31 +66,39 @@ def generate_random_tags(repo, root, n):
             )()
             repo.create_tag(
                 version,
-                message=f"v{version}",
+                message=f'v{version}',
             )
         generate_random_commits(
-            repo, root, random.randint(
-                2, 4,
-            ), prefix=f"tag_v{version}",
+            repo,
+            root,
+            random.randint(
+                2,
+                4,
+            ),
+            prefix=f'tag_v{version}',
         )
     repo.git.checkout('master')
 
 
 def generate_random_branches(repo, root, n):
     for i in range(n):
-        logging.debug(f"Creating the {i + 1} th of {n} random branches")
+        logging.debug(f'Creating the {i + 1} th of {n} random branches')
         branch_name = random_string()
         repo.create_head(branch_name)
         generate_random_commits(
-            repo, root, random.randint(
-                2, 4,
-            ), prefix=f"branch_{branch_name}",
+            repo,
+            root,
+            random.randint(
+                2,
+                4,
+            ),
+            prefix=f'branch_{branch_name}',
         )
 
 
 def generate_repo(folder):
     # 1. Create a new repo
-    logging.info(f"Creating repo: {folder}")
+    logging.info(f'Creating repo: {folder}')
     root = folder
     repo = Repo.init(root)
 
@@ -119,9 +135,13 @@ def generate_repo(folder):
     for branch_name in branch_names:
         repo.create_head(branch_name)
         generate_random_commits(
-            repo, root, random.randint(
-                2, 4,
-            ), prefix='branch_commits',
+            repo,
+            root,
+            random.randint(
+                2,
+                4,
+            ),
+            prefix='branch_commits',
         )
 
     # 5. Create 0x10 Tags
@@ -136,7 +156,10 @@ def generate_repo(folder):
     logging.info('Generating random files in staging area...')
     repo.index.add(
         generate_random_files(
-            repo, root, random.randint(2, 16), prefix='staging',
+            repo,
+            root,
+            random.randint(2, 16),
+            prefix='staging',
         ),
     )
 

@@ -27,11 +27,11 @@ def _parse_packed_refs(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
     out: dict[str, str] = {}
-    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for raw in path.read_text(encoding='utf-8', errors='replace').splitlines():
         line = raw.strip()
-        if not line or line.startswith("#") or line.startswith("^"):
+        if not line or line.startswith('#') or line.startswith('^'):
             continue
-        parts = line.split(" ", 1)
+        parts = line.split(' ', 1)
         if len(parts) != 2:
             continue
         sha, ref = parts
@@ -39,8 +39,9 @@ def _parse_packed_refs(path: Path) -> dict[str, str]:
     return out
 
 
-def _resolve_ref(recovered: Path, ref_kind: str, ref_name: str,
-                 packed: dict[str, str]) -> str | None:
+def _resolve_ref(
+    recovered: Path, ref_kind: str, ref_name: str, packed: dict[str, str]
+) -> str | None:
     """Return the SHA the recovered repo has for `refs/<ref_kind>/<ref_name>`.
 
     Tools differ in how they leave the ref store after recovery:
@@ -51,23 +52,23 @@ def _resolve_ref(recovered: Path, ref_kind: str, ref_name: str,
 
     Returns the first SHA found, or None if the ref is missing entirely.
     """
-    git_dir = recovered / ".git"
+    git_dir = recovered / '.git'
     candidates = [
-        git_dir / "refs" / ref_kind / ref_name,
+        git_dir / 'refs' / ref_kind / ref_name,
     ]
-    if ref_kind == "heads":
+    if ref_kind == 'heads':
         # `git clone` rewrites local branches as remote-tracking branches.
-        candidates.append(git_dir / "refs" / "remotes" / "origin" / ref_name)
+        candidates.append(git_dir / 'refs' / 'remotes' / 'origin' / ref_name)
     for c in candidates:
         if c.is_file():
-            sha = c.read_text(encoding="utf-8", errors="replace").strip()
+            sha = c.read_text(encoding='utf-8', errors='replace').strip()
             if sha:
                 return sha
     # Packed-refs fall-throughs: both the original prefix and the rewritten
     # remote-tracking form qualify.
-    keys = [f"refs/{ref_kind}/{ref_name}"]
-    if ref_kind == "heads":
-        keys.append(f"refs/remotes/origin/{ref_name}")
+    keys = [f'refs/{ref_kind}/{ref_name}']
+    if ref_kind == 'heads':
+        keys.append(f'refs/remotes/origin/{ref_name}')
     for k in keys:
         if k in packed:
             return packed[k]
@@ -75,8 +76,8 @@ def _resolve_ref(recovered: Path, ref_kind: str, ref_name: str,
 
 
 _REF_PREFIXES = {
-    ".git/refs/heads/": "heads",
-    ".git/refs/tags/": "tags",
+    '.git/refs/heads/': 'heads',
+    '.git/refs/tags/': 'tags',
 }
 
 
@@ -100,7 +101,7 @@ def _compare_file_list(
     different: list[str] = []
     absent: list[str] = []
 
-    packed = _parse_packed_refs(recovered / ".git" / "packed-refs")
+    packed = _parse_packed_refs(recovered / '.git' / 'packed-refs')
 
     for rel_path in file_list:
         origin_file = origin / rel_path
@@ -112,7 +113,7 @@ def _compare_file_list(
         total += 1
 
         # .git/index always differs after checkout — treat as correct
-        if ".git/index" in rel_path:
+        if '.git/index' in rel_path:
             correct += 1
             continue
 
@@ -122,9 +123,10 @@ def _compare_file_list(
             None,
         )
         if ref_kind is not None:
-            ref_name = rel_path[len(f".git/refs/{ref_kind}/"):]
+            ref_name = rel_path[len(f'.git/refs/{ref_kind}/') :]
             origin_sha = origin_file.read_text(
-                encoding="utf-8", errors="replace",
+                encoding='utf-8',
+                errors='replace',
             ).strip()
             recovered_sha = _resolve_ref(recovered, ref_kind, ref_name, packed)
             if recovered_sha is None:
@@ -165,7 +167,9 @@ def compare_repos(
 
     for feature, file_list in manifest.items():
         correct, total, different, absent = _compare_file_list(
-            origin, recovered, file_list,
+            origin,
+            recovered,
+            file_list,
         )
         ratio = round(correct / total * 100, 2) if total > 0 else 0.0
         # A feature is "supported" if any files were recovered, OR if there
@@ -182,12 +186,8 @@ def compare_repos(
         all_different.extend(different)
         all_absent.extend(absent)
 
-        level = (
-            logging.INFO if ratio == 100.0
-            else logging.WARNING if ratio > 0
-            else logging.ERROR
-        )
-        logger.log(level, "  %s: [%d/%d] = %.2f%%", feature, correct, total, ratio)
+        level = logging.INFO if ratio == 100.0 else logging.WARNING if ratio > 0 else logging.ERROR
+        logger.log(level, '  %s: [%d/%d] = %.2f%%', feature, correct, total, ratio)
 
     overall_ratio = round(total_correct / total_files * 100, 2) if total_files > 0 else 0.0
 

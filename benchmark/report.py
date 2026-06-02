@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 def _git_commit() -> str:
     try:
         return subprocess.check_output(
-            ["git", "rev-parse", "--short", "HEAD"],
+            ['git', 'rev-parse', '--short', 'HEAD'],
             text=True,
         ).strip()
     except Exception:
-        return "unknown"
+        return 'unknown'
 
 
 def build_report(
@@ -48,14 +48,14 @@ def write_report(report: BenchmarkReport) -> Path:
     data = report.to_dict()
 
     RESULTS_PATH.mkdir(parents=True, exist_ok=True)
-    output = RESULTS_PATH / "benchmark.json"
+    output = RESULTS_PATH / 'benchmark.json'
     output.write_text(json.dumps(data, indent=2))
-    logger.info("Saved %s", output)
+    logger.info('Saved %s', output)
 
     DOCS_DATA_PATH.mkdir(parents=True, exist_ok=True)
-    docs_copy = DOCS_DATA_PATH / "benchmark.json"
+    docs_copy = DOCS_DATA_PATH / 'benchmark.json'
     docs_copy.write_text(json.dumps(data, indent=2))
-    logger.info("Copied to %s", docs_copy)
+    logger.info('Copied to %s', docs_copy)
 
     return output
 
@@ -65,17 +65,23 @@ def print_summary(
     results: dict[str, dict[str, ScenarioResult]],
 ) -> None:
     """Log a human-readable summary table."""
-    logger.info("=" * 72)
-    logger.info("SUMMARY")
-    logger.info("=" * 72)
+    logger.info('=' * 72)
+    logger.info('SUMMARY')
+    logger.info('=' * 72)
     for tid, tool in tools.items():
         for scenario in SCENARIOS:
             r = results.get(tid, {}).get(scenario)
             if not r:
                 continue
-            reqs = str(r.http_requests) if r.http_requests is not None else "N/A"
-            dur = f"{r.duration:.1f}s" if r.duration is not None else "N/A"
+            reqs = str(r.http_requests) if r.http_requests is not None else 'N/A'
+            dur = f'{r.duration:.1f}s' if r.duration is not None else 'N/A'
             logger.info(
-                "  %-20s | %-25s | %3d/%3d = %6.2f%% | %7s | reqs=%5s",
-                tool.name, scenario, r.correct, r.total, r.ratio, dur, reqs,
+                '  %-20s | %-25s | %3d/%3d = %6.2f%% | %7s | reqs=%5s',
+                tool.name,
+                scenario,
+                r.correct,
+                r.total,
+                r.ratio,
+                dur,
+                reqs,
             )

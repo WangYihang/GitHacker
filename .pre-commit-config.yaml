@@ -6,7 +6,6 @@ repos:
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: debug-statements
-    -   id: double-quote-string-fixer
     -   id: name-tests-test
     -   id: requirements-txt-fixer
     -   id: check-json
@@ -16,35 +15,26 @@ repos:
     rev: v2.8.0
     hooks:
     -   id: setup-cfg-fmt
--   repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.15.0
+# ruff is the all-in-one Python linter + formatter and the single source of
+# truth here: CI runs `uv run ruff check .`, so we run the *same* ruff via
+# `uv run` (the version pinned in the project's dev deps / uv.lock) instead
+# of a separately-pinned mirror — no drift between the hook and CI. This one
+# tool replaces flake8, autopep8, pyupgrade, autoflake, reorder-python-imports,
+# add-trailing-comma, and double-quote-string-fixer.
+-   repo: local
     hooks:
-    -   id: reorder-python-imports
-        exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
-        args: [--py312-plus]
--   repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.2.0
-    hooks:
-    -   id: add-trailing-comma
--   repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
-    hooks:
-    -   id: pyupgrade
-        args: [--py312-plus]
--   repo: https://github.com/hhatto/autopep8
-    rev: v2.3.2
-    hooks:
-    -   id: autopep8
--   repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
-    hooks:
-    -   id: flake8
-        args: ['--ignore=E501,W504']
--   repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
-    hooks:
-    -   id: autoflake
-        args: [--remove-all-unused-imports, --in-place]
+    -   id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+    -   id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.17.1
     hooks:
