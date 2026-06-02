@@ -21,7 +21,7 @@ from urllib3.util.retry import Retry
 
 # Kept in sync with pyproject.toml's project.version by bump-my-version
 # (see [tool.bump-my-version.files] in pyproject.toml).
-__version__ = '1.1.3'
+__version__ = '1.1.8'
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 
