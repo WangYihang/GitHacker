@@ -37,7 +37,6 @@ import pytest
 
 from githacker.__main__ import GitHacker
 
-
 # Attacker-served <a href="..."> targets. Each is a single directory-listing
 # entry a malicious server could return for `.git/`.
 TRAVERSAL_HREFS = [

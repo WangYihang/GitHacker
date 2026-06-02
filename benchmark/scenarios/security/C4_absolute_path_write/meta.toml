@@ -1,0 +1,5 @@
+category = "AFW"
+severity = "H"
+cve = ""
+description = "HTML directory listing whose <a href> targets are server-controlled ABSOLUTE paths (leading `/`, `//`, encoded `%2f`, backslash roots) instead of relative `../` climbs: a recursive pillager that honours an absolute path writes outside its output directory. Sibling to C1 (relative traversal); the absolute targets are pointed at the mounted /canary so the escaping write is detectable (justinsteven 2022 / GHSA-hr3m-4qwq-3mgc corpus, Zac Wang 2026)"
+server_mode = "static"
