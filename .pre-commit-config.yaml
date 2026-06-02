@@ -16,12 +16,6 @@ repos:
     rev: v2.8.0
     hooks:
     -   id: setup-cfg-fmt
--   repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.15.0
-    hooks:
-    -   id: reorder-python-imports
-        exclude: ^(pre_commit/resources/|testing/resources/python3_hooks_repo/)
-        args: [--py312-plus]
 -   repo: https://github.com/asottile/add-trailing-comma
     rev: v3.2.0
     hooks:
