@@ -96,7 +96,8 @@ class OriginRestrictedSession(requests.Session):
         if (parsed.scheme, parsed.netloc) != self.expected_origin:
             logging.warning(
                 'refusing cross-origin redirect from %s to %s',
-                resp.url, absolute,
+                resp.url,
+                absolute,
             )
             return None
         return target
@@ -140,8 +141,7 @@ def _load_ref_wordlist(path):
     size = os.path.getsize(path)
     if size > _MAX_WORDLIST_BYTES:
         raise ValueError(
-            f"wordlist {path} too large: {size} bytes "
-            f"(limit {_MAX_WORDLIST_BYTES})",
+            f'wordlist {path} too large: {size} bytes (limit {_MAX_WORDLIST_BYTES})',
         )
     out = []
     with open(path, encoding='utf-8', errors='replace') as f:
@@ -152,7 +152,7 @@ def _load_ref_wordlist(path):
             segs = name.split('/')
             if not all(_is_safe_ref_segment(s) for s in segs):
                 logging.warning(
-                    f"Skipping unsafe wordlist entry: {name!r}",
+                    f'Skipping unsafe wordlist entry: {name!r}',
                 )
                 continue
             out.append(segs)
@@ -167,9 +167,15 @@ def _load_ref_wordlist(path):
 
 class GitHacker:
     def __init__(
-        self, url, dst, threads=0x08, brute=True,
-        prompt_for_dangerous_files=False, delay=0,
-        tag_wordlist=None, branch_wordlist=None,
+        self,
+        url,
+        dst,
+        threads=0x08,
+        brute=True,
+        prompt_for_dangerous_files=False,
+        delay=0,
+        tag_wordlist=None,
+        branch_wordlist=None,
         insecure=False,
     ) -> None:
         self.url = url
@@ -242,9 +248,9 @@ class GitHacker:
 
     def start(self):
         # Ensure the target is a git folder via .git/HEAD
-        if self.session.head(f"{self.url}.git/HEAD").status_code != 200:
+        if self.session.head(f'{self.url}.git/HEAD').status_code != 200:
             logging.error(
-                f"The target url({self.url}) is not a valid git repository, .git/HEAD not exists",
+                f'The target url({self.url}) is not a valid git repository, .git/HEAD not exists',
             )
             return False
 
@@ -257,7 +263,7 @@ class GitHacker:
             self._pool.shutdown(wait=True)
 
     def directory_listing_enabled(self):
-        response = self.session.get(f"{self.url}.git/")
+        response = self.session.get(f'{self.url}.git/')
         keywords = {
             'apache': '<title>Index of',
             'nginx': '<title>Index of',
@@ -265,7 +271,7 @@ class GitHacker:
         if response.status_code == 200:
             for server, keyword in keywords.items():
                 if keyword in response.text:
-                    logging.info(f"Directory listing enable under: {server}")
+                    logging.info(f'Directory listing enable under: {server}')
                     return True
         return False
 
@@ -285,7 +291,7 @@ class GitHacker:
         # safer. (TODO)
         for dangerous in self.default_git_files_maybe_dangerous:
             tail = tuple(dangerous)
-            if len(parts) >= len(tail) and parts[-len(tail):] == tail:
+            if len(parts) >= len(tail) and parts[-len(tail) :] == tail:
                 return True
 
         # The following operation will mark any files under `.git/hooks` to
@@ -296,7 +302,7 @@ class GitHacker:
         return len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks')
 
     def add_folder(self, base_url, folder):
-        url = f"{base_url}{folder}"
+        url = f'{base_url}{folder}'
         soup = bs4.BeautifulSoup(
             self.session.get(url).text,
             features='html.parser',
@@ -312,7 +318,7 @@ class GitHacker:
                 seg = href.rstrip('/')
                 if not _is_safe_path_segment(seg):
                     logging.warning(
-                        f"Skipping unsafe directory listing entry: {href!r}",
+                        f'Skipping unsafe directory listing entry: {href!r}',
                     )
                     continue
                 self.add_folder(url, href)
@@ -320,7 +326,7 @@ class GitHacker:
                 file_url = urljoin(url, href)
                 if not self._is_same_origin_descendant(file_url):
                     continue
-                relative = urlparse(file_url).path[len(self._origin_path):]
+                relative = urlparse(file_url).path[len(self._origin_path) :]
                 # add_task validates each segment via _is_safe_path_segment,
                 # so empty / ".." / NUL components are rejected centrally.
                 self.add_task([s for s in relative.split('/') if s])
@@ -389,7 +395,7 @@ class GitHacker:
 
     def git_clone(self):
         logging.info(
-            f"Cloning downloaded repo from {self.temp_dst} to {self.final_dst}",
+            f'Cloning downloaded repo from {self.temp_dst} to {self.final_dst}',
         )
         result = subprocess.run(
             ['git', 'clone', self.temp_dst, self.final_dst],
@@ -400,7 +406,7 @@ class GitHacker:
         if result.stderr != b'':
             logging.error(result.stderr.decode('utf-8').strip())
         if b'invalid path' in result.stderr:
-            logging.info(f"Remote repo is downloaded into {self.final_dst}")
+            logging.info(f'Remote repo is downloaded into {self.final_dst}')
             logging.error(
                 'Be careful to checkout the source code, cause the target repo may be a honey pot.',
             )
@@ -419,15 +425,19 @@ class GitHacker:
             # land on disk where the user expects them.
             subprocess.run(
                 [
-                    'git', '-C', self.final_dst,
-                    'checkout-index', '--all', '--force',
+                    'git',
+                    '-C',
+                    self.final_dst,
+                    'checkout-index',
+                    '--all',
+                    '--force',
                 ],
                 capture_output=True,
                 check=False,
             )
 
             # return True only when git clone successfully executed
-            logging.info(f"Check it out: {self.final_dst}")
+            logging.info(f'Check it out: {self.final_dst}')
             # remove temp repo folder
             shutil.rmtree(self.temp_dst)
             return True
@@ -454,16 +464,16 @@ class GitHacker:
         for seg in path_components:
             if not _is_safe_path_segment(seg):
                 logging.warning(
-                    f"Rejected unsafe path segment {seg!r} in {path_components!r}",
+                    f'Rejected unsafe path segment {seg!r} in {path_components!r}',
                 )
                 return False
         url = self.construct_url_from_path_components(path_components)
         relative_path = '/'.join(path_components)
         if url in self.cached_404_url:
-            logging.warning(f"{relative_path} does not exist")
+            logging.warning(f'{relative_path} does not exist')
             return False
         elif self.temp_dst_path.joinpath(*path_components).exists():
-            logging.debug(f"{relative_path} alread existed")
+            logging.debug(f'{relative_path} alread existed')
             return False
         else:
             self._pending.append(path_components)
@@ -518,7 +528,7 @@ class GitHacker:
                     continue
                 if not all(_is_safe_ref_segment(s) for s in segments):
                     logging.warning(
-                        f"Skipping unsafe ref from packed-refs: {ref!r}",
+                        f'Skipping unsafe ref from packed-refs: {ref!r}',
                     )
                     continue
                 if self.add_task(['.git'] + segments):
@@ -539,18 +549,20 @@ class GitHacker:
                     segments = ref_path.split('/')
                     if not all(_is_safe_ref_segment(s) for s in segments):
                         logging.warning(
-                            f"Skipping unsafe HEAD ref: {ref_path!r}",
+                            f'Skipping unsafe HEAD ref: {ref_path!r}',
                         )
                         continue
                     file_path = self.temp_dst_path.joinpath(
-                        '.git', 'logs', *segments,
+                        '.git',
+                        'logs',
+                        *segments,
                     )
                     if file_path.exists():
                         n += self.add_hashes_parsed(file_path.read_bytes())
         return n
 
     def parse_current_branch_name(self):
-        url = f"{self.url}.git/HEAD"
+        url = f'{self.url}.git/HEAD'
         response = self.session.get(url)
         # TODO: [a-zA-Z\d_-]+ is not sufficient for matching a branch name [1,2].
         # For example, a branch which named as `issue-10` cannot be matched.
@@ -558,16 +570,17 @@ class GitHacker:
         # [1] https://stackoverflow.com/a/67151923
         # [2] https://github.com/git/git/blob/v2.37.1/refs.c#L38-L57
         branch_names = re.findall(
-            r'ref: refs/heads/([a-zA-Z\d_-]+)', response.text,
+            r'ref: refs/heads/([a-zA-Z\d_-]+)',
+            response.text,
         )
         if len(branch_names) > 1:
             raise ValueError(
-                f"unexpected multiple HEAD refs at {url}: {branch_names!r}",
+                f'unexpected multiple HEAD refs at {url}: {branch_names!r}',
             )
         return branch_names
 
     def parse_logged_branch_names(self):
-        url = f"{self.url}.git/logs/HEAD"
+        url = f'{self.url}.git/logs/HEAD'
         response = self.session.get(url)
         # TODO: [a-zA-Z\d_-]+ is not sufficient for matching a branch name [1,2].
         # For example, a branch which named as `issue-10` cannot be matched.
@@ -575,7 +588,8 @@ class GitHacker:
         # [1] https://stackoverflow.com/a/67151923
         # [2] https://github.com/git/git/blob/v2.37.1/refs.c#L38-L57
         branch_names = re.findall(
-            r'checkout: moving from ([a-zA-Z\d_-]+) to ([a-zA-Z\d_-]+)', response.text,
+            r'checkout: moving from ([a-zA-Z\d_-]+) to ([a-zA-Z\d_-]+)',
+            response.text,
         )
         branch_names_uniq = list(
             set([i[0] for i in branch_names] + [i[1] for i in branch_names]),
@@ -591,20 +605,27 @@ class GitHacker:
         for major in range(n):
             for minor in range(n):
                 for patch in range(n):
-                    yield f"v{major}.{minor}.{patch}"
-                    yield f"{major}.{minor}.{patch}"
-                yield f"v{major}.{minor}"
-                yield f"{major}.{minor}"
-            yield f"v{major}"
-            yield f"{major}"
+                    yield f'v{major}.{minor}.{patch}'
+                    yield f'{major}.{minor}.{patch}'
+                yield f'v{major}.{minor}'
+                yield f'{major}.{minor}'
+            yield f'v{major}'
+            yield f'{major}'
         yield from (
-            'latest', 'stable', 'release', 'rc', 'beta',
-            'alpha', 'preview', 'prod', 'hotfix',
+            'latest',
+            'stable',
+            'release',
+            'rc',
+            'beta',
+            'alpha',
+            'preview',
+            'prod',
+            'hotfix',
         )
         for year in range(2015, 2031):
-            yield f"{year}"
+            yield f'{year}'
             for month in range(1, 13):
-                yield f"{year}.{month:02d}"
+                yield f'{year}.{month:02d}'
 
     def complete_basic_files_list(self):
         # git tags
@@ -624,7 +645,7 @@ class GitHacker:
 
         for name in tag_names:
             if not _is_safe_ref_segment(name):
-                logging.warning(f"Skipping unsafe tag name: {name!r}")
+                logging.warning(f'Skipping unsafe tag name: {name!r}')
                 continue
             self.default_git_files.append(['.git', 'refs', 'tags', name])
 
@@ -680,7 +701,7 @@ class GitHacker:
         for branch_name in branch_names:
             if not _is_safe_ref_segment(branch_name):
                 logging.warning(
-                    f"Skipping unsafe branch name: {branch_name!r}",
+                    f'Skipping unsafe branch name: {branch_name!r}',
                 )
                 continue
             safe_branch_names.append(branch_name)
@@ -723,7 +744,7 @@ class GitHacker:
         # anything outside [A-Za-z0-9._\-+@] so this never re-encodes valid
         # input, but it keeps the URL well-formed if validation ever drifts.
         url_path = '/'.join(quote(seg, safe='') for seg in path_components)
-        return f"{self.url}{url_path}"
+        return f'{self.url}{url_path}'
 
     def _fetch_one(self, path_components):
         # Skip the all-zero "null" SHA reflog entries — they're not real objects.
@@ -735,7 +756,7 @@ class GitHacker:
         url = self.construct_url_from_path_components(path_components)
         status_code, length, result = self.wget(url, fs_path)
         log = logging.info if result else logging.error
-        log(f"[{length} bytes] {status_code} {url[len(self.url):]}")
+        log(f'[{length} bytes] {status_code} {url[len(self.url) :]}')
 
     def check_file_content(self, content):
         return not (content.startswith(b'<') or len(content) == 0)
@@ -754,14 +775,14 @@ class GitHacker:
         # skip anything that could RCE on checkout (config/hooks/etc.).
         if not self.prompt_for_dangerous_files and is_dangerous:
             logging.error(
-                f"{path} is potential dangerous, skip downloading this file",
+                f'{path} is potential dangerous, skip downloading this file',
             )
             return (-1, -1, False)
 
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logging.error(f"mkdir({path.parent!r}) failed: {e!r}")
+            logging.error(f'mkdir({path.parent!r}) failed: {e!r}')
             return (-1, -1, False)
         status_code = response.status_code
         content = response.content
@@ -769,21 +790,26 @@ class GitHacker:
         if status_code == 200 and self.check_file_content(content):
             if self.prompt_for_dangerous_files and is_dangerous:
                 logging.error(
-                    f"{path} is potential dangerous, you need to confirm the content is safe.",
+                    f'{path} is potential dangerous, you need to confirm the content is safe.',
                 )
-                seperator = f"{'-' * 0x10} {path} {'-' * 0x10}"
+                seperator = f'{"-" * 0x10} {path} {"-" * 0x10}'
                 logging.warning(seperator)
                 print(content.decode('utf-8'))
-                safe = input(
-                    f"Are you sure that the content of {path} is safe? (y/N)",
-                ).strip().lower() == 'y'
+                safe = (
+                    input(
+                        f'Are you sure that the content of {path} is safe? (y/N)',
+                    )
+                    .strip()
+                    .lower()
+                    == 'y'
+                )
                 if safe:
                     n = path.write_bytes(content)
                     if n == len(content):
                         result = True
                 else:
                     logging.warning(
-                        f"{path} is marked as dangerous, it will not be downloaded.",
+                        f'{path} is marked as dangerous, it will not be downloaded.',
                     )
                     result = False
             else:
@@ -812,10 +838,12 @@ def main():
     parser = argparse.ArgumentParser(description='GitHacker')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        '--url', help='url of the target website which expose .git folder',
+        '--url',
+        help='url of the target website which expose .git folder',
     )
     group.add_argument(
-        '--url-file', help='url file that contains a list of urls of the target website which expose .git folder',
+        '--url-file',
+        help='url file that contains a list of urls of the target website which expose .git folder',
     )
     parser.add_argument(
         '--output-folder',
@@ -824,14 +852,22 @@ def main():
         'every repo will be stored in folder named md5(url).',
     )
     parser.add_argument(
-        '--brute', required=False, default=False, help='enable brute forcing branch/tag names', action='store_true',
+        '--brute',
+        required=False,
+        default=False,
+        help='enable brute forcing branch/tag names',
+        action='store_true',
     )
     parser.add_argument(
-        '--tag-wordlist', required=False, default=None,
+        '--tag-wordlist',
+        required=False,
+        default=None,
         help='extra tag names file (one per line, # comments allowed)',
     )
     parser.add_argument(
-        '--branch-wordlist', required=False, default=None,
+        '--branch-wordlist',
+        required=False,
+        default=None,
         help='extra branch names file (one per line, # comments allowed)',
     )
     parser.add_argument(
@@ -844,14 +880,24 @@ def main():
         action='store_true',
     )
     parser.add_argument(
-        '--threads', required=False, default=0x04, type=int, help='threads number to download from internet',
+        '--threads',
+        required=False,
+        default=0x04,
+        type=int,
+        help='threads number to download from internet',
     )
     parser.add_argument(
-        '--delay', required=False, default=0,
-        type=float, help='delay seconds between HTTP requests',
+        '--delay',
+        required=False,
+        default=0,
+        type=float,
+        help='delay seconds between HTTP requests',
     )
     parser.add_argument(
-        '--insecure', required=False, default=False, action='store_true',
+        '--insecure',
+        required=False,
+        default=False,
+        action='store_true',
         help='disable TLS certificate verification (default: verify enabled)',
     )
     parser.add_argument('--version', action='version', version=__version__)
@@ -871,13 +917,14 @@ def main():
                     urls.append(url)
 
     succeed_urls = []
-    logging.info(f"{len(urls)} urls to be exploited")
+    logging.info(f'{len(urls)} urls to be exploited')
     for url in urls:
         folder = os.path.join(args.output_folder, md5(url))
-        logging.info(f"Exploiting {url} into {folder}")
+        logging.info(f'Exploiting {url} into {folder}')
         result = GitHacker(
             url=append_if_not_exists(
-                remove_suffixes(url, ['.git', '.git/']), '/',
+                remove_suffixes(url, ['.git', '.git/']),
+                '/',
             ),
             dst=folder,
             threads=args.threads,
@@ -892,11 +939,11 @@ def main():
             succeed_urls.append(url)
 
     logging.info(
-        f"{len(succeed_urls)} / {len(urls)} were exploited successfully",
+        f'{len(succeed_urls)} / {len(urls)} were exploited successfully',
     )
     for url in succeed_urls:
         folder = os.path.join(args.output_folder, md5(url))
-        logging.info(f"{url} -> {folder}")
+        logging.info(f'{url} -> {folder}')
 
 
 if __name__ == '__main__':

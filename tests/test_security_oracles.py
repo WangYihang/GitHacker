@@ -1,4 +1,5 @@
 """Unit tests for benchmark.security — discovery, default oracle, report."""
+
 from __future__ import annotations
 
 import json
@@ -55,6 +56,7 @@ def test_default_oracle_canary_name_from_test_id_prefix():
         return v
 
     import tempfile
+
     with tempfile.TemporaryDirectory() as t:
         assert _run(Path(t), 'B1_index_traversal', 'PWNED_B1') is Verdict.FAIL
     with tempfile.TemporaryDirectory() as t:
@@ -105,6 +107,7 @@ def test_c4_absolute_scenario_registered():
     # default oracle derives PWNED_C4 from the id prefix
     check = _default_oracle(m.id)
     import tempfile
+
     with tempfile.TemporaryDirectory() as t:
         (Path(t) / 'PWNED_C4').write_text('x')
         verdict, evidence = check(Path(t), Path(t), None)
@@ -132,19 +135,26 @@ def test_security_report_to_dict_round_trip():
         tools={
             'githacker': {
                 'name': 'GitHacker',
-                'url': 'http://example.com', 'version': '1.1.3',
+                'url': 'http://example.com',
+                'version': '1.1.3',
             },
         },
         tests=[
             TestResult(
                 meta=TestMeta(
-                    id='A1_fsmonitor', category='RCE', severity='H',
-                    description='x', cve=None, server_mode='static',
+                    id='A1_fsmonitor',
+                    category='RCE',
+                    severity='H',
+                    description='x',
+                    cve=None,
+                    server_mode='static',
                 ),
                 runs={
                     'githacker': ToolRunResult(
-                        verdict=Verdict.FAIL, evidence='canary fired',
-                        duration=4.2, exit_code=0,
+                        verdict=Verdict.FAIL,
+                        evidence='canary fired',
+                        duration=4.2,
+                        exit_code=0,
                     ),
                 },
             ),
@@ -173,7 +183,8 @@ def test_default_oracle_ignores_unrelated_files(tmp_path):
 
 
 @pytest.mark.parametrize(
-    'test_id,prefix', [
+    'test_id,prefix',
+    [
         ('A1_fsmonitor', 'A1'),
         ('B1_index_traversal', 'B1'),
         ('C1_html_traversal', 'C1'),
@@ -183,7 +194,7 @@ def test_default_oracle_ignores_unrelated_files(tmp_path):
 def test_canary_naming_matches_payload_convention(tmp_path, test_id, prefix):
     """Sanity: the prefix the default oracle derives matches the test ID."""
     check = _default_oracle(test_id)
-    (tmp_path / f"PWNED_{prefix}").write_text('x')
+    (tmp_path / f'PWNED_{prefix}').write_text('x')
     verdict, evidence = check(tmp_path, tmp_path, None)
     assert verdict is Verdict.FAIL
-    assert f"PWNED_{prefix}" in evidence
+    assert f'PWNED_{prefix}' in evidence

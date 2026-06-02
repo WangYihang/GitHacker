@@ -15,24 +15,22 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from _payload_lib import build_minimal_repo, config_with  # noqa: E402
 
-GITATTRIBUTES = b"target.txt filter=evil\n"
+GITATTRIBUTES = b'target.txt filter=evil\n'
 
 
 def main() -> None:
     build_minimal_repo(
-        HERE / "payload",
+        HERE / 'payload',
         config=config_with(
-            '[filter "evil"]\n'
-            '\tsmudge = "touch /canary/PWNED_A3; cat"\n'
-            '\trequired = false\n'
+            '[filter "evil"]\n\tsmudge = "touch /canary/PWNED_A3; cat"\n\trequired = false\n'
         ),
         tree_entries=[
-            (0o100644, ".gitattributes", GITATTRIBUTES),
-            (0o100644, "target.txt", b"content\n"),
+            (0o100644, '.gitattributes', GITATTRIBUTES),
+            (0o100644, 'target.txt', b'content\n'),
         ],
     )
-    print(f"Built A3 payload at {HERE / 'payload'}")
+    print(f'Built A3 payload at {HERE / "payload"}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

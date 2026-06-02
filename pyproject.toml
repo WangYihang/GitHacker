@@ -48,6 +48,11 @@ ignore = [
     "B904",  # raise from — noisy in CLI tools
 ]
 
+[tool.ruff.format]
+# Match the repo's established single-quote style (previously enforced by the
+# double-quote-string-fixer hook that ruff now replaces).
+quote-style = "single"
+
 [tool.bumpversion]
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]

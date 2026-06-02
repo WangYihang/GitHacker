@@ -13,13 +13,13 @@ from pathlib import Path
 
 from benchmark.security import Verdict
 
-_MARKER = b"root:x:0:0:"
+_MARKER = b'root:x:0:0:'
 
 
 def check(output_dir: Path, canary_dir: Path, proc) -> tuple[Verdict, str]:
     if not output_dir.exists():
-        return Verdict.PASS, ""
-    for path in output_dir.rglob("*"):
+        return Verdict.PASS, ''
+    for path in output_dir.rglob('*'):
         if not path.is_file():
             continue
         try:
@@ -27,5 +27,5 @@ def check(output_dir: Path, canary_dir: Path, proc) -> tuple[Verdict, str]:
         except OSError:
             continue
         if _MARKER in head:
-            return Verdict.FAIL, f"{path.relative_to(output_dir)} contains /etc/passwd content"
-    return Verdict.PASS, ""
+            return Verdict.FAIL, f'{path.relative_to(output_dir)} contains /etc/passwd content'
+    return Verdict.PASS, ''

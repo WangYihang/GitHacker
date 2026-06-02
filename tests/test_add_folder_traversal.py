@@ -40,24 +40,24 @@ from githacker.__main__ import GitHacker
 # Attacker-served <a href="..."> targets. Each is a single directory-listing
 # entry a malicious server could return for `.git/`.
 TRAVERSAL_HREFS = [
-    "../../../etc/passwd",
-    "../../../../../../etc/passwd",
-    "....//etc/passwd",
-    "......//etc/passwd",
-    "/etc/passwd",
-    "//etc/passwd",
-    "/.ssh/authorized_keys",
-    "%2e%2e/etc/passwd",
-    "%2e%2e%2fetc%2fpasswd",
-    "%2e%2e%2f%2e%2e%2fetc%2fpasswd",
-    "..%2f..%2fetc%2fpasswd",
-    "foo/../../etc/passwd",
-    "x/../../../etc/passwd",
-    "./../../etc/passwd",
-    ".../etc/passwd",
-    "..\\..\\etc\\passwd",
-    "/proc/self/environ",
-    "config\x00../../etc/passwd",
+    '../../../etc/passwd',
+    '../../../../../../etc/passwd',
+    '....//etc/passwd',
+    '......//etc/passwd',
+    '/etc/passwd',
+    '//etc/passwd',
+    '/.ssh/authorized_keys',
+    '%2e%2e/etc/passwd',
+    '%2e%2e%2fetc%2fpasswd',
+    '%2e%2e%2f%2e%2e%2fetc%2fpasswd',
+    '..%2f..%2fetc%2fpasswd',
+    'foo/../../etc/passwd',
+    'x/../../../etc/passwd',
+    './../../etc/passwd',
+    '.../etc/passwd',
+    '..\\..\\etc\\passwd',
+    '/proc/self/environ',
+    'config\x00../../etc/passwd',
 ]
 
 # Directory entries (trailing slash → recursion branch) whose first segment
@@ -68,11 +68,11 @@ TRAVERSAL_HREFS = [
 # allowlist permits literal dot-runs as real .git dirnames, so it recurses
 # safely into a literal "...." directory and never escapes.)
 REJECTED_DIR_HREFS = [
-    "/etc/",
-    "..%2f../",
-    "....\\..\\/",
-    "a b/",
-    "x\x00y/",
+    '/etc/',
+    '..%2f../',
+    '....\\..\\/',
+    'a b/',
+    'x\x00y/',
 ]
 
 
@@ -98,21 +98,21 @@ class _FakeSession:
         if url == self._listing_url:
             return _FakeResponse(self._listing_html)
         # Any recursive directory fetch returns an empty listing.
-        return _FakeResponse("<html><body></body></html>")
+        return _FakeResponse('<html><body></body></html>')
 
 
 def _listing_html(hrefs: list[str]) -> str:
-    anchors = "".join(f'<a href="{h}">entry</a>\n' for h in hrefs)
-    return f"<html><body>{anchors}</body></html>"
+    anchors = ''.join(f'<a href="{h}">entry</a>\n' for h in hrefs)
+    return f'<html><body>{anchors}</body></html>'
 
 
 def _make_hacker(tmp_path, session: _FakeSession) -> GitHacker:
     """Build a GitHacker wired up exactly as __init__ does for the fields
     add_folder touches, without performing any network I/O."""
     g = GitHacker.__new__(GitHacker)
-    g.url = "http://victim.example/"
-    g._origin = ("http", "victim.example")
-    g._origin_path = "/"
+    g.url = 'http://victim.example/'
+    g._origin = ('http', 'victim.example')
+    g._origin_path = '/'
     g.temp_dst = str(tmp_path)
     g.temp_dst_path = Path(str(tmp_path))
     g.cached_404_url = set()
@@ -132,26 +132,24 @@ def _resolves_inside(temp_dst: str, components: list[str]) -> bool:
     return resolved == sandbox or resolved.startswith(sandbox + os.sep)
 
 
-@pytest.mark.parametrize("href", TRAVERSAL_HREFS)
+@pytest.mark.parametrize('href', TRAVERSAL_HREFS)
 def test_add_folder_file_entry_cannot_escape_temp_dst(tmp_path, href):
     """A malicious file entry in the listing must never produce a queued
     path that resolves outside temp_dst, and must never queue a `..`."""
-    listing_url = "http://victim.example/.git/"
+    listing_url = 'http://victim.example/.git/'
     session = _FakeSession(listing_url, _listing_html([href]))
     g = _make_hacker(tmp_path, session)
 
-    g.add_folder(g.url, ".git/")
+    g.add_folder(g.url, '.git/')
 
     for components in g._pending:
-        assert ".." not in components, (
-            f"href {href!r} queued a traversal component: {components!r}"
-        )
+        assert '..' not in components, f'href {href!r} queued a traversal component: {components!r}'
         assert _resolves_inside(g.temp_dst, components), (
-            f"href {href!r} queued {components!r} which escapes temp_dst"
+            f'href {href!r} queued {components!r} which escapes temp_dst'
         )
 
 
-@pytest.mark.parametrize("href", REJECTED_DIR_HREFS)
+@pytest.mark.parametrize('href', REJECTED_DIR_HREFS)
 def test_add_folder_does_not_recurse_into_unsafe_dir_entry(tmp_path, href):
     """An unsafe directory entry must be rejected by `_is_safe_path_segment`
     *before* add_folder recurses into it.
@@ -162,34 +160,32 @@ def test_add_folder_does_not_recurse_into_unsafe_dir_entry(tmp_path, href):
     fetch — so `len(requested_urls) == 1` fails closed on that regression.
     This is the recursion-branch counterpart to the file-branch escape test;
     both fail RED if their respective gate is dropped."""
-    listing_url = "http://victim.example/.git/"
+    listing_url = 'http://victim.example/.git/'
     session = _FakeSession(listing_url, _listing_html([href]))
     g = _make_hacker(tmp_path, session)
 
-    g.add_folder(g.url, ".git/")
+    g.add_folder(g.url, '.git/')
 
     assert session.requested_urls == [listing_url], (
-        f"unsafe dir entry {href!r} was recursed into: {session.requested_urls!r}"
+        f'unsafe dir entry {href!r} was recursed into: {session.requested_urls!r}'
     )
     # And of course it must not have queued anything escaping.
     for components in g._pending:
-        assert ".." not in components
+        assert '..' not in components
         assert _resolves_inside(g.temp_dst, components)
 
 
 def test_add_folder_queues_benign_entries(tmp_path):
     """Sanity: a normal listing with real .git children still queues them,
     so the traversal guards above aren't passing by blocking everything."""
-    listing_url = "http://victim.example/.git/"
-    session = _FakeSession(listing_url, _listing_html(["HEAD", "config", "index"]))
+    listing_url = 'http://victim.example/.git/'
+    session = _FakeSession(listing_url, _listing_html(['HEAD', 'config', 'index']))
     g = _make_hacker(tmp_path, session)
 
-    g.add_folder(g.url, ".git/")
+    g.add_folder(g.url, '.git/')
 
-    assert any("HEAD" in c for c in g._pending), (
-        f"benign HEAD entry was not queued: {g._pending!r}"
-    )
+    assert any('HEAD' in c for c in g._pending), f'benign HEAD entry was not queued: {g._pending!r}'
     # Nothing benign should have escaped or carried a traversal token.
     for components in g._pending:
-        assert ".." not in components
+        assert '..' not in components
         assert _resolves_inside(g.temp_dst, components)

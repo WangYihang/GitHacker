@@ -21,24 +21,24 @@ logger = logging.getLogger(__name__)
 
 
 def _scenario_url(scenario: str) -> str:
-    if scenario == "php-lfi":
-        return "http://127.0.0.1/lfi.php?file=./"
-    return "http://127.0.0.1"
+    if scenario == 'php-lfi':
+        return 'http://127.0.0.1/lfi.php?file=./'
+    return 'http://127.0.0.1'
 
 
 def _find_recovered_repo(output_dir: Path) -> Path:
     """Locate the actual .git root in the output directory (up to 2 levels)."""
-    if (output_dir / ".git").exists():
+    if (output_dir / '.git').exists():
         return output_dir
     # Level 1: direct children
     for child in _safe_iterdir(output_dir):
-        if child.is_dir() and (child / ".git").exists():
+        if child.is_dir() and (child / '.git').exists():
             return child
     # Level 2: grandchildren
     for child in _safe_iterdir(output_dir):
         if child.is_dir():
             for grandchild in _safe_iterdir(child):
-                if grandchild.is_dir() and (grandchild / ".git").exists():
+                if grandchild.is_dir() and (grandchild / '.git').exists():
                     return grandchild
     return output_dir
 
@@ -57,8 +57,7 @@ def _empty_result(error: str) -> ScenarioResult:
         total=0,
         ratio=0.0,
         features={
-            f: FeatureResult(supported=False, correct=0, total=0, ratio=0.0)
-            for f in FEATURES
+            f: FeatureResult(supported=False, correct=0, total=0, ratio=0.0) for f in FEATURES
         },
         error=error,
     )
@@ -77,7 +76,7 @@ def run_tool_scenario(
     exit code.
     """
     url = _scenario_url(scenario)
-    logger.info("Running %s against %s (url=%s) ...", tool.id, scenario, url)
+    logger.info('Running %s against %s (url=%s) ...', tool.id, scenario, url)
 
     # Clean output directory to prevent stale results from previous scenarios
     if output_dir.exists():
@@ -94,30 +93,37 @@ def run_tool_scenario(
         exit_code = proc.returncode
 
         if exit_code != 0:
-            logger.warning("%s exited with code %d on %s", tool.id, exit_code, scenario)
+            logger.warning('%s exited with code %d on %s', tool.id, exit_code, scenario)
 
         # Always log tool output for debugging
         if proc.stdout and proc.stdout.strip():
-            for line in proc.stdout.strip().split("\n")[-20:]:
-                logger.debug("  [%s stdout] %s", tool.id, line)
+            for line in proc.stdout.strip().split('\n')[-20:]:
+                logger.debug('  [%s stdout] %s', tool.id, line)
         if proc.stderr and proc.stderr.strip():
-            for line in proc.stderr.strip().split("\n")[-20:]:
-                logger.warning("  [%s stderr] %s", tool.id, line)
+            for line in proc.stderr.strip().split('\n')[-20:]:
+                logger.warning('  [%s stderr] %s', tool.id, line)
 
         http_requests = get_request_count(scenario)
         logger.info(
-            "  %s: %.1fs, exit=%d, requests=%s",
-            tool.id, duration, exit_code,
-            http_requests if http_requests is not None else "N/A",
+            '  %s: %.1fs, exit=%d, requests=%s',
+            tool.id,
+            duration,
+            exit_code,
+            http_requests if http_requests is not None else 'N/A',
         )
 
         # Log what's in the output directory for debugging
         try:
-            contents = list(output_dir.rglob("*"))[:10]
+            contents = list(output_dir.rglob('*'))[:10]
             if contents:
-                logger.debug("  [%s output] %d items, first: %s", tool.id, len(list(output_dir.rglob("*"))), contents[0])
+                logger.debug(
+                    '  [%s output] %d items, first: %s',
+                    tool.id,
+                    len(list(output_dir.rglob('*'))),
+                    contents[0],
+                )
             else:
-                logger.warning("  [%s output] empty directory!", tool.id)
+                logger.warning('  [%s output] empty directory!', tool.id)
         except OSError:
             pass
 
@@ -131,9 +137,9 @@ def run_tool_scenario(
 
     except subprocess.TimeoutExpired:
         duration = round(time.monotonic() - start, 2)
-        logger.error("%s timed out on %s after %.1fs", tool.id, scenario, duration)
+        logger.error('%s timed out on %s after %.1fs', tool.id, scenario, duration)
         http_requests = get_request_count(scenario)
-        result = _empty_result("Tool timed out")
+        result = _empty_result('Tool timed out')
         result.duration = duration
         result.exit_code = -1
         result.http_requests = http_requests
@@ -141,7 +147,7 @@ def run_tool_scenario(
 
     except Exception as exc:
         duration = round(time.monotonic() - start, 2)
-        logger.error("%s failed on %s: %s", tool.id, scenario, exc)
+        logger.error('%s failed on %s: %s', tool.id, scenario, exc)
         result = _empty_result(str(exc))
         result.duration = duration
         result.exit_code = -1

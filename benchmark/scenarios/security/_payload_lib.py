@@ -19,9 +19,9 @@ from pathlib import Path
 
 def write_object(git_dir: Path, content: bytes, obj_type: str) -> str:
     """Write a git loose object and return its hex SHA-1."""
-    body = f"{obj_type} {len(content)}".encode() + b"\0" + content
+    body = f'{obj_type} {len(content)}'.encode() + b'\0' + content
     sha = hashlib.sha1(body).hexdigest()
-    dst = git_dir / "objects" / sha[:2] / sha[2:]
+    dst = git_dir / 'objects' / sha[:2] / sha[2:]
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_bytes(zlib.compress(body))
     return sha
@@ -56,34 +56,34 @@ def build_minimal_repo(
     """
     if payload_dir.exists():
         shutil.rmtree(payload_dir)
-    git_dir = payload_dir / ".git"
+    git_dir = payload_dir / '.git'
     git_dir.mkdir(parents=True)
 
     if tree_entries is None:
-        tree_entries = [(0o100644, "hello.txt", b"hello\n")]
+        tree_entries = [(0o100644, 'hello.txt', b'hello\n')]
 
-    tree_content = b""
+    tree_content = b''
     blobs: dict[str, str] = {}
     for mode, path, content in tree_entries:
-        sha = write_object(git_dir, content, "blob")
+        sha = write_object(git_dir, content, 'blob')
         blobs[path] = sha
-        tree_content += f"{mode:o} {path}".encode() + b"\0" + bytes.fromhex(sha)
-    tree_sha = write_object(git_dir, tree_content, "tree")
+        tree_content += f'{mode:o} {path}'.encode() + b'\0' + bytes.fromhex(sha)
+    tree_sha = write_object(git_dir, tree_content, 'tree')
     commit_content = (
-        f"tree {tree_sha}\n"
-        f"author Evil <evil@example.com> 0 +0000\n"
-        f"committer Evil <evil@example.com> 0 +0000\n\n"
-        f"init\n"
+        f'tree {tree_sha}\n'
+        f'author Evil <evil@example.com> 0 +0000\n'
+        f'committer Evil <evil@example.com> 0 +0000\n\n'
+        f'init\n'
     ).encode()
-    commit_sha = write_object(git_dir, commit_content, "commit")
+    commit_sha = write_object(git_dir, commit_content, 'commit')
 
-    (git_dir / "HEAD").write_text("ref: refs/heads/main\n")
-    refs = git_dir / "refs" / "heads"
+    (git_dir / 'HEAD').write_text('ref: refs/heads/main\n')
+    refs = git_dir / 'refs' / 'heads'
     refs.mkdir(parents=True)
-    (refs / "main").write_text(commit_sha + "\n")
-    (git_dir / "config").write_text(config)
-    (git_dir / "objects" / "info").mkdir(parents=True, exist_ok=True)
-    (git_dir / "objects" / "info" / "packs").write_text("")
+    (refs / 'main').write_text(commit_sha + '\n')
+    (git_dir / 'config').write_text(config)
+    (git_dir / 'objects' / 'info').mkdir(parents=True, exist_ok=True)
+    (git_dir / 'objects' / 'info' / 'packs').write_text('')
 
     if extra_files:
         for rel, data in extra_files.items():
@@ -92,19 +92,18 @@ def build_minimal_repo(
             dst.write_bytes(data)
 
     return {
-        "commit": commit_sha,
-        "tree": tree_sha,
-        **{f"blob:{p}": s for p, s in blobs.items()},
+        'commit': commit_sha,
+        'tree': tree_sha,
+        **{f'blob:{p}': s for p, s in blobs.items()},
     }
 
 
 def config_with(extra: str) -> str:
     """Return a ``.git/config`` with the standard preamble + extra lines."""
     return (
-        "[core]\n"
-        "\trepositoryformatversion = 0\n"
-        "\tfilemode = true\n"
-        "\tbare = false\n"
-        "\tlogallrefupdates = true\n"
-        + extra
+        '[core]\n'
+        '\trepositoryformatversion = 0\n'
+        '\tfilemode = true\n'
+        '\tbare = false\n'
+        '\tlogallrefupdates = true\n' + extra
     )
