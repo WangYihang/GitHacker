@@ -1,3 +1,10 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["githacker"]
+
 [project]
 name = "githacker"
 version = "1.1.9"
