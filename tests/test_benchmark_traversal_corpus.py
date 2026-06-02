@@ -25,8 +25,7 @@ from __future__ import annotations
 import importlib.util
 import os
 from pathlib import Path
-from urllib.parse import urljoin
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import pytest
 

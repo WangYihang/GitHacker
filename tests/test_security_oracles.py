@@ -7,12 +7,14 @@ from pathlib import Path
 import pytest
 
 from benchmark import security
-from benchmark.security import _default_oracle
-from benchmark.security import SecurityReport
-from benchmark.security import TestMeta
-from benchmark.security import TestResult
-from benchmark.security import ToolRunResult
-from benchmark.security import Verdict
+from benchmark.security import (
+    SecurityReport,
+    TestMeta,
+    TestResult,
+    ToolRunResult,
+    Verdict,
+    _default_oracle,
+)
 
 
 def test_default_oracle_pass_when_canary_absent(tmp_path):
