@@ -9,10 +9,15 @@ is fetched, ``<a href>`` targets are extracted, the same-origin gate runs,
 and surviving paths are split and queued.
 
 This module drives crafted directory listings through the real
-``add_folder`` (the HTTP layer mocked) and asserts the invariant that
-matters regardless of which internal gate fires: **nothing a malicious
-listing can serve causes a queued path to resolve outside ``temp_dst``**,
-and no traversal component (``..``) is ever queued.
+``add_folder`` (the HTTP layer mocked) and pins two end-to-end invariants:
+
+* **File branch** — nothing a malicious file entry can serve causes a
+  queued path to resolve outside ``temp_dst``, and no traversal component
+  (``..``) is ever queued. Verified to fail RED if ``add_folder`` regresses
+  to raw string-concat queueing (six payloads escape under that mutation).
+* **Recursion branch** — an unsafe directory entry is rejected before
+  ``add_folder`` recurses into it, so it issues no second fetch. Verified to
+  fail RED if the per-segment recursion gate is dropped.
 
 Corpus context: these payloads were collected while auditing
 GHSA-hr3m-4qwq-3mgc. The same set was verified against PyPI 1.1.7's
@@ -56,13 +61,19 @@ TRAVERSAL_HREFS = [
     "config\x00../../etc/passwd",
 ]
 
-# Malicious *directory* entries (trailing slash) that hit the recursion
-# branch and its `_is_safe_path_segment` gate rather than the file branch.
-TRAVERSAL_DIR_HREFS = [
-    "../",
-    "....//",
-    "..%2f",
+# Directory entries (trailing slash → recursion branch) whose first segment
+# must be rejected by `_is_safe_path_segment`, so add_folder must NOT recurse
+# into them. Each contains a character outside the allowlist
+# [A-Za-z0-9._\-+@]: a separator, a percent-encoded byte, a backslash, a
+# space, or a NUL. (Note: a pure-dot name like "....//" is *not* here — the
+# allowlist permits literal dot-runs as real .git dirnames, so it recurses
+# safely into a literal "...." directory and never escapes.)
+REJECTED_DIR_HREFS = [
     "/etc/",
+    "..%2f../",
+    "....\\..\\/",
+    "a b/",
+    "x\x00y/",
 ]
 
 
@@ -141,16 +152,27 @@ def test_add_folder_file_entry_cannot_escape_temp_dst(tmp_path, href):
         )
 
 
-@pytest.mark.parametrize("href", TRAVERSAL_DIR_HREFS)
-def test_add_folder_dir_entry_cannot_escape_temp_dst(tmp_path, href):
-    """A malicious directory entry (recursion branch) must not drive a
-    queued path outside temp_dst regardless of how deep recursion goes."""
+@pytest.mark.parametrize("href", REJECTED_DIR_HREFS)
+def test_add_folder_does_not_recurse_into_unsafe_dir_entry(tmp_path, href):
+    """An unsafe directory entry must be rejected by `_is_safe_path_segment`
+    *before* add_folder recurses into it.
+
+    The signal is the number of HTTP fetches: a rejected entry yields
+    exactly one request (the initial `.git/` listing). If the recursion
+    gate were removed, add_folder would follow the entry and issue a second
+    fetch — so `len(requested_urls) == 1` fails closed on that regression.
+    This is the recursion-branch counterpart to the file-branch escape test;
+    both fail RED if their respective gate is dropped."""
     listing_url = "http://victim.example/.git/"
     session = _FakeSession(listing_url, _listing_html([href]))
     g = _make_hacker(tmp_path, session)
 
     g.add_folder(g.url, ".git/")
 
+    assert session.requested_urls == [listing_url], (
+        f"unsafe dir entry {href!r} was recursed into: {session.requested_urls!r}"
+    )
+    # And of course it must not have queued anything escaping.
     for components in g._pending:
         assert ".." not in components
         assert _resolves_inside(g.temp_dst, components)
