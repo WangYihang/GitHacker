@@ -1,6 +1,6 @@
 [project]
 name = "githacker"
-version = "1.1.8"
+version = "1.1.9"
 description = "A multiple threads tool to download the `.git` folder and rebuild git repository locally."
 readme = "README.md"
 requires-python = ">=3.12"
