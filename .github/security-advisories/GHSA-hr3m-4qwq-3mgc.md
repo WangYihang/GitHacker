@@ -23,7 +23,7 @@ GitHacker through 1.1.7 did not validate path segments parsed from attacker-cont
 
 GitHacker rebuilds a remote `.git/` by fetching files into `temp_dst`. Two functions derived filesystem paths from server-controlled content:
 
-- `add_head_file_tasks` reads the downloaded `.git/HEAD`, parses `ref: <ref-path>`, splits on `/`, and joins the segments onto `temp_dst/.git/logs/` before reading the resulting file.
+- `add_head_file_tasks` reads the downloaded `.git/HEAD`, parses `ref: <ref-path>`, and joins the raw ref-path onto `temp_dst/.git/logs/` before reading the resulting file.
 - `add_hashes_parsed` scans any file it reads for 40-character hex substrings and emits `GET .git/objects/<sha[0:2]>/<sha[2:]>` for each one — onto the attacker's server and into the local output tree.
 
 Pre-fix, `add_head_file_tasks` did not validate the ref segments. A malicious `.git/HEAD` of
@@ -39,7 +39,7 @@ caused `add_head_file_tasks` to traverse out of `temp_dst` and read `/etc/passwd
 PR #65 originally classified this as arbitrary local file read. Joint analysis during coordinated disclosure narrowed the primitive: file contents do not stream back wholesale because the only egress channel is the 40-char-hex regex. In practice an attacker can:
 
 - **Existence oracle** for any path on the GitHacker host (`/etc/shadow`, `/root/.ssh/id_rsa`, `/home/<user>/.git-credentials`, build artifacts under `/tmp/`).
-- **Hex-fragment exfiltration** when the targeted file contains 40-char hex sequences: other git repos' refs / pack filenames, X.509 fingerprints, password hashes, HMAC-SHA1 outputs, some session tokens.
+- **Hex-fragment exfiltration** when the targeted file contains 40-char hex sequences: other git repos' refs / pack filenames, password hashes, HMAC-SHA1 outputs, some session tokens.
 
 Not exploitable without victim action: the attacker must persuade the victim to run GitHacker against a URL they control. Project guidance has always been to run GitHacker inside a disposable container.
 
@@ -63,7 +63,7 @@ The fix also tightens adjacent surfaces preemptively:
 
 PR #65's two-layer defense (allowlist regex + `os.path.realpath()` confinement) was consolidated onto the allowlist applied at queue-time, removing the TOCTOU window an after-the-fact `realpath()` check leaves open and the per-call-site drift risk. PR #65 was closed in favour of the broader fix.
 
-Regression tests in [`tests/test_ref_validation.py`](https://github.com/WangYihang/GitHacker/blob/main/tests/test_ref_validation.py) (commit [`16fcd81`](https://github.com/WangYihang/GitHacker/commit/16fcd81)) pin the PoC and six bypass variants (`....//`, `....\`, `%2e%2e%2f`, NUL, mixed-separator, unicode look-alike).
+Regression tests in [`tests/test_ref_validation.py`](https://github.com/WangYihang/GitHacker/blob/main/tests/test_ref_validation.py) (commit [`16fcd81`](https://github.com/WangYihang/GitHacker/commit/16fcd81)) pin the PoC and six bypass variants (extra-depth, mid-path, NUL, absolute path, leading-dot, `.lock`-suffix).
 
 ### Credit
 
