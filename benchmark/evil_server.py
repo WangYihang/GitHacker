@@ -12,6 +12,10 @@ Three modes, selected by ``--mode``:
 * ``callback`` — touches ``--canary-file`` on the first HTTP request
   received and returns 200. Used as the SSRF target for C3 — if the
   pillager follows the redirect, the canary fires.
+* ``infinite`` — answers every directory request with a listing offering
+  one more subdirectory, and every file request with a plausible ``.git``
+  file. The tree is unbounded, so a crawler with no visited-set, depth
+  cap, or request budget never terminates. Used by C6.
 
 Apache-style directory listings are emitted for ``static`` mode so
 recursive pillagers behave the same as they do against the existing
@@ -149,6 +153,65 @@ def _make_callback_handler(canary_path: Path) -> type[http.server.BaseHTTPReques
     return _CallbackHandler
 
 
+def _make_infinite_handler(access_log: Path | None) -> type[http.server.BaseHTTPRequestHandler]:
+    """A directory tree with no bottom.
+
+    Any path ending in ``/`` is a directory whose listing offers exactly one
+    subdirectory, so the tree is infinitely deep but finitely wide — a crawler
+    that bounds its recursion finishes almost immediately, and one that does
+    not, never does. ``.git/HEAD`` is answered for real so pillagers that
+    probe it before crawling accept the target as a repository.
+    """
+
+    class _InfiniteHandler(http.server.BaseHTTPRequestHandler):
+        server_version = 'EvilServer/0.1'
+        request_count = 0
+
+        def _send(self, body: bytes, ctype: str = 'text/html; charset=utf-8') -> None:
+            self.send_response(200)
+            self.send_header('Content-Type', ctype)
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            if self.command != 'HEAD':
+                self.wfile.write(body)
+
+        def do_GET(self):  # noqa: N802
+            cls = self.__class__
+            cls.request_count += 1
+            if access_log:
+                try:
+                    with open(access_log, 'a') as f:
+                        f.write(self.requestline + '\n')
+                except OSError as exc:
+                    sys.stderr.write(f'access-log write failed: {exc}\n')
+
+            path = urllib.parse.unquote(self.path.split('?', 1)[0])
+            if path.endswith('/HEAD'):
+                self._send(b'ref: refs/heads/main\n', 'text/plain')
+                return
+            if not path.endswith('/'):
+                # Any non-directory: a plausible, harmless blob.
+                self._send(b'x\n', 'application/octet-stream')
+                return
+            listing = (
+                '<!DOCTYPE html>\n'
+                f'<html><head><title>Index of {html.escape(path)}</title></head>\n'
+                f'<body><h1>Index of {html.escape(path)}</h1><hr><pre>\n'
+                '<a href="../">../</a>\n'
+                '<a href="HEAD">HEAD</a>\n'
+                '<a href="deeper/">deeper/</a>\n'
+                '</pre><hr></body></html>\n'
+            )
+            self._send(listing.encode())
+
+        do_HEAD = do_GET
+
+        def log_message(self, fmt, *args):
+            sys.stderr.write(f'{self.address_string()} - - {fmt % args}\n')
+
+    return _InfiniteHandler
+
+
 class _ReusableServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
@@ -156,7 +219,9 @@ class _ReusableServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 def main() -> int:
     p = argparse.ArgumentParser(description='Evil HTTP server for security benchmarks')
-    p.add_argument('--mode', choices=('static', 'redirect', 'callback'), default='static')
+    p.add_argument(
+        '--mode', choices=('static', 'redirect', 'callback', 'infinite'), default='static'
+    )
     p.add_argument('--payload', type=Path, help='Directory served in static mode')
     p.add_argument('--redirect-to', help='Target URL for redirect mode')
     p.add_argument('--canary-file', type=Path, help='File to touch in callback mode')
@@ -187,6 +252,8 @@ def main() -> int:
         if not args.redirect_to:
             p.error('--redirect-to <url> is required in redirect mode')
         handler = _make_redirect_handler(args.redirect_to)
+    elif args.mode == 'infinite':
+        handler = _make_infinite_handler(args.access_log)
     else:  # callback
         if not args.canary_file:
             p.error('--canary-file <path> is required in callback mode')

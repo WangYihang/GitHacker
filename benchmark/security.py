@@ -11,6 +11,11 @@ Layout under ``benchmark/scenarios/security/`` — one directory per test:
 For each test we start a fresh ``evil_server.py`` subprocess on a fixed
 port, run each tool's docker image with an extra ``/canary`` volume
 mount, then call the oracle to decide PASS/FAIL/TIMEOUT/ERROR.
+
+``server_mode`` selects what that server does: ``static`` serves
+``payload/``, ``redirect`` answers every request with a 3xx, and
+``infinite`` generates a bottomless directory tree for the
+denial-of-service tests (those need no ``payload/`` at all).
 """
 
 from __future__ import annotations
@@ -88,6 +93,12 @@ class TestMeta:
     # GET for that hex's object path, regex matches, canary appears.
     watch_regex: str | None = None
     watch_canary: str | None = None
+
+    # Per-test override of config.TOOL_TIMEOUT. Denial-of-service tests
+    # deliberately provoke a tool that never finishes, so letting them run
+    # the full default would cost the suite an hour of wall clock to learn
+    # something a short budget already proves.
+    timeout_seconds: int | None = None
 
 
 @dataclass
@@ -170,6 +181,7 @@ def discover_tests(
             seed_files=raw.get('seed_files', {}) or {},
             watch_regex=raw.get('watch_regex'),
             watch_canary=raw.get('watch_canary'),
+            timeout_seconds=raw.get('timeout_seconds'),
         )
         if filter_ids and meta.id not in filter_ids:
             continue
@@ -241,7 +253,12 @@ def start_evil_server(
         '--port',
         str(EVIL_SERVER_PORT),
     ]
-    if meta.server_mode == 'static':
+    if meta.server_mode == 'infinite':
+        # No payload directory: the tree is generated on the fly. The access
+        # log is the oracle's only evidence, so it is always wired up.
+        if access_log:
+            cmd.extend(['--access-log', str(access_log.resolve())])
+    elif meta.server_mode == 'static':
         cmd.extend(['--payload', str(payload.resolve())])
         if access_log:
             cmd.extend(['--access-log', str(access_log.resolve())])
@@ -381,11 +398,12 @@ def run_tool_on_test(
         url,
         '/output',
     ]
+    timeout = meta.timeout_seconds or config.TOOL_TIMEOUT
     start = time.monotonic()
     try:
         proc = subprocess.run(  # noqa: S603
             cmd,
-            timeout=config.TOOL_TIMEOUT,
+            timeout=timeout,
             capture_output=True,
             text=True,
         )
@@ -401,9 +419,24 @@ def run_tool_on_test(
         )
     except subprocess.TimeoutExpired:
         duration = round(time.monotonic() - start, 2)
+        # A tool that fires the canary and *then* hangs has still failed, and a
+        # denial-of-service test only ever reaches its verdict this way. Ask the
+        # oracle before falling back to TIMEOUT; it gets proc=None because there
+        # is no completed process to inspect.
+        try:
+            verdict, evidence = _load_oracle(meta.id)(output_dir, canary_dir, None)
+        except Exception as exc:
+            verdict, evidence = Verdict.TIMEOUT, f'oracle raised after timeout: {exc!r}'
+        if verdict is Verdict.FAIL:
+            return ToolRunResult(
+                verdict=Verdict.FAIL,
+                evidence=f'{evidence} (tool also exceeded {timeout}s)',
+                duration=duration,
+                exit_code=-1,
+            )
         return ToolRunResult(
             verdict=Verdict.TIMEOUT,
-            evidence=f'Exceeded {config.TOOL_TIMEOUT}s',
+            evidence=f'Exceeded {timeout}s',
             duration=duration,
             exit_code=-1,
         )

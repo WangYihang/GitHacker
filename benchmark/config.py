@@ -26,6 +26,11 @@ SCENARIOS = [
     'apache-index-disabled',
     'nginx-index-enabled',
     'nginx-index-disabled',
+    # Same repo, same "Index of" title, hrefs written as absolute paths
+    # instead of relative ones. Apache and nginx both emit the relative
+    # form, so without this scenario the matrix cannot see a pillager that
+    # only handles that one dialect — which is exactly how issue #82 shipped.
+    'absolute-href-index',
     'php-lfi',
 ]
 

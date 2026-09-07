@@ -1,0 +1,5 @@
+category = "RCE"
+severity = "M"
+cve = ""
+description = "A submodule's GIT_DIR (.git/modules/<name>/) carries its own config and hooks, which git executes exactly like the top-level ones; a dangerous-file denylist that only recognises a .git component directly above the file lets both through, and any tool that leaves them in the operator's output directory arms them for the next git command run inside that submodule"
+server_mode = "static"

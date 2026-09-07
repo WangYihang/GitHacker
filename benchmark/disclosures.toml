@@ -144,3 +144,34 @@ reported_at = ""
 patched_at = ""
 cve = ""
 notes = ""
+
+# --- C5 / C6: self-found while adding the scenarios (GitHacker only).
+#     No other tool has been run against these yet — the runner that does
+#     that needs Docker, so the first scheduled security-benchmark run after
+#     this lands is what produces the rest of the column. Findings against
+#     other tools get their entries then, at status = "confirmed", and stay
+#     redacted until they are reported and disclosed.
+
+[[finding]]
+id = "DIS-2026-010"
+test = "C5_offtree_crawl"
+tool = "githacker"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-07"
+reported_at = "2026-09-07"
+patched_at = ""
+cve = ""
+notes = "Self-discovered. add_folder's file branch checks the origin but not the .git/ anchor, so a listing can steer the crawl at any same-origin path; the directory branch does check it. Pinned by tests/test_listing_dialects.py."
+
+[[finding]]
+id = "DIS-2026-011"
+test = "C6_infinite_listing"
+tool = "githacker"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-07"
+reported_at = "2026-09-07"
+patched_at = ""
+cve = ""
+notes = "Self-discovered. add_folder keeps no visited set and no depth cap, so a bottomless listing recurses until the path exceeds the filesystem limit (observed: 131 requests, then an unhandled OSError). Pinned by tests/test_crawl_robustness.py."

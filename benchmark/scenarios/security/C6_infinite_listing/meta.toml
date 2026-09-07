@@ -1,0 +1,6 @@
+category = "DoS"
+severity = "M"
+cve = ""
+description = "A server whose every directory listing offers one more subdirectory is an infinitely deep tree; a crawler with no visited set, depth cap or request budget never terminates and eventually dies on an unhandled error"
+server_mode = "infinite"
+timeout_seconds = 90

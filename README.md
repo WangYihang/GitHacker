@@ -12,7 +12,7 @@ brute-forcing well-known refs.
 The accompanying research site at **<https://githacker.pages.dev>**
 publishes:
 
-- A reproducible **[Benchmark](https://githacker.pages.dev/benchmark)** against six other pillagers (GitTools, dvcs-ripper, GitHack, git-dumper, dumpall, rbozburun/git-hacker) across five web-server scenarios.
+- A reproducible **[Benchmark](https://githacker.pages.dev/benchmark)** against six other pillagers (GitTools, dvcs-ripper, GitHack, git-dumper, dumpall, rbozburun/git-hacker) across six web-server scenarios.
 - An adversarial **[Security suite](https://githacker.pages.dev/security)** that runs every tool against malicious `.git/` directories and tracks coordinated disclosure of findings.
 - **[Methodology](https://githacker.pages.dev/methodology)** and **[Reproduce](https://githacker.pages.dev/reproduce)** pages with every detail needed to re-run the harness locally.
 
@@ -106,7 +106,7 @@ uv run pytest
 Run the full benchmark / security harnesses (needs Docker):
 
 ```bash
-python -m benchmark run        # 7 tools × 5 web-server scenarios
+python -m benchmark run        # 7 tools × 6 web-server scenarios
 python -m benchmark security   # adversarial corpus
 ```
 

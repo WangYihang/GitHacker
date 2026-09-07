@@ -1,0 +1,12 @@
+version: '2.0'
+
+services:
+  app:
+    restart: always
+    image: python:3.12-slim
+    ports:
+      - 80:80
+    volumes:
+      - ../../repo:/srv/repo:ro
+      - ./server.py:/server.py:ro
+    command: ["python", "/server.py"]

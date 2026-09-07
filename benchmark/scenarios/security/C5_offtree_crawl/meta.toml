@@ -1,0 +1,7 @@
+category = "Info"
+severity = "M"
+cve = ""
+description = "A directory listing whose entries point at same-origin paths outside .git/ steers the pillager into crawling unrelated parts of the target site and writing the results into the victim's output directory"
+server_mode = "static"
+watch_regex = "^/private/"
+watch_canary = "PWNED_C5"
