@@ -312,16 +312,34 @@ class GitHacker:
             if not href or href in ('../', '/'):
                 continue
             if href.endswith('/'):
-                # Validate the directory segment before recursing so a
-                # malicious listing cannot drive us off-tree via "../" and
-                # cousins like "....//".
-                seg = href.rstrip('/')
-                if not _is_safe_path_segment(seg):
+                # Resolve the directory URL the same way file entries are
+                # resolved (listings may emit absolute hrefs such as
+                # "/.git/objects/"), then validate every path segment
+                # independently before recursing. A directory href is a
+                # multi-segment path; passing the whole href to
+                # _is_safe_path_segment (a single-segment gate) always
+                # fails, which would skip every subdirectory of the
+                # listing and leave the rebuilt repo without objects/refs.
+                dir_url = urljoin(url, href)
+                if not self._is_same_origin_descendant(dir_url):
+                    continue
+                # Recursion must also stay inside the .git/ tree the crawl
+                # started from: an absolute href like "/etc/" is same-origin
+                # but points outside the repository listing.
+                anchor_path = urlparse(urljoin(self.url, '.git/')).path
+                dir_path = urlparse(dir_url).path
+                if not dir_path.startswith(anchor_path):
                     logging.warning(
                         f'Skipping unsafe directory listing entry: {href!r}',
                     )
                     continue
-                self.add_folder(url, href)
+                segs = [s for s in dir_path[len(anchor_path) :].split('/') if s]
+                if not segs or any(not _is_safe_path_segment(seg) for seg in segs):
+                    logging.warning(
+                        f'Skipping unsafe directory listing entry: {href!r}',
+                    )
+                    continue
+                self.add_folder(dir_url, '')
             else:
                 file_url = urljoin(url, href)
                 if not self._is_same_origin_descendant(file_url):
