@@ -189,3 +189,60 @@ def test_add_folder_queues_benign_entries(tmp_path):
     for components in g._pending:
         assert '..' not in components
         assert _resolves_inside(g.temp_dst, components)
+
+
+@pytest.mark.parametrize('dir_href', ['objects/', '/.git/objects/', 'refs/heads/'])
+def test_add_folder_recurses_into_benign_subdirectories(tmp_path, dir_href):
+    """Regression (GHSA hardening follow-up): a benign subdirectory entry
+    must still be recursed into.
+
+    A directory href is a multi-segment path ('/.git/objects/'), so it can
+    never satisfy _is_safe_path_segment (a single-segment gate) directly.
+    The recursion branch must resolve the URL, split it into segments, and
+    validate each one — otherwise every subdirectory of the listing is
+    skipped, the rebuilt repo has no objects/refs, and `git clone` always
+    fails in sighted mode.
+
+    The signal is again the number of HTTP fetches: recursing into the
+    entry issues a second fetch for its listing."""
+    listing_url = 'http://victim.example/.git/'
+    session = _FakeSession(listing_url, _listing_html([dir_href]))
+    g = _make_hacker(tmp_path, session)
+
+    g.add_folder(g.url, '.git/')
+
+    assert len(session.requested_urls) == 2, (
+        f'benign dir entry {dir_href!r} was not recursed into: {session.requested_urls!r}'
+    )
+    assert session.requested_urls[1].startswith('http://victim.example/.git/'), (
+        f'recursion left the .git anchor: {session.requested_urls!r}'
+    )
+
+
+def test_add_folder_recursion_queues_files_from_sublisting(tmp_path):
+    """End-to-end: files listed inside a subdirectory's own listing get
+    queued as paths anchored under temp_dst — the actual sighted-mode
+    download flow for loose objects."""
+    listing_url = 'http://victim.example/.git/'
+    session = _FakeSession(listing_url, _listing_html(['objects/']))
+    # Serve the subdirectory listing with one file entry.
+    session.get_original = session.get
+
+    def get(url: str, *args, **kwargs) -> _FakeResponse:
+        session.requested_urls.append(url)
+        if url == listing_url:
+            return _FakeResponse(_listing_html(['objects/']))
+        if url == 'http://victim.example/.git/objects/':
+            return _FakeResponse(_listing_html(['ab/cdef', '../']))
+        return _FakeResponse('<html><body></body></html>')
+
+    session.get = get
+    g = _make_hacker(tmp_path, session)
+
+    g.add_folder(g.url, '.git/')
+
+    queued = [list(c) for c in g._pending]
+    assert ['.git', 'objects', 'ab', 'cdef'] in queued, f'sublisting file not queued: {queued!r}'
+    for components in queued:
+        assert '..' not in components
+        assert _resolves_inside(g.temp_dst, components)
