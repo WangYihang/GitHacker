@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from urllib.parse import quote, unquote, urljoin, urlparse
+from urllib.parse import quote, unquote, urljoin, urlparse, urlunparse
 
 import bs4
 import coloredlogs
@@ -36,18 +36,27 @@ def md5(data):
 # from server-controlled or user-supplied input must pass before being
 # appended to default_git_files / queued, so a malicious value cannot reach
 # the path-join in worker() with `..`, NUL, or absolute components.
-_REF_SEGMENT_RE = re.compile(r'^[A-Za-z0-9._\-+]+\Z')
+_REF_SEGMENT_RE = re.compile(r'^[\w.\-+]+\Z')
 
 # Filesystem-path segment validator. Looser than the ref-segment gate: real
 # .git filenames begin with a dot (".git", ".gitignore") and pack files use
 # longer extensions, so we allow leading dot but still block "." / ".." /
-# separators / control chars / NUL.
-_PATH_SEGMENT_RE = re.compile(r'^[A-Za-z0-9._\-+@]+\Z')
+# separators / control chars / NUL. `\w` is Unicode-aware, because a branch
+# named "功能" is a legal ref and a legal filename; rejecting it loses data
+# without buying safety. What keeps the path inside the sandbox is
+# _resolves_under, not the character set.
+_PATH_SEGMENT_RE = re.compile(r'^[\w.\-+@]+\Z')
 
 # How deep below `.git/` a directory-listing crawl may descend. The deepest
 # path a real repository has is around four levels (.git/objects/<ab>/<file>,
 # .git/refs/remotes/<remote>/<ref>); past this a server is manufacturing depth
 # rather than describing a tree, and the crawl must stop on its own.
+# Response bodies are written to disk a chunk at a time. A packfile is
+# legitimately huge, so the limit that matters is the filesystem's, not the
+# process's memory — buffering a whole response let any server choose how much
+# RAM the pillager used.
+_DOWNLOAD_CHUNK_BYTES = 64 * 1024
+
 _MAX_CRAWL_DEPTH = 16
 
 _MAX_WORDLIST_BYTES = 1 * 1024 * 1024
@@ -74,6 +83,43 @@ def _is_safe_path_segment(seg):
     if seg in ('.', '..'):
         return False
     return bool(_PATH_SEGMENT_RE.match(seg))
+
+
+def _resolves_under(root, components):
+    """True when joining `components` onto `root` stays under `root`.
+
+    The per-segment gate is a character allowlist — a proxy for safety, and
+    proxies drift from the thing they stand for. This is the property itself:
+    no component may add more than one level, walk upwards, or reset the path
+    to an absolute one. Purely lexical, so there is no filesystem access and
+    no time-of-check window.
+    """
+    candidate = root.joinpath(*components)
+    if '..' in candidate.parts:
+        return False
+    if candidate.parts[: len(root.parts)] != root.parts:
+        return False
+    return len(candidate.parts) == len(root.parts) + len(components)
+
+
+def _git_dir_relative_paths(parts):
+    """Yield `parts` re-rooted at each GIT_DIR it lives under.
+
+    ``.git`` is a GIT_DIR, and so is every ``<gitdir>/modules/<name>`` and
+    ``<gitdir>/worktrees/<name>`` below it — git reads their config and runs
+    their hooks exactly as it does the top-level ones. Yielding the path
+    relative to each of them is what lets one rule cover all of them.
+    """
+    for i, part in enumerate(parts):
+        if part != '.git':
+            continue
+        start = i + 1
+        while True:
+            yield parts[start:]
+            if start + 1 < len(parts) and parts[start] in ('modules', 'worktrees'):
+                start += 2
+            else:
+                break
 
 
 class OriginRestrictedSession(requests.Session):
@@ -198,6 +244,15 @@ class GitHacker:
         self.branch_wordlist_path = branch_wordlist
         self.session = _build_session(verify=not insecure, threads=threads)
         parsed = urlparse(url)
+        # Collapse repeated slashes in the path first. A caller that joins a
+        # base already ending in "/" onto "/.git/" produces "//", which
+        # urljoin then normalises away — so every URL resolved from a listing
+        # would fail a prefix check against the un-normalised original, and
+        # the crawl would silently find nothing. (benchmark run.sh does
+        # exactly this join.)
+        parsed = parsed._replace(path=re.sub(r'/{2,}', '/', parsed.path) or '/')
+        url = urlunparse(parsed)
+        self.url = url
         self._origin = (parsed.scheme, parsed.netloc)
         self._origin_path = parsed.path or '/'
         # Every URL the listing crawler follows must live under this prefix.
@@ -297,25 +352,28 @@ class GitHacker:
         return self.git_clone()
 
     def is_dangerous_git_file(self, filepath):
-        # Compare on a Path so the suffix-match works regardless of which
-        # separator the caller used (URL-derived "/" vs. native os.sep).
-        parts = Path(filepath).parts
-        # We consider all files not in self.default_git_files_maybe_dangerous
-        # are safe. But that could be dangerous when git add another config
-        # file someday which may lead to another RCE, so this function
-        # should be more conservative to return False. Maybe a white list is
-        # safer. (TODO)
-        for dangerous in self.default_git_files_maybe_dangerous:
-            tail = tuple(dangerous)
-            if len(parts) >= len(tail) and parts[-len(tail) :] == tail:
-                return True
+        """True for any file git will execute a command out of.
 
-        # The following operation will mark any files under `.git/hooks` to
-        # be dangerous. Consider all git hooks could be dangerous, this
-        # operation is not redundant with the previous for loop, because git
-        # may add more default hook files someday. I don't want to
-        # continuously maintain the maybe-dangerous blacklist.
-        return len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks')
+        Two things git treats as executable live in a GIT_DIR: ``config`` (via
+        ``core.fsmonitor``, ``core.pager``, ``core.editor``, ...) and anything
+        under ``hooks/``. Both are matched relative to *every* GIT_DIR on the
+        path, so a submodule's ``.git/modules/<name>/config`` is caught along
+        with the top-level one, and case-insensitively, because on macOS and
+        Windows ``.git/CONFIG`` and ``.git/config`` are the same file.
+
+        The comparison stays anchored at a GIT_DIR rather than looking at the
+        filename alone: a branch named ``config`` or ``hooks`` is an ordinary
+        ref, and refusing to download it would break real repositories.
+        """
+        parts = tuple(p.lower() for p in Path(filepath).parts)
+        for rel in _git_dir_relative_paths(parts):
+            if not rel:
+                continue
+            if rel == ('config',):
+                return True
+            if len(rel) >= 2 and rel[0] == 'hooks':
+                return True
+        return False
 
     def _resolve_href(self, base_url, href):
         """Resolve one directory-listing href into ``(url, path_components)``.
@@ -416,7 +474,41 @@ class GitHacker:
 
         return self.git_clone()
 
-    def copy_useful_files(self):
+    def _index_paths_are_safe(self, repo_dir):
+        """True when every path in `repo_dir`'s index stays inside it.
+
+        ``git checkout-index --all`` writes each entry at the path the index
+        names, and that index was downloaded from the target. An entry such as
+        "../../canary/PWNED" therefore lands outside the output directory
+        entirely — arbitrary file write, with no traversal anywhere in a URL
+        (benchmark scenario B1).
+
+        git's own parser reads the paths, so the index format is not
+        reimplemented here. Anything git cannot read is treated as unsafe.
+        """
+        result = subprocess.run(
+            ['git', '-C', str(repo_dir), 'ls-files', '-z'],
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            logging.error(
+                f'Could not read the index of {repo_dir}: '
+                f'{result.stderr.decode("utf-8", errors="replace").strip()}',
+            )
+            return False
+        root = Path(repo_dir)
+        for raw in result.stdout.decode('utf-8', errors='replace').split('\0'):
+            if not raw:
+                continue
+            if not _resolves_under(root, [s for s in raw.split('/') if s]):
+                logging.error(
+                    f'Index names a path outside the repository: {raw!r}',
+                )
+                return False
+        return True
+
+    def copy_useful_files(self, copy_index=True):
         """
         copy useful files like .git/ref/stash which will not be downloaded via git clone
         """
@@ -426,12 +518,15 @@ class GitHacker:
             # `git clone` writes a fresh .git/index from HEAD's tree,
             # dropping any blob that was staged but never committed.
             # Restore the original index so checkout-index --all can
-            # re-materialize those blobs into the working tree below.
+            # re-materialize those blobs into the working tree below —
+            # but only when its paths have been checked (see `copy_index`).
             ('.git', 'index'),
             ('.git', 'ORIG_HEAD'),
             ('.git', 'objects', 'pack'),
             ('.git', 'refs', 'stash'),
         ):
+            if rel == ('.git', 'index') and not copy_index:
+                continue
             src = self.temp_dst_path.joinpath(*rel)
             if src.exists():
                 shutil.copy(src, final.joinpath(*rel))
@@ -464,15 +559,32 @@ class GitHacker:
                 'FYI: https://drivertom.blogspot.com/2021/08/git.html',
             )
 
-        # TODO: check whether this operation would introduct new vulnerabilities
-        self.copy_useful_files()
+        if result.returncode != 0:
+            # copy_useful_files() writes into final_dst, which `git clone` never
+            # created. Calling it here turned every failed clone into a
+            # FileNotFoundError traceback instead of a reported failure.
+            return False
 
-        if result.returncode == 0:
-            # `git clone` checks out HEAD's tree, so any blob that was only
-            # staged in the index (added but never committed) ends up
-            # downloaded into .git/objects but absent from the working
-            # tree. Re-materialize the index so those staged-only files
-            # land on disk where the user expects them.
+        # The downloaded index drives checkout-index below, and it is
+        # attacker-controlled. Check it before installing it, and if it names
+        # anything outside the repository leave the clone's own index alone.
+        index_is_safe = self._index_paths_are_safe(self.temp_dst)
+
+        # TODO: check whether this operation would introduct new vulnerabilities
+        self.copy_useful_files(copy_index=index_is_safe)
+
+        if not index_is_safe:
+            logging.error(
+                'The downloaded .git/index names paths outside the repository; '
+                'it was not installed and staged-only files were not restored.',
+            )
+
+        # `git clone` checks out HEAD's tree, so any blob that was only
+        # staged in the index (added but never committed) ends up downloaded
+        # into .git/objects but absent from the working tree. Re-materialize
+        # the index so those staged-only files land on disk where the user
+        # expects them.
+        if index_is_safe:
             subprocess.run(
                 [
                     'git',
@@ -486,12 +598,10 @@ class GitHacker:
                 check=False,
             )
 
-            # return True only when git clone successfully executed
-            logging.info(f'Check it out: {self.final_dst}')
-            # remove temp repo folder
-            shutil.rmtree(self.temp_dst)
-            return True
-        return False
+        logging.info(f'Check it out: {self.final_dst}')
+        # remove temp repo folder
+        shutil.rmtree(self.temp_dst)
+        return True
 
     def _is_same_origin_descendant(self, candidate_url):
         """Strict same-origin check: scheme + netloc must match, and the
@@ -517,6 +627,13 @@ class GitHacker:
                     f'Rejected unsafe path segment {seg!r} in {path_components!r}',
                 )
                 return False
+        # Second, independent check: the segment gate says the components look
+        # safe, this says the path they build actually is.
+        if not _resolves_under(self.temp_dst_path, path_components):
+            logging.warning(
+                f'Rejected path escaping the sandbox: {path_components!r}',
+            )
+            return False
         url = self.construct_url_from_path_components(path_components)
         relative_path = '/'.join(path_components)
         if url in self.cached_404_url:
@@ -809,42 +926,64 @@ class GitHacker:
         log(f'[{length} bytes] {status_code} {url[len(self.url) :]}')
 
     def check_file_content(self, content):
-        return not (content.startswith(b'<') or len(content) == 0)
+        """Reject the HTML error pages servers hand out with a 200 status.
+
+        Narrower than the old "starts with an angle bracket": a commit message
+        or a description may legitimately begin with one, and that check
+        discarded those files silently. Content that literally opens with an
+        HTML document tag is still indistinguishable from an error page, and
+        is still rejected.
+        """
+        if not content:
+            return False
+        head = content[:64].lstrip().lower()
+        return not head.startswith((b'<!doctype', b'<html', b'<head', b'<body', b'<?xml'))
 
     def wget(self, url, path):
         time.sleep(self.delay)
-        response = self.session.get(url)
-        # record 404 files to prevent infinite downloading loop (#25)
-        if response.status_code == 404:
-            self.cached_404_url.add(url)
-
         path = Path(path)
         is_dangerous = self.is_dangerous_git_file(str(path))
 
         # When the user has not opted in to manual confirmation we silently
-        # skip anything that could RCE on checkout (config/hooks/etc.).
+        # skip anything that could RCE on checkout (config/hooks/etc.). Decided
+        # before the request, so a file we would never keep is never fetched.
         if not self.prompt_for_dangerous_files and is_dangerous:
             logging.error(
                 f'{path} is potential dangerous, skip downloading this file',
             )
             return (-1, -1, False)
 
+        # stream=True holds the connection open until the body is read or the
+        # response is closed, so every exit below goes through the finally.
+        response = self.session.get(url, stream=True)
         try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
-            logging.error(f'mkdir({path.parent!r}) failed: {e!r}')
-            return (-1, -1, False)
-        status_code = response.status_code
-        content = response.content
-        result = False
-        if status_code == 200 and self.check_file_content(content):
-            if self.prompt_for_dangerous_files and is_dangerous:
+            # record 404 files to prevent infinite downloading loop (#25)
+            if response.status_code == 404:
+                self.cached_404_url.add(url)
+            status_code = response.status_code
+            if status_code != 200:
+                return (status_code, 0, False)
+
+            try:
+                path.parent.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                logging.error(f'mkdir({path.parent!r}) failed: {e!r}')
+                return (-1, -1, False)
+
+            # A dangerous file the user asked to review has to be held whole so
+            # it can be shown to them. Everything else streams straight to disk,
+            # so the server cannot choose how much memory we use.
+            if is_dangerous:
+                content = response.content
+                if not self.check_file_content(content):
+                    return (status_code, len(content), False)
                 logging.error(
                     f'{path} is potential dangerous, you need to confirm the content is safe.',
                 )
                 seperator = f'{"-" * 0x10} {path} {"-" * 0x10}'
                 logging.warning(seperator)
-                print(content.decode('utf-8'))
+                print(content.decode('utf-8', errors='replace'))
+                logging.warning('-' * len(seperator))
                 safe = (
                     input(
                         f'Are you sure that the content of {path} is safe? (y/N)',
@@ -853,20 +992,26 @@ class GitHacker:
                     .lower()
                     == 'y'
                 )
-                if safe:
-                    n = path.write_bytes(content)
-                    if n == len(content):
-                        result = True
-                else:
+                if not safe:
                     logging.warning(
                         f'{path} is marked as dangerous, it will not be downloaded.',
                     )
-                    result = False
-            else:
+                    return (status_code, len(content), False)
                 n = path.write_bytes(content)
-                if n == len(content):
-                    result = True
-        return (status_code, len(content), result)
+                return (status_code, len(content), n == len(content))
+
+            chunks = response.iter_content(_DOWNLOAD_CHUNK_BYTES)
+            head = next(chunks, b'')
+            if not self.check_file_content(head):
+                return (status_code, len(head), False)
+            written = 0
+            with open(path, 'wb') as f:
+                written += f.write(head)
+                for chunk in chunks:
+                    written += f.write(chunk)
+            return (status_code, written, True)
+        finally:
+            response.close()
 
 
 def remove_suffixes(s, suffixes):

@@ -26,6 +26,9 @@ class ContentServer:
     def get(self, url, *args, **kwargs):
         return Response(text=self.body.decode(), content=self.body)
 
+    def close(self):
+        pass
+
 
 # ---------------------------------------------------------------------------
 # The gate does catch the canonical spellings
@@ -54,16 +57,10 @@ def test_ordinary_repository_files_are_not_flagged(hacker, path):
 
 
 # ---------------------------------------------------------------------------
-# Bypass 1 — case. The comparison is case-sensitive; the filesystem may not be.
+# Case. The comparison folds case, because the filesystem may too.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='The gate compares path parts case-sensitively. On a case-insensitive '
-    'filesystem (macOS APFS, Windows NTFS) ".git/CONFIG" IS ".git/config", so '
-    'the file lands as a live config and git_clone() reads it straight away.',
-)
 @pytest.mark.parametrize(
     'path',
     [
@@ -77,10 +74,6 @@ def test_case_variants_are_flagged(hacker, path):
     assert hacker.is_dangerous_git_file(path) is True
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='Same gap, end to end: nothing stops the bytes reaching disk.',
-)
 def test_uppercase_config_is_not_written_to_disk(hacker):
     hacker.session = ContentServer()
     target = hacker.temp_dst_path / '.git' / 'CONFIG'
@@ -98,17 +91,11 @@ def test_lowercase_config_is_refused(hacker):
 
 
 # ---------------------------------------------------------------------------
-# Bypass 2 — nested git dirs. A submodule's GIT_DIR is .git/modules/<name>,
-# and git reads its config and runs its hooks just like the top-level one.
+# Nested git dirs. A submodule's GIT_DIR is .git/modules/<name>, and git reads
+# its config and runs its hooks just like the top-level one.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='The gate only recognises a .git/ directly above the file, so the '
-    'GIT_DIR of a submodule or a worktree is unprotected — its config and '
-    'hooks are as executable as the top-level ones.',
-)
 @pytest.mark.parametrize(
     'path',
     [

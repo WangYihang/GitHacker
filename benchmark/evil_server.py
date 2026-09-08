@@ -112,11 +112,19 @@ class _StaticHandler(http.server.SimpleHTTPRequestHandler):
         return BytesIO(encoded)
 
 
-def _make_redirect_handler(target: str) -> type[http.server.BaseHTTPRequestHandler]:
+def _make_redirect_handler(
+    target: str, access_log: Path | None = None
+) -> type[http.server.BaseHTTPRequestHandler]:
     class _RedirectHandler(http.server.BaseHTTPRequestHandler):
         server_version = 'EvilServer/0.1'
 
         def do_GET(self):  # noqa: N802
+            if access_log:
+                try:
+                    with open(access_log, 'a') as f:
+                        f.write(self.requestline + '\n')
+                except OSError as exc:
+                    sys.stderr.write(f'access-log write failed: {exc}\n')
             self.send_response(302)
             self.send_header('Location', target)
             self.send_header('Content-Length', '0')
@@ -251,7 +259,7 @@ def main() -> int:
     elif args.mode == 'redirect':
         if not args.redirect_to:
             p.error('--redirect-to <url> is required in redirect mode')
-        handler = _make_redirect_handler(args.redirect_to)
+        handler = _make_redirect_handler(args.redirect_to, args.access_log)
     elif args.mode == 'infinite':
         handler = _make_infinite_handler(args.access_log)
     else:  # callback

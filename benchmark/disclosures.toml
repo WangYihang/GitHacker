@@ -175,3 +175,69 @@ reported_at = "2026-09-07"
 patched_at = "2026-09-08"
 cve = ""
 notes = "Self-discovered. add_folder kept no visited set and no depth cap, so a bottomless listing recursed until the path exceeded the filesystem limit (observed: 131 requests, then an unhandled OSError). Fixed with a visited-URL set and _MAX_CRAWL_DEPTH; the same scenario now finishes in 38 requests. Pinned by tests/test_crawl_robustness.py."
+
+# --- A7 / C6: first cross-tool run, 2026-09-08. Both findings observed on the
+#     benchmark images; neither has been reported upstream yet, so the tools
+#     stay behind their labels until they are.
+
+[[finding]]
+id = "DIS-2026-012"
+test = "A7_nested_gitdir_config"
+tool = "git-dumper"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "Recovers .git/modules/<name>/config carrying core.fsmonitor into the operator's output directory."
+
+[[finding]]
+id = "DIS-2026-013"
+test = "A7_nested_gitdir_config"
+tool = "rbozburun-git-hacker"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "Recovers .git/modules/<name>/config carrying core.fsmonitor into the operator's output directory."
+
+[[finding]]
+id = "DIS-2026-014"
+test = "C6_infinite_listing"
+tool = "git-dumper"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "188 requests against a bottomless one-entry-wide listing: recursion is bounded by nothing the tool controls."
+
+[[finding]]
+id = "DIS-2026-015"
+test = "C6_infinite_listing"
+tool = "rbozburun-git-hacker"
+severity = "M"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "188 requests against a bottomless one-entry-wide listing: recursion is bounded by nothing the tool controls."
+
+# --- GitHacker self-found while un-crippling its own crawler (see DIS-2026-010).
+
+[[finding]]
+id = "DIS-2026-016"
+test = "B1_index_traversal"
+tool = "githacker"
+severity = "H"
+status = "patched"
+first_observed = "2026-09-08"
+reported_at = "2026-09-08"
+patched_at = "2026-09-08"
+cve = ""
+notes = "Self-discovered. GitHacker had been scoring PASS on B1 without earning it: a doubled slash in the URL the benchmark passes made every listing-derived path fail the origin prefix check, so the crawler recovered nothing and the poisoned index was never installed. With the URL normalised the tool works, and `git checkout-index --all --force` then honoured the attacker's index entry '../../canary/PWNED_B1' — an arbitrary file write outside the output directory, with no traversal anywhere in a URL. Fixed by validating every index path with `git ls-files` before installing the downloaded index or materialising it."

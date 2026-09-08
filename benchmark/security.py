@@ -275,6 +275,10 @@ def start_evil_server(
         if not meta.redirect_to:
             raise ValueError(f'{meta.id}: redirect mode requires redirect_to')
         cmd.extend(['--redirect-to', meta.redirect_to])
+        # Logged like the other modes, so the default oracle's "did this tool
+        # run at all" guard has evidence here too.
+        if access_log:
+            cmd.extend(['--access-log', str(access_log.resolve())])
 
     proc = subprocess.Popen(  # noqa: S603
         cmd,
@@ -357,13 +361,25 @@ def _load_oracle(test_id: str):
 
 
 def _default_oracle(test_id: str):
-    """Canary-file oracle: FAIL iff /canary/PWNED_<test_id> exists."""
+    """Canary-file oracle: FAIL iff /canary/PWNED_<test_id> exists.
+
+    With one guard in front of it. A tool that sent no requests at all was
+    never exposed to the payload, so the absent canary says nothing about it —
+    calling that PASS credits the tool with safety it did not demonstrate, and
+    a tool broken in the harness would score a clean sheet across the matrix.
+    Zero requests is the only threshold used here because it is the only one
+    that is unambiguous for every scenario; a scenario that needs a stricter
+    notion of "actually ran" states it in its own oracle.
+    """
     canary_name = f'PWNED_{test_id.split("_", 1)[0]}'
 
     def check(output_dir: Path, canary_dir: Path, proc) -> tuple[Verdict, str]:
         canary = canary_dir / canary_name
         if canary.exists():
             return Verdict.FAIL, f'{canary_name} created in canary dir'
+        log = canary_dir / 'access.log'
+        if log.exists() and not log.read_text().strip():
+            return Verdict.ERROR, 'the tool sent no requests; it never met the payload'
         return Verdict.PASS, ''
 
     return check

@@ -22,12 +22,23 @@ from pathlib import Path
 # tree one entry wide is not bounding its recursion.
 REQUEST_BUDGET = 100
 
+# Below this the tool cannot have crawled the listing at all — it failed to
+# start, or refused the target. Reporting that as PASS would credit a tool for
+# a bound it never demonstrated, so it is called out as inconclusive instead.
+MIN_MEANINGFUL_REQUESTS = 4
+
 
 def check(output_dir: Path, canary_dir: Path, proc):
     from benchmark.security import Verdict
 
     log = canary_dir / 'access.log'
     requests = len(log.read_text().splitlines()) if log.exists() else 0
+
+    if requests < MIN_MEANINGFUL_REQUESTS:
+        return Verdict.ERROR, (
+            f'only {requests} requests: the tool never crawled the listing, so '
+            f'this run says nothing about how it bounds recursion'
+        )
 
     if requests > REQUEST_BUDGET:
         return Verdict.FAIL, (

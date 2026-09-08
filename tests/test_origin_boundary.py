@@ -132,3 +132,34 @@ def test_redirect_guard_is_inert_without_an_expected_origin():
 
 def test_non_redirect_response_has_no_target(session):
     assert session.get_redirect_target(Redirect(None)) is None
+
+
+# ---------------------------------------------------------------------------
+# URL normalisation — the prefix checks above compare against self.url, so it
+# has to be spelled the way urljoin will spell everything else.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    'given,expected',
+    [
+        ('http://victim.example//', 'http://victim.example/'),
+        ('http://victim.example//path//', 'http://victim.example/path/'),
+        ('http://victim.example/path/', 'http://victim.example/path/'),
+    ],
+)
+def test_repeated_slashes_in_the_base_url_are_collapsed(tmp_path, given, expected):
+    """urljoin collapses "//" in a path, so a base URL that keeps it would make
+    every resolved URL fail the origin and anchor prefix checks — the crawl
+    finds nothing and says nothing. Callers really do produce this: joining a
+    URL that already ends in "/" onto "/.git/"."""
+    from unittest import mock
+
+    from githacker.__main__ import GitHacker
+
+    with mock.patch.object(GitHacker, 'complete_basic_files_list', lambda self: None):
+        g = GitHacker(url=given, dst=str(tmp_path), threads=1)
+    try:
+        assert g.url == expected
+    finally:
+        g._pool.shutdown(wait=False)

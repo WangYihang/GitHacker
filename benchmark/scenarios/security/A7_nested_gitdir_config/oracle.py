@@ -47,4 +47,9 @@ def check(output_dir: Path, canary_dir: Path, proc):
                     f'downloaded {rel} carrying core.{match.group(1)}: a nested '
                     f'GIT_DIR config git executes like the top-level one'
                 )
+    if not any(p.is_file() for p in output_dir.rglob('*')):
+        return Verdict.ERROR, (
+            'the tool recovered no files at all, so "did not keep the nested '
+            'GIT_DIR config" is not something this run demonstrated'
+        )
     return Verdict.PASS, ''

@@ -162,20 +162,10 @@ def test_files_inside_a_subdirectory_listing_are_queued(crawl):
     assert f'{ANCHOR}objects/ab/' in result.recursed
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='The segment allowlist is ASCII-only, so legal non-ASCII ref and '
-    'file names are silently dropped — the same over-rejection class as #82.',
-)
 @pytest.mark.parametrize('name', ['功能', 'café', 'Ünïcode'])
 def test_non_ascii_names_are_downloaded(crawl, name):
     assert crawl([name]).queued == [('.git', name)]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='Hrefs are never unquoted before validation, so the percent-encoded '
-    'names real servers emit for non-ASCII files are rejected wholesale.',
-)
 def test_percent_encoded_name_is_decoded_before_validation(crawl):
     assert crawl(['%E5%8A%9F%E8%83%BD']).queued == [('.git', '功能')]

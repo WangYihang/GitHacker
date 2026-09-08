@@ -58,6 +58,15 @@ class Response:
     content: bytes = b''
     status_code: int = 200
 
+    def iter_content(self, chunk_size=8192):
+        """wget streams responses, so the double has to as well."""
+        for i in range(0, len(self.content), chunk_size):
+            yield self.content[i : i + chunk_size]
+
+    def close(self):
+        """wget releases every response; the double records nothing but must
+        not blow up when it does."""
+
 
 @dataclass
 class Server:

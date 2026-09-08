@@ -198,3 +198,31 @@ def test_infinite_server_looks_like_a_directory_listing(infinite_server):
 
 def test_infinite_server_answers_head_so_the_target_looks_like_a_repo(infinite_server):
     assert _get(f'{infinite_server}/.git/HEAD').startswith('ref: ')
+
+
+# ---------------------------------------------------------------------------
+# The default oracle's non-vacuity guard
+# ---------------------------------------------------------------------------
+
+
+def test_default_oracle_refuses_to_pass_a_tool_that_sent_no_requests(tmp_path):
+    """A tool broken in the harness makes no requests and trips no canary. That
+    is not a clean sheet; it is no evidence at all."""
+    (tmp_path / 'access.log').write_text('')
+    verdict, evidence = security._default_oracle('A1_fsmonitor')(tmp_path, tmp_path, None)
+    assert verdict is Verdict.ERROR
+    assert 'no requests' in evidence
+
+
+def test_default_oracle_passes_a_tool_that_ran_and_tripped_nothing(tmp_path):
+    (tmp_path / 'access.log').write_text('GET /.git/HEAD HTTP/1.1\n')
+    verdict, _ = security._default_oracle('A1_fsmonitor')(tmp_path, tmp_path, None)
+    assert verdict is Verdict.PASS
+
+
+def test_default_oracle_still_fails_on_a_canary(tmp_path):
+    """The guard must not shadow the finding it sits in front of."""
+    (tmp_path / 'access.log').write_text('')
+    (tmp_path / 'PWNED_A1').write_text('x')
+    verdict, _ = security._default_oracle('A1_fsmonitor')(tmp_path, tmp_path, None)
+    assert verdict is Verdict.FAIL

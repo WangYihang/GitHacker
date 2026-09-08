@@ -61,15 +61,10 @@ def test_the_runaway_detector_actually_fires():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='wget() reads response.content, materialising the whole body in '
-    'memory before writing it. A malicious server can answer any object '
-    'request with an unbounded stream. Downloads should be streamed to disk '
-    '(stream=True) so size is bounded by the filesystem, not by RAM — a cap '
-    'is the wrong fix, since real packfiles are legitimately huge.',
-)
 def test_downloads_are_streamed_rather_than_buffered(hacker):
+    """A packfile is legitimately huge, so the bound has to be the filesystem's
+    rather than a size cap. Buffering the whole body let the server pick how
+    much memory the pillager used."""
     hacker.session = Server()
     hacker.wget(f'{ANCHOR}HEAD', hacker.temp_dst_path / '.git' / 'HEAD')
     assert hacker.session.last_kwargs.get('stream') is True
@@ -87,13 +82,6 @@ def test_a_listing_with_many_entries_queues_them_all(crawl):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='git_clone() calls copy_useful_files() before checking the return '
-    'code, so a failed clone raises FileNotFoundError from inside the copy '
-    'instead of reporting failure. Any target whose .git is incomplete — the '
-    'exact symptom reported in issue #82 — crashes with a traceback.',
-)
 def test_a_failed_clone_reports_failure_instead_of_raising(hacker):
     git_dir = hacker.temp_dst_path / '.git'
     git_dir.mkdir(parents=True)
@@ -110,11 +98,67 @@ def test_an_empty_body_is_not_written(hacker):
     assert ok is False
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='check_file_content() rejects any body starting with "<" to filter '
-    'HTML error pages, which also discards legitimate content — a commit '
-    'message or description beginning with "<" is silently lost.',
-)
-def test_legitimate_content_starting_with_an_angle_bracket_is_kept(hacker):
-    assert hacker.check_file_content(b'<html> in a commit message\n') is True
+def test_content_starting_with_an_angle_bracket_is_kept(hacker):
+    """The old filter dropped anything opening with "<" to catch HTML error
+    pages, and took legitimate content with it. (Content that opens with a
+    literal HTML tag stays undecidable from the bytes alone, so it is still
+    rejected — see the test below.)"""
+    assert hacker.check_file_content(b'<wip> refactor the parser\n') is True
+
+
+def test_an_html_error_page_is_still_rejected(hacker):
+    """The reason the filter exists: servers answer 404 with 200 and a page."""
+    assert hacker.check_file_content(b'<!DOCTYPE html>\n<html><body>404') is False
+
+
+# ---------------------------------------------------------------------------
+# The downloaded index drives `git checkout-index`, so it is attacker input
+# ---------------------------------------------------------------------------
+
+
+def _repo_with_index_entry(root, path_in_index):
+    """A real repo whose index names `path_in_index`.
+
+    The entry is written by hand, through the benchmark's own index builder,
+    because `git update-index` refuses to record a path containing "..". That
+    refusal is exactly why the attack has to arrive as a downloaded index file
+    rather than through any git command.
+    """
+    import importlib.util
+    import subprocess
+
+    from benchmark.security import SCENARIOS_DIR
+
+    spec = importlib.util.spec_from_file_location(
+        'b1_build', SCENARIOS_DIR / 'B1_index_traversal' / 'build.py'
+    )
+    b1 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(b1)
+
+    root.mkdir(parents=True, exist_ok=True)
+    subprocess.run(['git', 'init', '-q'], cwd=root, capture_output=True, check=True)
+    sha = b1._write_object(root / '.git', b'payload\n', 'blob')
+    (root / '.git' / 'index').write_bytes(b1._build_index([(0o100644, sha, path_in_index)]))
+    return root
+
+
+def test_an_index_naming_a_path_outside_the_repository_is_refused(hacker, tmp_path):
+    """B1: `git checkout-index --all` writes every entry where the index says,
+    and the index came from the target. "../../x" escapes the output directory
+    with no traversal anywhere in a URL."""
+    repo = _repo_with_index_entry(tmp_path / 'downloaded', '../../canary/PWNED')
+    assert hacker._index_paths_are_safe(repo) is False
+
+
+def test_an_ordinary_index_is_accepted(hacker, tmp_path):
+    """The control: the check must not block the staged-only-blob restore it
+    guards, or every normal repository loses files."""
+    repo = _repo_with_index_entry(tmp_path / 'downloaded', 'src/main.py')
+    assert hacker._index_paths_are_safe(repo) is True
+
+
+def test_an_unreadable_index_is_treated_as_unsafe(hacker, tmp_path):
+    """Fail closed: if git cannot parse it, we do not install it."""
+    not_a_repo = tmp_path / 'empty'
+    not_a_repo.mkdir()
+    assert hacker._index_paths_are_safe(not_a_repo) is False
