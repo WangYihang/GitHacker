@@ -17,9 +17,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# A pillager that got as far as talking to the target makes at least a handful
-# of requests (HEAD, config, refs...). Fewer means it never started.
-MIN_MEANINGFUL_REQUESTS = 3
+# An index-driven pillager engages the target in as few as two requests: fetch
+# .git/index, then the blobs it names. That is a real run, and never reading a
+# listing is a legitimate way to be immune here — so the bar is only "did it
+# talk to the target at all".
+MIN_MEANINGFUL_REQUESTS = 2
 
 
 def check(output_dir: Path, canary_dir: Path, proc):

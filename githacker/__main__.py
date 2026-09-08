@@ -1,6 +1,7 @@
 import argparse
 import concurrent.futures
 import hashlib
+import importlib.metadata
 import logging
 import os
 import re
@@ -21,7 +22,15 @@ from urllib3.util.retry import Retry
 
 # Kept in sync with pyproject.toml's project.version by bump-my-version
 # (see [tool.bump-my-version.files] in pyproject.toml).
-__version__ = '1.1.8'
+try:
+    # Single source of truth: the version declared in pyproject.toml, read back
+    # from the installed distribution. Hard-coding it here meant `--version`
+    # reported 1.1.8 long after the package became 1.1.10, which is how the
+    # reporter of issue #82 came to name the wrong release.
+    __version__ = importlib.metadata.version('githacker')
+except importlib.metadata.PackageNotFoundError:  # running from a source tree
+    __version__ = 'unknown'
+
 
 coloredlogs.install(fmt='%(asctime)s %(levelname)s %(message)s')
 

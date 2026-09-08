@@ -241,3 +241,32 @@ reported_at = "2026-09-08"
 patched_at = "2026-09-08"
 cve = ""
 notes = "Self-discovered. GitHacker had been scoring PASS on B1 without earning it: a doubled slash in the URL the benchmark passes made every listing-derived path fail the origin prefix check, so the crawler recovered nothing and the poisoned index was never installed. With the URL normalised the tool works, and `git checkout-index --all --force` then honoured the attacker's index entry '../../canary/PWNED_B1' — an arbitrary file write outside the output directory, with no traversal anywhere in a URL. Fixed by validating every index path with `git ls-files` before installing the downloaded index or materialising it."
+
+# --- A3: surfaced only after the payloads gained a real .git/index. Without
+#     one, index-driven pillagers fetched .git/index, got a 404, and stopped
+#     after a single request — so a checkout-triggered filter never fired and
+#     the benchmark scored them as passing.
+
+[[finding]]
+id = "DIS-2026-017"
+test = "A3_smudge_filter"
+tool = "git-dumper"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "A .gitattributes smudge filter in the recovered repository executes on checkout."
+
+[[finding]]
+id = "DIS-2026-018"
+test = "A3_smudge_filter"
+tool = "rbozburun-git-hacker"
+severity = "H"
+status = "confirmed"
+first_observed = "2026-09-08"
+reported_at = ""
+patched_at = ""
+cve = ""
+notes = "A .gitattributes smudge filter in the recovered repository executes on checkout."

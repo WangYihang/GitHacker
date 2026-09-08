@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import struct
 import zlib
 from pathlib import Path
 
@@ -25,6 +26,33 @@ def write_object(git_dir: Path, content: bytes, obj_type: str) -> str:
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_bytes(zlib.compress(body))
     return sha
+
+
+def build_index(entries) -> bytes:
+    """Return raw bytes of a git index v2.
+
+    ``entries`` is a list of ``(mode, sha_hex, path, size)``.
+
+    Payloads need a real index because the index *is* the recovery path for a
+    whole class of pillager: GitHack and dumpall read it, materialise the blobs
+    it names, and stop. Without one they fetch ``.git/index``, get a 404, and
+    give up after a single request — which the benchmark then scored as a clean
+    PASS on every scenario, crediting them with a safety they never had the
+    chance to violate.
+    """
+    body = b'DIRC' + struct.pack('>II', 2, len(entries))
+    for mode, sha_hex, path, size in entries:
+        path_b = path.encode('utf-8')
+        flags = min(len(path_b), 0xFFF)
+        # 10 x uint32 stat fields, 20-byte sha, uint16 flags
+        entry = struct.pack(
+            '>10I20sH', 0, 0, 0, 0, 0, 0, mode, 0, 0, size, bytes.fromhex(sha_hex), flags
+        )
+        entry += path_b + b'\0'
+        while (len(entry) % 8) != 0:  # pad to an 8-byte boundary, NUL included
+            entry += b'\0'
+        body += entry
+    return body + hashlib.sha1(body).digest()
 
 
 def build_minimal_repo(
@@ -84,6 +112,15 @@ def build_minimal_repo(
     (git_dir / 'config').write_text(config)
     (git_dir / 'objects' / 'info').mkdir(parents=True, exist_ok=True)
     (git_dir / 'objects' / 'info' / 'packs').write_text('')
+
+    # A real index over the same tree, so index-driven pillagers have a
+    # recovery path at all. Scenarios that need a *crafted* index (B1) simply
+    # overwrite this one.
+    (git_dir / 'index').write_bytes(
+        build_index(
+            [(mode, blobs[path], path, len(content)) for mode, path, content in tree_entries]
+        )
+    )
 
     if extra_files:
         for rel, data in extra_files.items():

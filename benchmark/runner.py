@@ -139,7 +139,17 @@ def run_tool_scenario(
         duration = round(time.monotonic() - start, 2)
         logger.error('%s timed out on %s after %.1fs', tool.id, scenario, duration)
         http_requests = get_request_count(scenario)
-        result = _empty_result('Tool timed out')
+        # Score what the tool managed to recover before the budget ran out.
+        # Zeroing it conflated "recovered nothing" with "recovered most of the
+        # repository but too slowly", which are very different results — and the
+        # duration and the error string already say which one this was.
+        try:
+            recovered = _find_recovered_repo(output_dir)
+            result = compare_repos(origin, recovered, manifest)
+            result.error = f'Tool timed out after {duration:.0f}s (partial result)'
+        except Exception as exc:  # noqa: BLE001 - a partial tree may be unreadable
+            logger.warning('  %s: could not score partial output: %s', tool.id, exc)
+            result = _empty_result('Tool timed out')
         result.duration = duration
         result.exit_code = -1
         result.http_requests = http_requests

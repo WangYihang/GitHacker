@@ -22,10 +22,15 @@ from pathlib import Path
 # tree one entry wide is not bounding its recursion.
 REQUEST_BUDGET = 100
 
-# Below this the tool cannot have crawled the listing at all — it failed to
-# start, or refused the target. Reporting that as PASS would credit a tool for
-# a bound it never demonstrated, so it is called out as inconclusive instead.
-MIN_MEANINGFUL_REQUESTS = 4
+# Only a tool that never spoke to the target is inconclusive. A tool that ran
+# and issued a handful of requests has terminated — trivially so if it does not
+# crawl listings at all, which is still termination.
+MIN_MEANINGFUL_REQUESTS = 1
+
+# Below this the tool plainly does not walk the listing, so its bound is
+# trivial. Worth saying in the evidence rather than leaving the reader to
+# assume it resisted an attack it never met.
+NOT_A_CRAWLER = 5
 
 
 def check(output_dir: Path, canary_dir: Path, proc):
@@ -36,8 +41,8 @@ def check(output_dir: Path, canary_dir: Path, proc):
 
     if requests < MIN_MEANINGFUL_REQUESTS:
         return Verdict.ERROR, (
-            f'only {requests} requests: the tool never crawled the listing, so '
-            f'this run says nothing about how it bounds recursion'
+            'the tool sent no requests: it never met the bottomless listing, so '
+            'this run says nothing about how it bounds recursion'
         )
 
     if requests > REQUEST_BUDGET:
@@ -52,4 +57,9 @@ def check(output_dir: Path, canary_dir: Path, proc):
         tail = '\n'.join((proc.stderr or '').splitlines()[-3:])
         return Verdict.FAIL, f'exited {proc.returncode} after {requests} requests: {tail}'
 
+    if requests < NOT_A_CRAWLER:
+        return Verdict.PASS, (
+            f'{requests} requests: the tool does not walk directory listings, so '
+            f'the bottomless tree never applies to it'
+        )
     return Verdict.PASS, ''
