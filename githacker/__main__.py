@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from urllib.parse import quote, urljoin, urlparse
+from urllib.parse import quote, unquote, urljoin, urlparse
 
 import bs4
 import coloredlogs
@@ -43,6 +43,12 @@ _REF_SEGMENT_RE = re.compile(r'^[A-Za-z0-9._\-+]+\Z')
 # longer extensions, so we allow leading dot but still block "." / ".." /
 # separators / control chars / NUL.
 _PATH_SEGMENT_RE = re.compile(r'^[A-Za-z0-9._\-+@]+\Z')
+
+# How deep below `.git/` a directory-listing crawl may descend. The deepest
+# path a real repository has is around four levels (.git/objects/<ab>/<file>,
+# .git/refs/remotes/<remote>/<ref>); past this a server is manufacturing depth
+# rather than describing a tree, and the crawl must stop on its own.
+_MAX_CRAWL_DEPTH = 16
 
 _MAX_WORDLIST_BYTES = 1 * 1024 * 1024
 _MAX_WORDLIST_ENTRIES = 100_000
@@ -194,6 +200,16 @@ class GitHacker:
         parsed = urlparse(url)
         self._origin = (parsed.scheme, parsed.netloc)
         self._origin_path = parsed.path or '/'
+        # Every URL the listing crawler follows must live under this prefix.
+        # Same-origin is not enough on its own: a listing that links to
+        # "/etc/passwd" is the same host, and following it turns the pillager
+        # into a crawler for the rest of the site.
+        base = self._origin_path if self._origin_path.endswith('/') else f'{self._origin_path}/'
+        self._anchor_path = f'{base}.git/'
+        # Listing URLs already read. A malicious server can answer every URL
+        # with a listing that points at itself, so recursion needs a memory as
+        # well as the depth ceiling.
+        self._visited_folders: set[str] = set()
         # Lock the session's redirect-following to the same origin so an
         # untrusted server cannot use 3xx responses as an SSRF springboard
         # into the pillager's network.
@@ -301,53 +317,69 @@ class GitHacker:
         # continuously maintain the maybe-dangerous blacklist.
         return len(parts) >= 3 and parts[-3:-1] == ('.git', 'hooks')
 
-    def add_folder(self, base_url, folder):
+    def _resolve_href(self, base_url, href):
+        """Resolve one directory-listing href into ``(url, path_components)``.
+
+        Returns ``None`` when the entry must not be followed.
+
+        Directory and file entries both come through here, which is the point:
+        the URL we fetch and the path we write are derived from one resolution,
+        so they cannot disagree. They used to be resolved separately — the file
+        branch with ``urljoin``, the directory branch by string concatenation
+        plus a single-segment check — and the two drifted apart, which is what
+        issue #82 was.
+
+        Four things have to hold, in order: the href resolves to our origin, it
+        stays under the ``.git/`` anchor the crawl started from, it decodes to
+        at least one path segment, and every one of those segments passes the
+        per-segment gate.
+        """
+        target = urljoin(base_url, href)
+        if not self._is_same_origin_descendant(target):
+            return None
+        path = urlparse(target).path
+        if not path.startswith(self._anchor_path):
+            return None
+        # Decode before validating, so a percent-encoded separator or ".."
+        # is judged as what it becomes rather than as the literal text.
+        components = [unquote(s) for s in path[len(self._origin_path) :].split('/') if s]
+        if not components or any(not _is_safe_path_segment(s) for s in components):
+            return None
+        return target, components
+
+    def add_folder(self, base_url, folder, depth=0):
         url = f'{base_url}{folder}'
+        if url in self._visited_folders:
+            return
+        self._visited_folders.add(url)
+        if depth > _MAX_CRAWL_DEPTH:
+            logging.warning(
+                f'Listing nested deeper than {_MAX_CRAWL_DEPTH} levels, not descending: {url}',
+            )
+            return
+
         soup = bs4.BeautifulSoup(
             self.session.get(url).text,
             features='html.parser',
         )
+        listing_path = urlparse(url).path
         for link in soup.find_all('a'):
             href = link.get('href')
             if not href or href in ('../', '/'):
                 continue
+            resolved = self._resolve_href(url, href)
+            if resolved is None:
+                logging.warning(f'Skipping unsafe listing entry: {href!r}')
+                continue
+            target, components = resolved
+            if urlparse(target).path == listing_path:
+                # A link back to the listing itself: Apache's column-sort
+                # links, an in-page anchor. Fetching it again buys nothing.
+                continue
             if href.endswith('/'):
-                # Resolve the directory URL the same way file entries are
-                # resolved (listings may emit absolute hrefs such as
-                # "/.git/objects/"), then validate every path segment
-                # independently before recursing. A directory href is a
-                # multi-segment path; passing the whole href to
-                # _is_safe_path_segment (a single-segment gate) always
-                # fails, which would skip every subdirectory of the
-                # listing and leave the rebuilt repo without objects/refs.
-                dir_url = urljoin(url, href)
-                if not self._is_same_origin_descendant(dir_url):
-                    continue
-                # Recursion must also stay inside the .git/ tree the crawl
-                # started from: an absolute href like "/etc/" is same-origin
-                # but points outside the repository listing.
-                anchor_path = urlparse(urljoin(self.url, '.git/')).path
-                dir_path = urlparse(dir_url).path
-                if not dir_path.startswith(anchor_path):
-                    logging.warning(
-                        f'Skipping unsafe directory listing entry: {href!r}',
-                    )
-                    continue
-                segs = [s for s in dir_path[len(anchor_path) :].split('/') if s]
-                if not segs or any(not _is_safe_path_segment(seg) for seg in segs):
-                    logging.warning(
-                        f'Skipping unsafe directory listing entry: {href!r}',
-                    )
-                    continue
-                self.add_folder(dir_url, '')
+                self.add_folder(target, '', depth + 1)
             else:
-                file_url = urljoin(url, href)
-                if not self._is_same_origin_descendant(file_url):
-                    continue
-                relative = urlparse(file_url).path[len(self._origin_path) :]
-                # add_task validates each segment via _is_safe_path_segment,
-                # so empty / ".." / NUL components are rejected centrally.
-                self.add_task([s for s in relative.split('/') if s])
+                self.add_task(components)
 
     def blind(self):
         logging.info('Downloading basic files...')

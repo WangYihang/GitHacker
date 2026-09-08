@@ -80,6 +80,8 @@ def _make_hacker(tmp_path, session: _FakeSession) -> GitHacker:
     g.url = 'http://victim.example/'
     g._origin = ('http', 'victim.example')
     g._origin_path = '/'
+    g._anchor_path = '/.git/'
+    g._visited_folders = set()
     g.temp_dst = str(tmp_path)
     g.temp_dst_path = Path(str(tmp_path))
     g.cached_404_url = set()

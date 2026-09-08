@@ -98,12 +98,6 @@ def test_same_origin_directory_href_outside_the_git_tree_is_not_followed(crawl):
     assert crawl(['/etc/']).recursed == []
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='The file branch checks the origin but not the .git/ anchor, so a '
-    'listing can steer the crawler at any same-origin path. PR #83 adds the '
-    'anchor check to the directory branch only.',
-)
 @pytest.mark.parametrize('href', ['/etc/passwd', '/admin/secret.txt', '/etc\n/passwd'])
 def test_same_origin_file_href_outside_the_git_tree_is_not_queued(crawl, href):
     assert crawl([href]).queued_outside_anchor() == []
@@ -114,7 +108,7 @@ def test_literal_dot_run_directory_is_a_name_not_traversal(crawl):
     is safe — it goes one level *down*, never up — and pinning the distinction
     keeps a future "reject anything dotty" change a deliberate one."""
     result = crawl(['....//'])
-    assert result.recursed == [f'{ANCHOR}....//']
+    assert result.recursed == [f'{ANCHOR}..../']
     assert result.escaping() == []
     assert result.fetched_outside_anchor() == []
 
@@ -124,12 +118,6 @@ def test_current_directory_href_is_not_followed(crawl):
     assert crawl(['./']).recursed == []
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="A listing's own links (Apache column-sort links, in-page anchors) "
-    'resolve back to the listing URL and get queued as a file, costing a '
-    'pointless request per listing.',
-)
 @pytest.mark.parametrize('href', ['?C=N;O=D', '#top'])
 def test_listing_self_links_are_ignored(crawl, href):
     assert crawl([href]).queued == []
@@ -149,12 +137,6 @@ DIALECTS = {
 }
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='Issue #82: a directory href is validated as if it were a single '
-    'path segment, so every dialect but "relative" loses all subdirectories. '
-    'Remove this marker once PR #83 lands.',
-)
 @pytest.mark.parametrize('dialect', ['dot_relative', 'root_absolute', 'full_url'])
 def test_listing_dialect_does_not_change_what_is_crawled(crawl, dialect):
     """The invariant issue #82 broke: rewriting the hrefs of one honest tree

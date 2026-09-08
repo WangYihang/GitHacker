@@ -10,23 +10,33 @@ from __future__ import annotations
 
 import pytest
 
-from tests.conftest import ANCHOR, RunawayCrawl, Server
+from githacker.__main__ import _MAX_CRAWL_DEPTH
+from tests.conftest import (
+    ANCHOR,
+    MAX_REQUESTS,
+    RunawayCrawl,
+    Server,
+    listing,
+)
 
 # ---------------------------------------------------------------------------
 # Termination
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='The crawler keeps no record of the listings it has already read and '
-    'imposes no depth limit, so a server that answers every URL with the same '
-    'one-subdirectory listing drives it until the interpreter runs out of '
-    'stack. PR #83 adds a second route to this: with absolute hrefs the URL '
-    'stops growing, so the same listing recurses on one single URL.',
-)
-def test_a_server_that_always_offers_one_more_subdirectory_terminates(crawl):
-    crawl(['loop/'], always=['loop/'])
+def test_a_server_offering_one_more_subdirectory_forever_is_stopped_by_depth(crawl):
+    """A malicious server can manufacture unbounded depth with relative hrefs,
+    which grow the URL at every step. The depth ceiling is what stops it —
+    before the recursion limit or the filesystem's path length does."""
+    result = crawl(['loop/'], always=['loop/'])
+    assert len(result.fetched) == _MAX_CRAWL_DEPTH + 1
+
+
+def test_a_listing_that_links_to_itself_is_read_once(crawl):
+    """With an absolute href the URL does not grow, so the depth ceiling alone
+    would re-read the same URL forever. The visited set is what stops this one."""
+    result = crawl(['/.git/loop/'], sub={f'{ANCHOR}loop/': ['/.git/loop/']})
+    assert result.fetched == [ANCHOR, f'{ANCHOR}loop/']
 
 
 def test_a_finite_tree_is_crawled_exactly_once_per_directory(crawl):
@@ -36,11 +46,14 @@ def test_a_finite_tree_is_crawled_exactly_once_per_directory(crawl):
     assert result.fetched == [ANCHOR, f'{ANCHOR}objects/', f'{ANCHOR}objects/ab/']
 
 
-def test_the_runaway_detector_actually_fires(crawl):
-    """A meta-test: if the scripted server ever stopped counting requests, every
-    termination test above would pass vacuously."""
+def test_the_runaway_detector_actually_fires():
+    """A meta-test: the termination tests above only mean something if the
+    scripted server really does refuse to answer forever. Drive it directly, so
+    this stays honest however the crawler behaves."""
+    server = Server(always=listing(['loop/']))
     with pytest.raises(RunawayCrawl):
-        crawl(['loop/'], always=['loop/'])
+        for _ in range(MAX_REQUESTS + 1):
+            server.get(ANCHOR)
 
 
 # ---------------------------------------------------------------------------
