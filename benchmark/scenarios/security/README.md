@@ -17,6 +17,25 @@ drift from what the benchmark actually does. They cover the server mode the
 scenario needs, the canary to watch for, and the findings already recorded
 against it.
 
+`python -m benchmark poc <id>` goes one step further and writes a directory
+you can attach to a report: the server in a container, the malicious `.git`,
+and a README aimed at someone who has never seen this project. Two things it
+does differently from the harness, both because the reader is a maintainer
+rather than the benchmark:
+
+- **The container holds the server, not the tool.** They already have their
+  tool; the payload is what gets isolated, and the proof lands on their host.
+- **The canary is retargeted to `/tmp`.** Payloads hard-code `/canary` because
+  the harness bind-mounts it; on a machine without it the `touch` fails
+  silently and the reader concludes they are not affected.
+
+The README it writes also matches the finding's shape. Only some scenarios
+prove themselves with a command running: others write a file without executing
+anything, escape the output directory to a path that depends on where the tool
+ran, leave nothing but a request count, or simply recover a file that should
+not have been recovered. Telling every reader to watch for a canary that will
+never appear reads as a false report.
+
 That command exists for one audience in particular: a maintainer who has just
 been told their tool is affected and wants to see it for themselves. Running
 the full suite means Docker and seven tool images; reproducing one finding

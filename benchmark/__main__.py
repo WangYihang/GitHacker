@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import shutil
+from pathlib import Path
 
 import coloredlogs
 
@@ -19,6 +20,7 @@ from benchmark.config import (
 from benchmark.docker import build_image, compose_service, get_tool_version
 from benchmark.generate import generate_repo
 from benchmark.models import ScenarioResult
+from benchmark.poc import write_poc
 from benchmark.report import build_report, print_summary, write_report
 from benchmark.repro import print_index, print_repro
 from benchmark.runner import run_tool_scenario
@@ -149,6 +151,13 @@ def main() -> None:
         help='Scenario id (omit to list them all)',
     )
 
+    poc = sub.add_parser(
+        'poc',
+        help='Write a self-contained proof of concept to attach to a disclosure',
+    )
+    poc.add_argument('test_id', help='Scenario id')
+    poc.add_argument('--out', type=Path, help='Directory to create (default: ./poc-<id>)')
+
     args = parser.parse_args()
     setup_logging(verbose=args.verbose)
 
@@ -157,7 +166,10 @@ def main() -> None:
     config.TOOL_TIMEOUT = args.timeout
     config.RANDOM_SEED = args.seed
 
-    if args.command == 'repro':
+    if args.command == 'poc':
+        out = args.out or Path(f'poc-{args.test_id}')
+        logging.info('Wrote %s', write_poc(args.test_id, out))
+    elif args.command == 'repro':
         print_repro(args.test_id) if args.test_id else print_index()
     elif args.command == 'generate':
         cmd_generate(args)

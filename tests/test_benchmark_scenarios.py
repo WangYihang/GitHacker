@@ -306,3 +306,79 @@ def test_repro_rejects_an_unknown_scenario():
 
     with pytest.raises(SystemExit):
         print_repro('Z9_does_not_exist')
+
+
+# ---------------------------------------------------------------------------
+# `benchmark poc` — the self-contained proof attached to a disclosure
+# ---------------------------------------------------------------------------
+
+
+def _poc(test_id, tmp_path):
+    from benchmark.poc import write_poc
+
+    return write_poc(test_id, tmp_path / f'poc-{test_id}')
+
+
+def test_poc_is_self_contained(tmp_path):
+    """It gets attached to a report, so it cannot depend on this repository."""
+    out = _poc('A1_fsmonitor', tmp_path)
+    for name in ('README.md', 'Dockerfile', 'docker-compose.yml', 'evil_server.py'):
+        assert (out / name).exists(), name
+    assert (out / 'payload' / '.git' / 'config').exists()
+
+
+def test_poc_retargets_the_canary_off_slash_canary(tmp_path):
+    """The payloads hard-code /canary because the harness bind-mounts it. On a
+    maintainer's machine that path does not exist, the touch fails silently,
+    and they read the absence as "not affected"."""
+    out = _poc('A1_fsmonitor', tmp_path)
+    config = (out / 'payload' / '.git' / 'config').read_text()
+    assert '/canary/' not in config
+    assert 'touch /tmp/PWNED_A1' in config
+
+
+def test_poc_containerises_the_server_not_the_tool(tmp_path):
+    """The maintainer runs their own tool on their own machine; only the
+    malicious server is isolated."""
+    dockerfile = (_poc('A1_fsmonitor', tmp_path) / 'Dockerfile').read_text()
+    assert 'evil_server.py' in dockerfile
+    assert 'git-dumper' not in dockerfile
+
+
+def test_poc_claims_execution_only_where_something_executes(tmp_path):
+    """A1 runs a command. B1 does not — git writes the file. Describing both
+    as command execution is the kind of overstatement that gets a report
+    dismissed."""
+    a1 = (_poc('A1_fsmonitor', tmp_path) / 'README.md').read_text()
+    b1 = (_poc('B1_index_traversal', tmp_path) / 'README.md').read_text()
+    assert 'executed' in a1
+    assert 'Nothing in the payload is a command' in b1
+    assert 'executed an attacker-chosen command' not in b1
+
+
+def test_poc_does_not_send_escaping_payloads_to_a_fixed_path(tmp_path):
+    """B1's write lands relative to wherever the tool ran, so a README naming
+    /tmp/PWNED_B1 would send the reader to an empty path."""
+    readme = (_poc('B1_index_traversal', tmp_path) / 'README.md').read_text()
+    assert 'find ' in readme
+    assert 'ls -l /tmp/PWNED_B1' not in readme
+
+
+def test_poc_for_a_recursion_finding_points_at_the_request_count(tmp_path):
+    """C6 leaves no file at all. Telling the reader to look for one reads as a
+    false report."""
+    readme = (_poc('C6_infinite_listing', tmp_path) / 'README.md').read_text()
+    assert 'no file to look for' in readme
+
+
+def test_poc_for_a_redirect_finding_asks_for_a_listener(tmp_path):
+    readme = (_poc('C3_redirect_ssrf', tmp_path) / 'README.md').read_text()
+    assert 'listener' in readme
+
+
+def test_poc_refuses_to_overwrite(tmp_path):
+    from benchmark.poc import write_poc
+
+    write_poc('A1_fsmonitor', tmp_path / 'dup')
+    with pytest.raises(SystemExit):
+        write_poc('A1_fsmonitor', tmp_path / 'dup')
