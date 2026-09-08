@@ -108,6 +108,7 @@ Run the full benchmark / security harnesses (needs Docker):
 ```bash
 python -m benchmark run        # 7 tools × 6 web-server scenarios
 python -m benchmark security   # adversarial corpus
+python -m benchmark repro <id> # reproduce one corpus scenario locally, no Docker
 ```
 
 Both write JSON into `docs/public/data/`; the docs site picks them up

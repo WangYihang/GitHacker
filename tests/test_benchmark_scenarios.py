@@ -229,3 +229,80 @@ def test_default_oracle_still_fails_on_a_canary(tmp_path):
     (tmp_path / 'PWNED_A1').write_text('x')
     verdict, _ = security._default_oracle('A1_fsmonitor')(tmp_path, tmp_path, None)
     assert verdict is Verdict.FAIL
+
+
+# ---------------------------------------------------------------------------
+# `benchmark repro` — the local reproduction steps handed to maintainers
+# ---------------------------------------------------------------------------
+
+
+def _repro(test_id, capsys):
+    from benchmark.repro import print_repro
+
+    print_repro(test_id)
+    return capsys.readouterr().out
+
+
+def test_repro_covers_every_registered_scenario(capsys):
+    """Generated from meta.toml, so a new scenario is documented the moment it
+    is registered — and a scenario the printer cannot describe is a bug, not a
+    silently missing page."""
+    for meta in security.discover_tests():
+        out = _repro(meta.id, capsys)
+        assert meta.id in out
+        assert 'evil_server.py' in out
+
+
+def test_repro_names_the_server_mode_the_scenario_actually_needs(capsys):
+    """The steps must not drift from the harness: a redirect scenario served
+    as a static one reproduces nothing."""
+    assert '--mode infinite' in _repro('C6_infinite_listing', capsys)
+    assert '--mode redirect' in _repro('C3_redirect_ssrf', capsys)
+    assert '--mode static' in _repro('A1_fsmonitor', capsys)
+
+
+def test_repro_tells_the_reader_to_create_the_canary_directory(capsys):
+    """The payloads hard-code /canary because the harness bind-mounts it.
+    Without this step the touch fails, nothing appears, and a maintainer reads
+    that as "not affected" — verified the hard way while writing this."""
+    out = _repro('A1_fsmonitor', capsys)
+    assert '/canary' in out
+    assert 'mkdir' in out
+
+
+def test_repro_describes_escaping_payloads_differently(capsys):
+    """B1 does not write to /canary at all — it escapes the output directory,
+    and where it lands is the finding. Telling the reader to watch /canary
+    would have them watch the wrong place."""
+    out = _repro('B1_index_traversal', capsys)
+    assert 'outside ./out' in out
+    assert 'find ' in out
+
+
+def test_repro_surfaces_the_recorded_findings(capsys):
+    """A disclosure email should be able to cite the steps and the ID together."""
+    out = _repro('A1_fsmonitor', capsys)
+    assert 'DIS-2026-002' in out
+    assert 'git-dumper' in out
+
+
+def test_repro_states_that_nothing_is_hosted(capsys):
+    """The corpus is deliberately local; the printed steps say so, because the
+    steps are what gets pasted into an issue."""
+    assert 'not hosted' in _repro('A1_fsmonitor', capsys)
+
+
+def test_repro_index_lists_all_scenarios(capsys):
+    from benchmark.repro import print_index
+
+    print_index()
+    out = capsys.readouterr().out
+    for meta in security.discover_tests():
+        assert meta.id in out
+
+
+def test_repro_rejects_an_unknown_scenario():
+    from benchmark.repro import print_repro
+
+    with pytest.raises(SystemExit):
+        print_repro('Z9_does_not_exist')

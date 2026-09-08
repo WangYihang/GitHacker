@@ -20,6 +20,7 @@ from benchmark.docker import build_image, compose_service, get_tool_version
 from benchmark.generate import generate_repo
 from benchmark.models import ScenarioResult
 from benchmark.report import build_report, print_summary, write_report
+from benchmark.repro import print_index, print_repro
 from benchmark.runner import run_tool_scenario
 
 
@@ -138,6 +139,16 @@ def main() -> None:
     sec.add_argument('--tests', help='Comma-separated test IDs to run (default: all)')
     sec.add_argument('--category', help='Filter by category (RCE, AFW, Info, CVE)')
 
+    rep = sub.add_parser(
+        'repro',
+        help='Print how to reproduce one security scenario locally, without Docker',
+    )
+    rep.add_argument(
+        'test_id',
+        nargs='?',
+        help='Scenario id (omit to list them all)',
+    )
+
     args = parser.parse_args()
     setup_logging(verbose=args.verbose)
 
@@ -146,7 +157,9 @@ def main() -> None:
     config.TOOL_TIMEOUT = args.timeout
     config.RANDOM_SEED = args.seed
 
-    if args.command == 'generate':
+    if args.command == 'repro':
+        print_repro(args.test_id) if args.test_id else print_index()
+    elif args.command == 'generate':
         cmd_generate(args)
     elif args.command == 'security':
         cmd_security(args)
