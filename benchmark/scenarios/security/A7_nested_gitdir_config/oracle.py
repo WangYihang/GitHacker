@@ -1,12 +1,15 @@
-"""Oracle for A7: an executable file recovered inside a nested GIT_DIR.
+"""Oracle for A7: a would-be executable file recovered inside a nested GIT_DIR.
 
-``.git/modules/<name>/`` is a real GIT_DIR. A config or hook recovered there
-runs as soon as git operates on that submodule, so downloading one is the
-same failure A1 measures — it just does not fire during the benchmark run,
-because nothing here enters the submodule.
+``.git/modules/<name>/`` is a real GIT_DIR, and git does honour its config —
+plain ``git status`` in the *outer* repository fires a ``core.fsmonitor`` set
+there, provided the submodule is wired up (a working tree plus a ``.git``
+gitfile pointing at it).
 
-FAIL if the tool wrote either the nested config carrying an executable
-directive, or anything under a nested ``hooks/``.
+A recovered tree has none of that, so the payload does not run: verified by
+running ``git status`` against the recovered repository, where nothing fires.
+What this measures is therefore the *write*, not execution — the tool put a
+file git would execute into the operator's directory, past a policy that
+exists to stop exactly that. FAIL means the file is there, not that it ran.
 """
 
 from __future__ import annotations
@@ -34,7 +37,7 @@ def check(output_dir: Path, canary_dir: Path, proc):
             continue
 
         if Path(rel).parent.name == 'hooks':
-            return Verdict.FAIL, f'downloaded {rel}: an executable hook in a nested GIT_DIR'
+            return Verdict.FAIL, f'downloaded {rel}: a hook in a nested GIT_DIR'
 
         if Path(rel).name == 'config':
             try:
@@ -45,7 +48,7 @@ def check(output_dir: Path, canary_dir: Path, proc):
             if match:
                 return Verdict.FAIL, (
                     f'downloaded {rel} carrying core.{match.group(1)}: a nested '
-                    f'GIT_DIR config git executes like the top-level one'
+                    f'GIT_DIR config, executable once the submodule is wired up'
                 )
     if not any(p.is_file() for p in output_dir.rglob('*')):
         return Verdict.ERROR, (

@@ -35,12 +35,15 @@ def _oracle(test_id: str):
 @pytest.mark.parametrize(
     'test_id,category,mode',
     [
-        ('A7_nested_gitdir_config', 'RCE', 'static'),
+        ('A7_nested_gitdir_config', 'Info', 'static'),
         ('C5_offtree_crawl', 'Info', 'static'),
         ('C6_infinite_listing', 'DoS', 'infinite'),
     ],
 )
 def test_scenario_is_registered(test_id, category, mode):
+    """A7 is deliberately Info, not RCE: it demonstrates that the tool wrote a
+    file git would execute, not that anything executed. The recovered tree has
+    no wired-up submodule, and `git status` against it fires nothing."""
     metas = security.discover_tests(filter_ids=[test_id])
     assert len(metas) == 1
     assert metas[0].category == category

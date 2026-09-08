@@ -1,5 +1,5 @@
-category = "RCE"
+category = "Info"
 severity = "M"
 cve = ""
-description = "A submodule's GIT_DIR (.git/modules/<name>/) carries its own config and hooks, which git executes exactly like the top-level ones; a dangerous-file denylist that only recognises a .git component directly above the file lets both through, and any tool that leaves them in the operator's output directory arms them for the next git command run inside that submodule"
+description = "A submodule's GIT_DIR (.git/modules/<name>/) carries its own config and hooks. A pillager that filters .git/config but not the nested one writes an executable directive into the operator's output directory. This scenario demonstrates the write, not execution: git only reads that config once the submodule is wired up (working tree plus a .git gitfile), which a recovered tree does not have — verified by running git status against the recovered repository, where the payload does not fire. Treat it as a latent hazard and a policy gap, not a proven RCE."
 server_mode = "static"

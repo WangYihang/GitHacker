@@ -91,8 +91,10 @@ def test_lowercase_config_is_refused(hacker):
 
 
 # ---------------------------------------------------------------------------
-# Nested git dirs. A submodule's GIT_DIR is .git/modules/<name>, and git reads
-# its config and runs its hooks just like the top-level one.
+# Nested git dirs. A submodule's GIT_DIR is .git/modules/<name>. git reads its
+# config and runs its hooks just like the top-level one — plain `git status` in
+# the outer repository is enough — but only once the submodule is wired up, so
+# a file recovered there is a latent hazard rather than immediate execution.
 # ---------------------------------------------------------------------------
 
 
